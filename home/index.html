@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Modern Dark Theme</title>
+        <style>
+            :root {
+                --primary: #2a2a2a;
+                --accent: #00ff95;
+                --text: #ffffff;
+                --hover: #ff3366;
+                --nav-bg: rgba(26, 26, 26, 0.95);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background-color: var(--primary);
+                color: var(--text);
+                font-family: "Segoe UI", sans-serif;
+            }
+
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.5rem;
+                background: rgba(26, 26, 26, 0.98);
+                position: fixed;
+                width: 100%;
+                top: 0;
+                z-index: 1000;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+            }
+
+            .header:hover {
+                box-shadow: 0 4px 30px rgba(0, 255, 149, 0.1);
+                border-bottom: 1px solid rgba(0, 255, 149, 0.1);
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 2px solid var(--accent);
+                transition: transform 0.3s ease;
+            }
+
+            .logo:hover {
+                transform: scale(1.1);
+            }
+
+            .logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            @media (max-width: 768px) {
+                .header {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .nav {
+                    position: static;
+                    transform: none;
+                    width: 100%;
+                    border-radius: 15px;
+                }
+
+                .nav ul {
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 1rem;
+                }
+
+                .logo {
+                    width: 60px;
+                    height: 60px;
+                }
+            }
+
+            .main-content {
+                padding-top: 60px;
+                min-height: 100vh;
+            }
+
+            .hero {
+                text-align: left;
+                padding: 2rem;
+                background: #2b2b2b;
+                border-radius: 6px;
+                max-width: 800px;
+                margin: 2rem auto;
+                position: relative;
+                font-family: "Courier New", monospace;
+                border: 1px solid #3f3f3f;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .terminal-bar {
+                background: #3f3f3f;
+                height: 25px;
+                border-radius: 6px 6px 0 0;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                display: flex;
+                align-items: center;
+                padding: 0 8px;
+            }
+
+            .terminal-buttons {
+                display: flex;
+                gap: 6px;
+            }
+
+            .terminal-button {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+            }
+
+            .close {
+                background: #ff5f56;
+            }
+            .minimize {
+                background: #ffbd2e;
+            }
+            .maximize {
+                background: #27c93f;
+            }
+
+            .terminal-content {
+                margin-top: 25px;
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+                color: #00ff95;
+                margin: 0;
+                display: inline;
+                position: relative;
+                font-family: "Courier New", monospace;
+                border-right: 0.15em solid #00ff95;
+                white-space: nowrap;
+                overflow: hidden;
+                animation:
+                    typing 2s steps(12, end),
+                    blink-caret 0.75s step-end infinite;
+            }
+
+            .hero p {
+                color: #888;
+                margin-top: 1rem;
+            }
+
+            @keyframes typing {
+                from {
+                    width: 0;
+                }
+                to {
+                    width: 100%;
+                }
+            }
+
+            @keyframes blink-caret {
+                from, to {
+                    border-color: transparent;
+                }
+                50% {
+                    border-color: #00ff95;
+                }
+            }
+
+            .terminal-prompt::before {
+                content: "$ ";
+                color: #00ff95;
+            }
+
+            .cards-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+                padding: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .card {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 1.5rem;
+                border-radius: 10px;
+                transition: transform 0.3s ease;
+            }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0, 255, 149, 0.1);
+            }
+
+            .text-section {
+                max-width: 800px;
+                margin: 4rem auto;
+                padding: 0 2rem;
+                line-height: 1.6;
+            }
+
+            @media (max-width: 768px) {
+                .hero h1 {
+                    font-size: 2rem;
+                }
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            .scroll-progress {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                background: var(--accent);
+                z-index: 1001;
+                transition: width 0.1s ease;
+            }
+
+            .reveal {
+                opacity: 0; /* Start partially visible */
+                transform: translateX(-50px); /* Start from left */
+                transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                will-change: transform, opacity; /* Optimize performance */
+            }
+
+            .reveal.active {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            .terminal-nav {
+                max-width: 800px;
+                margin: 2rem auto;
+            }
+
+            .terminal-section {
+                margin: 1.5rem 0;
+                font-family: "Courier New", monospace;
+            }
+
+            .command {
+                color: var(--accent);
+                display: block;
+                margin-bottom: 1rem;
+            }
+
+            .output {
+                color: #ccc;
+                white-space: pre;
+                font-family: 'Courier New', monospace;
+                line-height: 1.6;
+                background: rgba(0, 0, 0, 0.2);
+                padding: 1rem;
+                border-radius: 4px;
+                tab-size: 4;
+                -moz-tab-size: 4;
+                -o-tab-size: 4;
+                overflow-x: auto;
+            }
+
+            .nav-prompt {
+                color: #00ff95;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+
+            .nav-options {
+                font-family: "Courier New", monospace;
+                background: rgba(0, 0, 0, 0.2);
+                padding: 0.5rem;
+                border-radius: 4px;
+                display: flex;
+                gap: 1rem;
+            }
+
+            .nav-options a {
+                color: #ccc;
+                text-decoration: none;
+                padding: 0.2rem 0.5rem;
+                border-radius: 3px;
+                transition: all 0.2s ease;
+            }
+
+            .nav-options a:hover {
+                background: var(--accent);
+                color: var(--primary);
+            }
+
+            .nav-options a::before {
+                content: "[";
+                margin-right: 0.2rem;
+                color: #555;
+            }
+
+            .nav-options a::after {
+                content: "]";
+                margin-left: 0.2rem;
+                color: #555;
+            }
+
+            .hide {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <main class="main-content">
+            <section class="hero">
+                <div class="terminal-bar">
+                    <div class="terminal-buttons">
+                        <div class="terminal-button close"></div>
+                        <div class="terminal-button minimize"></div>
+                        <div class="terminal-button maximize"></div>
+                    </div>
+                </div>
+                <div class="terminal-content">
+                    <div class="terminal-prompt">
+                        <h1>Code In Style</h1>
+                    </div>
+                    <p>A modern platform for sharing ideas and experiences</p>
+                    <nav class="terminal-nav">
+                        <span class="nav-prompt">$ ./menu.sh</span>
+                        <span class="nav-prompt">Choose an option:</span>
+                        <div class="nav-options">
+                            <a href="/">1: Home</a>
+                            <a href="https://blog.codeinstyle.io">2: Posts</a>
+                            <a href="/about">3: About</a>
+                        </div>
+                    </nav>
+                    <div class="terminal-section">
+                        <span class="command">$ cat about.txt</span>
+                        <div class="output">
+I'm a self-taught system design architect with
+expertise in building scalable, cloud-native
+systems.
+
+Infrastructure:
+└─ Kubernetes
+└─ Docker
+└─ Terraform
+└─ AWS/GCP/Azure
+
+Observability:
+└─ Prometheus
+└─ Grafana
+└─ OpenTelemetry
+└─ ElasticSearch
+
+CI/CD:
+└─ ArgoCD
+└─ GitOps
+└─ GitHub Actions
+
+Messaging:
+└─ Apache Kafka
+└─ RabbitMQ
+└─ NATS
+
+Databases:
+└─ PostgreSQL
+└─ MongoDB
+└─ Redis
+└─ Cassandra</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+            <section class="text-section">
+                <h2>About this website</h2>
+                <p>
+                    This website was generated using advanced AI tools like GitHub Copilot and GPT-4.
+                    No code was hand-typed; instead, it was prompted and created through intelligent suggestions
+                    and completions provided by these tools.
+                </p>
+                <br>
+                <p>
+                    By leveraging the power of AI, I was able to quickly and efficiently build a modern,
+                    stylish platform for sharing ideas and experiences. The process showcases
+                    the potential of AI in software development, making it easier and faster
+                    to create high-quality web applications.
+                </p>
+            </section>
+
+            <section class="text-section hide">
+                <h2>Featured Projects</h2>
+                <p>
+                    Here are some of the key projects I've worked on throughout
+                    my journey.
+                </p>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>Project Alpha</h3>
+                        <p>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing
+                            elit. Sed do eiusmod tempor incididunt ut labore.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Project Beta</h3>
+                        <p>
+                            Ut enim ad minim veniam, quis nostrud exercitation
+                            ullamco laboris nisi ut aliquip ex ea commodo.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="text-section reveal hide">
+                <h2>Skills & Expertise</h2>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                </p>
+                <p>
+                    Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                    laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+                <p>
+                    Duis aute irure dolor in reprehenderit in voluptate velit
+                    esse cillum dolore eu fugiat nulla pariatur.
+                </p>
+            </section>
+
+            <section class="text-section reveal hide">
+                <h2>Recent Articles</h2>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>Article One</h3>
+                        <p>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing
+                            elit.
+                        </p>
+                        <small>Published: Jan 2024</small>
+                    </div>
+                    <div class="card">
+                        <h3>Article Two</h3>
+                        <p>
+                            Ut enim ad minim veniam, quis nostrud exercitation.
+                        </p>
+                        <small>Published: Feb 2024</small>
+                    </div>
+                    <div class="card">
+                        <h3>Article Three</h3>
+                        <p>
+                            Duis aute irure dolor in reprehenderit in voluptate.
+                        </p>
+                        <small>Published: Mar 2024</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="text-section reveal">
+                <h2>Contact</h2>
+                <p>
+                    Feel free to reach out for collaborations or just to say hi!
+                </p>
+                <p>
+                    Email: samorigorse@gmail.com
+                </p>
+            </section>
+        </main>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                // Create scroll progress bar
+                const progressBar = document.createElement("div");
+                progressBar.className = "scroll-progress";
+                document.body.appendChild(progressBar);
+
+                // Update scroll progress
+                window.addEventListener("scroll", () => {
+                    const windowHeight = window.innerHeight;
+                    const documentHeight = document.documentElement.scrollHeight -
+                        windowHeight;
+                    const scrolled = window.scrollY;
+                    const width = `${(scrolled / documentHeight) * 100}%`;
+                    progressBar.style.width = width;
+
+                    // Reveal elements on scroll
+                    document.querySelectorAll(".reveal").forEach((element) => {
+                        const elementTop = element.getBoundingClientRect().top;
+                        if (elementTop < windowHeight - 100) {
+                            element.classList.add("active");
+                        }
+                    });
+                });
+            });
+            document.addEventListener("DOMContentLoaded", () => {
+                const h1 = document.querySelector(".hero h1");
+                const text = "Code In Style";
+                h1.textContent = "";
+
+                let charIndex = 0;
+                function typeText() {
+                    if (charIndex < text.length) {
+                        h1.textContent += text.charAt(charIndex);
+                        charIndex++;
+                        setTimeout(typeText, 150); // Adjust speed by changing timeout
+                    }
+                }
+
+                typeText();
+            });
+        </script>
+    </body>
+</html>
