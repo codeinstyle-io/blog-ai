@@ -1,0 +1,20 @@
+---
+- name: Uninstall MicroK8s and additional components
+  hosts: all
+  become: yes
+  tasks:
+    - name: Stop MicroK8s
+      command: microk8s stop
+
+    - name: Remove MicroK8s
+      command: snap remove microk8s
+
+    - name: Remove leftover directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /var/snap/microk8s
+        - /var/lib/microk8s
+        - /var/run/microk8s
+        - /var/log/microk8s

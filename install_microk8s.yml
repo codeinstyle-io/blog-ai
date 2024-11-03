@@ -2,6 +2,9 @@
 - name: Install MicroK8s and additional components
   hosts: all
   become: yes
+  vars:
+    domain: "codeinstyle.io"
   roles:
       - role: microk8s
-      # - role: external_dns
+      - role: argocd
+      - role: external_dns
