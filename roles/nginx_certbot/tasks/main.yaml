@@ -1,0 +1,54 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Install Certbot
+  apt:
+    name: certbot
+    state: present
+
+- name: Install python3-certbot-nginx
+  apt:
+    name: python3-certbot-nginx
+    state: present
+
+- name: Copy Nginx configuration for blog.codeinstyle.io
+  template:
+    src: blog.codeinstyle.io.conf.j2
+    dest: /etc/nginx/sites-available/blog.codeinstyle.io
+  notify:
+    - Reload Nginx
+
+- name: Copy Nginx configuration for codeinstyle.io
+  template:
+    src: codeinstyle.io.conf.j2
+    dest: /etc/nginx/sites-available/codeinstyle.io
+  notify:
+    - Reload Nginx
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Enable blog.codeinstyle.io site
+  file:
+    src: /etc/nginx/sites-available/blog.codeinstyle.io
+    dest: /etc/nginx/sites-enabled/blog.codeinstyle.io
+    state: link
+
+- name: Enable codeinstyle.io site
+  file:
+    src: /etc/nginx/sites-available/codeinstyle.io
+    dest: /etc/nginx/sites-enabled/codeinstyle.io
+    state: link
+
+- name: Obtain SSL certificates
+  command: certbot --nginx -d blog.codeinstyle.io -d codeinstyle.io --non-interactive --agree-tos --email samorigorse@gmail.com
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded

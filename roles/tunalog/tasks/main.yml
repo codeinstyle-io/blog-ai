@@ -1,0 +1,45 @@
+---
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0755'
+  loop:
+    - /home/{{ ansible_user }}/bin
+    - /home/{{ ansible_user }}/workspace
+
+- name: Download tunalog binary
+  get_url:
+    url: https://github.com/caris-events/tunalog/releases/latest/download/tunalog_linux_x64
+    dest: /home/{{ ansible_user }}/bin/tunalog
+    mode: '0755'
+
+- name: Create tunalog systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=Tunalog Service
+      After=network.target
+
+      [Service]
+      ExecStart=/home/{{ ansible_user }}/bin/tunalog
+      WorkingDirectory=/home/{{ ansible_user }}/workspace
+      Restart=always
+      User={{ ansible_user }}
+      Group={{ ansible_user }}
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/tunalog.service
+    mode: '0644'
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and start tunalog service
+  systemd:
+    name: tunalog
+    enabled: yes
+    state: started

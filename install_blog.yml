@@ -1,0 +1,7 @@
+---
+- name: Install Nginx, Certbot and Tunalog
+  hosts: all
+  become: yes
+  roles:
+    - role: nginx_certbot
+    - role: tunalog
