@@ -1,0 +1,422 @@
+/* Variables */
+:root {
+    --primary: #2a2a2a;
+    --accent: #00ff95;
+    --text: #ffffff;
+    --hover: #ff3366;
+    --nav-bg: rgba(26, 26, 26, 0.95);
+}
+
+/* Reset Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Import Google Fonts for better readability */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+/* Global Styles */
+body {
+    background-color: var(--primary);
+    color: #e0e0e0; /* Slightly lighter text color */
+    font-family: 'Playfair Display', serif; /* Update to a modern serif font */
+    line-height: 1.6;
+    font-size: 20px;
+}
+
+/* Main Styles */
+.header {
+    display: flex;
+    justify-content: center; /* Center the navigation */
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--primary);
+    position: relative; /* Change to relative to blend with content */
+    box-shadow: none; /* Remove shadow to eliminate split */
+}
+
+
+/* Navigation Styles */
+.nav {
+    display: flex;
+    justify-content: center;
+}
+
+.nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.nav ul li {
+    position: relative;
+}
+
+.nav a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.nav a::after {
+    content: '';
+    position: absolute;
+    width: 0%;
+    height: 2px;
+    background: var(--accent);
+    left: 50%;
+    bottom: 0;
+    transition: all 0.3s ease;
+}
+
+.nav a:hover::after {
+    left: 25%;
+    width: 50%;
+}
+
+.nav a:hover {
+    color: var(--accent);
+}
+
+.main-content {
+    padding-top: 0; /* Remove extra padding since header is not fixed */
+    min-height: 100vh;
+}
+
+.hero {
+    text-align: left;
+    padding: 2rem;
+    background: #2b2b2b;
+    border-radius: 6px;
+    max-width: 800px;
+    margin: 2rem auto;
+    position: relative;
+    font-family: "Courier New", monospace;
+    border: 1px solid #3f3f3f;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.terminal-bar {
+    background: #3f3f3f;
+    height: 25px;
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.terminal-button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.terminal-content {
+    margin-top: 25px;
+    padding: 1rem;
+    font-size: .9rem;
+}
+
+
+.close {
+    background: #ff5f56;
+}
+.minimize {
+    background: #ffbd2e;
+}
+.maximize {
+    background: #27c93f;
+}
+
+.hero h1 {
+    font-size: 2rem;
+    color: #00ff95;
+    margin: 0;
+    display: inline;
+    position: relative;
+    font-family: "Courier New", monospace;
+    border-right: 0.15em solid #00ff95;
+    white-space: nowrap;
+    overflow: hidden;
+    animation:
+        typing 2s steps(12, end),
+        blink-caret 0.75s step-end infinite;
+}
+
+.hero p {
+    color: #888;
+    margin-top: 1rem;
+}
+
+.terminal-prompt::before {
+    content: "$ ";
+    color: #00ff95;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 255, 149, 0.1);
+}
+
+.text-section {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    line-height: 1.6;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--accent);
+    z-index: 1001;
+    transition: width 0.1s ease;
+}
+
+.reveal {
+    opacity: 0; /* Start partially visible */
+    transform: translateX(-50px); /* Start from left */
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity; /* Optimize performance */
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.terminal-nav {
+    display: none;
+}
+
+.terminal-section {
+    margin: 1.5rem 0;
+    font-family: "Courier New", monospace;
+}
+
+.command {
+    color: var(--accent);
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.output {
+    color: #ccc;
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 4px;
+    tab-size: 4;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    overflow-x: auto;
+}
+
+.progress-bar {
+    display: inline-block;
+    flex-grow: 1;
+}
+
+.nav-prompt {
+    color: #00ff95;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.nav-options {
+    font-family: "Courier New", monospace;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-options a {
+    color: #ccc;
+    text-decoration: none;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.nav-options a:hover {
+    background: var(--accent);
+    color: var(--primary);
+}
+
+.nav-options a::before {
+    content: "[";
+    margin-right: 0.2rem;
+    color: #555;
+}
+
+.nav-options a::after {
+    content: "]";
+    margin-left: 0.2rem;
+    color: #555;
+}
+
+.hide {
+    display: none;
+}
+
+.link {
+    color: var(--accent);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.link::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--accent);
+    visibility: hidden;
+    transform: scaleX(0);
+    transition: all 0.3s ease-in-out;
+}
+
+.link:hover::before {
+    visibility: visible;
+    transform: scaleX(1);
+}
+
+.link:hover {
+    color: var(--hover);
+}
+
+.link:hover::after {
+    content: "✨";
+    position: absolute;
+    right: -20px;
+    top: 0;
+    animation: sparkle 0.5s ease-in-out;
+}
+
+.tech-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    margin-left: 20px; /* Shift to the right */
+}
+
+.tech-name {
+    position: relative;
+    flex-shrink: 0;
+    width: 150px; /* Adjust width for mobile compatibility */
+    margin-right: 10px;
+}
+
+.tech-name::before {
+    content: "└─ ";
+    position: absolute;
+    left: -20px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .nav {
+        position: static;
+        transform: none;
+        width: 100%;
+        border-radius: 15px;
+    }
+
+    .nav ul {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Keyframes */
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: #00ff95;
+    }
+}
+
+@keyframes sparkle {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0);
+    }
+}
