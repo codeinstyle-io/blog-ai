@@ -1,3 +1,6 @@
+/* Import Google Fonts for better readability */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
 /* Variables */
 :root {
     --primary: #2a2a2a;
@@ -13,9 +16,6 @@
     padding: 0;
     box-sizing: border-box;
 }
-
-/* Import Google Fonts for better readability */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
 
 /* Global Styles */
 body {
@@ -353,6 +353,35 @@ html {
     content: "└─ ";
     position: absolute;
     left: -20px;
+}
+
+/* Progress Bar Styles */
+.progress-bar-container {
+    width: calc(100% - 50px); /* Make room for percentage */
+    background-color: #444;
+    border-radius: 3px;
+    overflow: visible; /* Allow percentage to overflow */
+    height: 12px; /* Reduced height */
+    margin-left: 20px;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--accent);
+    width: 0%;
+    transition: width 0.6s ease-in-out;
+    position: relative;
+}
+
+.progress-bar-percentage {
+    position: absolute;
+    right: -45px; /* Position outside the bar */
+    top: -2px;
+    color: var(--accent); /* Match terminal accent color */
+    font-family: "Courier New", monospace; /* Match terminal font */
+    font-size: 0.8rem;
+    min-width: 40px; /* Ensure consistent width */
 }
 
 /* Media Queries */

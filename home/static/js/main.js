@@ -1,50 +1,114 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // Create scroll progress bar
-    const progressBar = document.createElement("div");
-    progressBar.className = "scroll-progress";
-    document.body.appendChild(progressBar);
+(function() {
 
-    // Update scroll progress
-    window.addEventListener("scroll", () => {
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight -
-            windowHeight;
-        const scrolled = window.scrollY;
-        const width = `${(scrolled / documentHeight) * 100}%`;
-        progressBar.style.width = width;
+    function displayProgressBar() {
+        // Create scroll progress bar
+        const progressBar = document.createElement("div");
+        progressBar.className = "scroll-progress";
+        document.body.appendChild(progressBar);
 
-        // Reveal elements on scroll
-        document.querySelectorAll(".reveal").forEach((element) => {
-            const elementTop = element.getBoundingClientRect().top;
-            if (elementTop < windowHeight - 100) {
-                element.classList.add("active");
-            }
+        // Update scroll progress
+        window.addEventListener("scroll", () => {
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight -
+                windowHeight;
+            const scrolled = window.scrollY;
+            const width = `${(scrolled / documentHeight) * 100}%`;
+            progressBar.style.width = width;
+
+            // Reveal elements on scroll
+            document.querySelectorAll(".reveal").forEach((element) => {
+                const elementTop = element.getBoundingClientRect().top;
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add("active");
+                }
+            });
         });
-    });
-
-    // Assign random progress values to progress bars
-    document.querySelectorAll(".progress-bar").forEach((bar) => {
-        const randomValue = Math.floor(Math.random() * 41) + 60; // Random value between 60 and 100
-        const progressBarLength = 20; // Length of the progress bar
-        const filledLength = Math.round((randomValue / 100) * progressBarLength);
-        const emptyLength = progressBarLength - filledLength;
-        bar.textContent = `[${'█'.repeat(filledLength)}${' '.repeat(emptyLength)}] ${randomValue}%`;
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const h1 = document.querySelector(".hero h1");
-    const text = "Code In Style";
-    h1.textContent = "";
-
-    let charIndex = 0;
-    function typeText() {
-        if (charIndex < text.length) {
-            h1.textContent += text.charAt(charIndex);
-            charIndex++;
-            setTimeout(typeText, 150); // Adjust speed by changing timeout
-        }
     }
 
-    typeText();
-});
+    function displaySkills() {
+        // Only execute skills-related code if the container exists
+        const skillsContainer = document.getElementById('skills-container');
+        if (!skillsContainer) {
+            return
+        }
+
+        // Fetch skills data from skills.json
+        fetch('/skills')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(section => {
+                    // Create section element
+                    const sectionElement = document.createElement('section');
+                    const sectionTitle = document.createElement('p');
+                    sectionTitle.textContent = section.section + ':';
+                    sectionElement.appendChild(sectionTitle);
+
+                    // Create skills
+                    section.skills.forEach(skill => {
+                        const techItem = document.createElement('div');
+                        techItem.classList.add('tech-item');
+
+                        const techName = document.createElement('div');
+                        techName.classList.add('tech-name');
+                        techName.textContent = skill.name;
+                        techItem.appendChild(techName);
+
+                        const progressBarContainer = document.createElement('div');
+                        progressBarContainer.classList.add('progress-bar-container');
+
+                        const progressBarFill = document.createElement('div');
+                        progressBarFill.classList.add('progress-bar-fill');
+                        progressBarFill.style.width = '0%';
+
+                        const percentageLabel = document.createElement('span');
+                        percentageLabel.classList.add('progress-bar-percentage');
+                        percentageLabel.textContent = skill.value + '%';
+                        progressBarContainer.appendChild(progressBarFill);
+                        progressBarContainer.appendChild(percentageLabel);
+                        
+                        techItem.appendChild(progressBarContainer);
+                        sectionElement.appendChild(techItem);
+
+                        setTimeout(() => {
+                            progressBarFill.style.width = skill.value + '%';
+                        }, 100);
+                    });
+
+                    skillsContainer.appendChild(sectionElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching skills data:', error);
+            });
+    }
+
+    function typeTitle() {
+        const h1 = document.querySelector(".hero h1");
+
+        if(!h1) {
+            return;
+        }
+
+        const text = "Code In Style";
+        h1.textContent = "";
+
+        let charIndex = 0;
+        function typeText() {
+            if (charIndex < text.length) {
+                h1.textContent += text.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeText, 150); // Adjust speed by changing timeout
+            }
+        }
+
+        typeText();
+    }
+
+    displayProgressBar();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        displaySkills();
+        typeTitle();
+    });
+
+}());
