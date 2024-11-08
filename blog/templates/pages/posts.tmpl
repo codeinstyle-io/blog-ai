@@ -6,6 +6,12 @@
             <article>
                 <h3><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h3>
                 <div class="content">{{ .Content }}</div>
+                <p>Published on: {{ .PublishedAt.Format "January 2, 2006" }}</p>
+                <div class="tags">
+                    {{ range .Tags }}
+                        <span>{{ .Name }}</span>
+                    {{ end }}
+                </div>
             </article>
         {{ end }}
     </section>

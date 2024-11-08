@@ -1,8 +1,2 @@
-- [ ] Fix progress bars
-- [ ] Fix links color
 - [ ] Add create post route
 - [ ] Add edit post route
-- [ ] Transform text as markdown
-- [ ] Add published_at field and only show posts that have a published_at >= now
-- [ ] Add visible field
-- [ ] Display tags list

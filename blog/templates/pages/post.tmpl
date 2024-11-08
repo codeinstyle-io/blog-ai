@@ -2,6 +2,12 @@
 <main class="main-content">
     <section class="text-section centered-container">
         <h1>{{ .post.Title }}</h1>
+        <p>Published on: {{ .post.PublishedAt.Format "January 2, 2006" }}</p>
+        <div class="tags">
+            {{ range .post.Tags }}
+                <span>{{ .Name }}</span>
+            {{ end }}
+        </div>
         <div class="content">
             {{ .post.Content }}
         </div>

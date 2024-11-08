@@ -53,7 +53,7 @@ func main() {
 			return
 		}
 		c.HTML(http.StatusOK, "posts.tmpl", gin.H{
-			"title": "Latest Posts",
+			"title": "Latest articles",
 			"posts": posts,
 		})
 	})
@@ -61,6 +61,7 @@ func main() {
 	r.GET("/posts/:slug", func(c *gin.Context) {
 		slug := c.Param("slug")
 		post, err := db.GetPostBySlug(database, slug)
+
 		if err != nil {
 			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
 				"title": "Post not found",
@@ -75,6 +76,7 @@ func main() {
 
 	r.GET("/skills", func(c *gin.Context) {
 		skills, err := getSkills()
+
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read skills data"})
 			return
@@ -88,6 +90,56 @@ func main() {
 
 	r.GET("/about", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "about.tmpl", gin.H{})
+	})
+
+	// New routes for creating and editing posts
+	r.GET("/posts/create", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "create_post.tmpl", gin.H{})
+	})
+
+	r.GET("/posts/edit/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		var post db.Post
+		if err := database.First(&post, id).Error; err != nil {
+			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
+				"title": "Post not found",
+			})
+			return
+		}
+		c.HTML(http.StatusOK, "edit_post.tmpl", gin.H{
+			"post": post,
+		})
+	})
+
+	r.POST("/posts", func(c *gin.Context) {
+		var post db.Post
+		if err := c.ShouldBindJSON(&post); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := database.Create(&post).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
+			return
+		}
+		c.JSON(http.StatusOK, post)
+	})
+
+	r.PUT("/posts/:id", func(c *gin.Context) {
+		var post db.Post
+		id := c.Param("id")
+		if err := database.First(&post, id).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+			return
+		}
+		if err := c.ShouldBindJSON(&post); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if err := database.Save(&post).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+			return
+		}
+		c.JSON(http.StatusOK, post)
 	})
 
 	fmt.Println("Server running on http://localhost:8080")
