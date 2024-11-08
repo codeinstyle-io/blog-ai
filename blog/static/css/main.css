@@ -108,6 +108,11 @@ body {
     display: none;
 }
 
+.logo {
+    margin: 0 auto;
+    max-width: 600px;
+}
+
 .lighter-text {
     color: var(--lighter-text);
 }
@@ -369,17 +374,19 @@ ul li {
 .progress-bar-container {
     width: calc(100% - 50px); /* Make room for percentage */
     background-color: #444;
-    border-radius: 3px;
+    border-radius: 12px;
     overflow: visible; /* Allow percentage to overflow */
     height: 12px; /* Reduced height */
     margin-left: 20px;
     position: relative;
+    width: 67%;
 }
 
 .progress-bar-fill {
     height: 100%;
     background-color: var(--accent);
     width: 0%;
+    border-radius: 12px;
     transition: width 0.6s ease-in-out;
     position: relative;
 }
@@ -394,35 +401,64 @@ ul li {
     min-width: 40px; /* Ensure consistent width */
 }
 
-/* Media Queries */
-@media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
+/* Mobile-specific styles */
+@media (max-width: 600px) {
+    .terminal-output {
+        padding: .5rem;
     }
 
-    .nav {
-        position: static;
-        transform: none;
-        width: 100%;
-        border-radius: 15px;
-    }
-
-    .nav ul {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
+    .type-title {
+        font-size: 2.5rem;
     }
 
     .logo {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 1rem;
+        margin: 0 1.5rem;
     }
 
-    .hero h1 {
-        font-size: 2rem;
+    .separator {
+        margin: 0 auto;
+        width: 80%;
+    }
+
+    .progress-bar-container {
+        width: 50%;
+    }
+
+    /* Improve navigation menu for mobile */
+    .nav ul {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        padding: 0;
+    }
+
+    .header {
+        padding: 1rem 0 0;
+    }
+
+    .nav a {
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .tech-name {
+        width: 6rem;
+    }
+
+    /* Add side margins to .window */
+    .window {
+        margin: 1rem;
+        padding: 0;
+    }
+
+    /* Reduce lateral margins inside container */
+    .window .container {
+        padding: 1rem;
+    }
+
+    /* Adjust spacing in skills section */
+    .skills-section {
+        margin-top: 1rem;
     }
 }
 
