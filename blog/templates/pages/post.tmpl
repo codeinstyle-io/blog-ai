@@ -1,0 +1,8 @@
+{{ template "header.tmpl" . }}
+<article class="post">
+    <h1>{{ .post.Title }}</h1>
+    <div class="content">
+        {{ .post.Content }}
+    </div>
+</article>
+{{ template "footer.tmpl" . }}

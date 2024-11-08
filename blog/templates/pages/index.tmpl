@@ -1,0 +1,71 @@
+{{ template "header.tmpl" . }}
+<main class="main-content">
+    <section class="hero">
+        <div class="terminal-bar">
+            <div class="terminal-buttons">
+                <div class="terminal-button close"></div>
+                <div class="terminal-button minimize"></div>
+                <div class="terminal-button maximize"></div>
+            </div>
+        </div>
+        <div class="terminal-content">
+            <div class="terminal-prompt">
+                <h1>Code In Style</h1>
+            </div>
+            <p>Just rambling about internets things</p>
+            <div class="terminal-section">
+                <span class="command">$ whoami</span>
+                <div class="output">
+                    My name is <strong>Samori Gorse</strong>. I live in France and have a passion for programming, electronics, and motorsports.<br>
+                    I'm a founder, open-source contributor, father, husband, and system design architect.
+                </div>
+            </div>
+            <div class="terminal-section">
+                <span class="command">$ cat skills_expertise.txt</span>
+                <div class="output">
+                    <!-- Placeholder for dynamically generated skills -->
+                    <div id="skills-container"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-section reveal hide">
+        <h2>Recent Articles</h2>
+        <div class="cards-grid">
+            <div class="card">
+                <h3>Article One</h3>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing
+                    elit.
+                </p>
+                <small>Published: Jan 2024</small>
+            </div>
+            <div class="card">
+                <h3>Article Two</h3>
+                <p>
+                    Ut enim ad minim veniam, quis nostrud exercitation.
+                </p>
+                <small>Published: Feb 2024</small>
+            </div>
+            <div class="card">
+                <h3>Article Three</h3>
+                <p>
+                    Duis aute irure dolor in reprehenderit in voluptate.
+                </p>
+                <small>Published: Mar 2024</small>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-section reveal">
+        <h2>Contact</h2>
+        <p>
+            Feel free to reach out for collaborations or just to say hi!
+        </p>
+        <p>
+            Email: <a class="link" href="mailto: samorigorse@gmail.com">Contact</a>
+        </p>
+    </section>
+</main>
+{{ template "footer.tmpl" . }}
