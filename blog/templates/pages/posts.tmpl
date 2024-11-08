@@ -1,10 +1,10 @@
 {{ template "header.tmpl" . }}
 <main class="main-content">
-    <section class="text-section">
-        <h1>{{ .title }}</h1>
+    <section class="text-section centered-container">
+        <h2>{{ .title }}</h2>
         {{ range .posts }}
             <article>
-                <h2><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h2>
+                <h3><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h3>
                 <div class="content">{{ .Content }}</div>
             </article>
         {{ end }}

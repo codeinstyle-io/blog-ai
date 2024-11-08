@@ -1,8 +1,10 @@
 {{ template "header.tmpl" . }}
-<article class="post">
-    <h1>{{ .post.Title }}</h1>
-    <div class="content">
-        {{ .post.Content }}
-    </div>
-</article>
+<main class="main-content">
+    <section class="text-section centered-container">
+        <h1>{{ .post.Title }}</h1>
+        <div class="content">
+            {{ .post.Content }}
+        </div>
+    </section>
+</main>
 {{ template "footer.tmpl" . }}

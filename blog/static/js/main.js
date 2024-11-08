@@ -14,14 +14,6 @@
             const scrolled = window.scrollY;
             const width = `${(scrolled / documentHeight) * 100}%`;
             progressBar.style.width = width;
-
-            // Reveal elements on scroll
-            document.querySelectorAll(".reveal").forEach((element) => {
-                const elementTop = element.getBoundingClientRect().top;
-                if (elementTop < windowHeight - 100) {
-                    element.classList.add("active");
-                }
-            });
         });
     }
 
@@ -83,19 +75,19 @@
     }
 
     function typeTitle() {
-        const h1 = document.querySelector(".hero h1");
+        const h1Span = document.querySelector("h1.type-title span");
 
-        if(!h1) {
+        if(!h1Span) {
             return;
         }
 
         const text = "Code In Style";
-        h1.textContent = "";
+        h1Span.textContent = "";
 
         let charIndex = 0;
         function typeText() {
             if (charIndex < text.length) {
-                h1.textContent += text.charAt(charIndex);
+                h1Span.textContent += text.charAt(charIndex);
                 charIndex++;
                 setTimeout(typeText, 150); // Adjust speed by changing timeout
             }
