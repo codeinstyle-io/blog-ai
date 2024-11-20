@@ -8,7 +8,9 @@ import (
 	"os"
 
 	"codeinstyle.io/blog/db"
+	"codeinstyle.io/blog/middleware"
 	"codeinstyle.io/blog/types"
+	"codeinstyle.io/blog/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,6 +41,89 @@ func main() {
 	r.LoadHTMLGlob("templates/**/*")
 	r.Static("/static", "static")
 
+	// Public routes
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
+	})
+
+	r.POST("/login", func(c *gin.Context) {
+		email := c.PostForm("email")
+		password := c.PostForm("password")
+
+		user, err := db.GetUserByEmail(database, email)
+		if err != nil || !utils.CheckPasswordHash(password, user.Password) {
+			c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{
+				"error": "Invalid credentials",
+			})
+			return
+		}
+
+		if err := db.UpdateUserSessionToken(database, user); err != nil {
+			c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+			return
+		}
+
+		c.SetCookie("session", user.SessionToken, 3600*24, "/", "", false, true)
+		c.Redirect(http.StatusFound, "/")
+	})
+
+	r.GET("/logout", func(c *gin.Context) {
+		c.SetCookie("session", "", -1, "/", "", false, true)
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	// Protected routes
+	authorized := r.Group("/")
+	authorized.Use(middleware.AuthRequired(database))
+	{
+		authorized.GET("/posts/create", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "create_post.tmpl", gin.H{})
+		})
+		authorized.GET("/posts/edit/:id", func(c *gin.Context) {
+			id := c.Param("id")
+			var post db.Post
+			if err := database.First(&post, id).Error; err != nil {
+				c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
+					"title": "Post not found",
+				})
+				return
+			}
+			c.HTML(http.StatusOK, "edit_post.tmpl", gin.H{
+				"post": post,
+			})
+		})
+		authorized.POST("/posts", func(c *gin.Context) {
+			var post db.Post
+			if err := c.ShouldBindJSON(&post); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			if err := database.Create(&post).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
+				return
+			}
+			c.JSON(http.StatusOK, post)
+		})
+		authorized.PUT("/posts/:id", func(c *gin.Context) {
+			var post db.Post
+			id := c.Param("id")
+			if err := database.First(&post, id).Error; err != nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+				return
+			}
+			if err := c.ShouldBindJSON(&post); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			if err := database.Save(&post).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+				return
+			}
+			c.JSON(http.StatusOK, post)
+		})
+	}
+
+	// Public routes
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{})
 	})
@@ -90,56 +175,6 @@ func main() {
 
 	r.GET("/about", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "about.tmpl", gin.H{})
-	})
-
-	// New routes for creating and editing posts
-	r.GET("/posts/create", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "create_post.tmpl", gin.H{})
-	})
-
-	r.GET("/posts/edit/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		var post db.Post
-		if err := database.First(&post, id).Error; err != nil {
-			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
-				"title": "Post not found",
-			})
-			return
-		}
-		c.HTML(http.StatusOK, "edit_post.tmpl", gin.H{
-			"post": post,
-		})
-	})
-
-	r.POST("/posts", func(c *gin.Context) {
-		var post db.Post
-		if err := c.ShouldBindJSON(&post); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := database.Create(&post).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
-			return
-		}
-		c.JSON(http.StatusOK, post)
-	})
-
-	r.PUT("/posts/:id", func(c *gin.Context) {
-		var post db.Post
-		id := c.Param("id")
-		if err := database.First(&post, id).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
-			return
-		}
-		if err := c.ShouldBindJSON(&post); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if err := database.Save(&post).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
-			return
-		}
-		c.JSON(http.StatusOK, post)
 	})
 
 	fmt.Println("Server running on http://localhost:8080")
