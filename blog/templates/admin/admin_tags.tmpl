@@ -1,0 +1,26 @@
+{{ template "admin_header.tmpl" . }}
+<div class="admin-page">
+    <h1>Tags</h1>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Tag Name</th>
+                <th>Posts Count</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .tags}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td>{{.PostCount}}</td>
+                <td class="actions">
+                    <a href="/admin/tags/{{.ID}}/posts" class="btn btn-view">View Posts</a>
+                    <button onclick="deleteTag({{.ID}})" class="btn btn-delete">Delete</button>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+{{ template "admin_footer.tmpl" . }}

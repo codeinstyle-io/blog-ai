@@ -1,5 +1,4 @@
-
-{{ template "header.tmpl" . }}
+{{ template "admin_header.tmpl" . }}
 <main class="main-content">
     <section class="text-section centered-container">
         <h2>Create New Post</h2>
@@ -7,7 +6,7 @@
         <div class="error-message">{{ .error }}</div>
         {{ end }}
         <div class="editor-container">
-            <form id="create-post-form" method="POST" action="/posts">
+            <form id="create-post-form" method="POST" action="/admin/new_post">
                 <div class="form-group">
                     <label for="title">Title:</label>
                     <input type="text" id="title" name="title" class="form-control" required>
@@ -34,10 +33,15 @@
                         <label for="publishedAt">Published At:</label>
                         <input type="datetime-local" id="publishedAt" name="publishedAt" class="form-control" required>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group checkbox-group">
-                        <label for="visible">
-                            <input type="checkbox" id="visible" name="visible">
-                            Visible
+                        <label class="toggle-label">
+                            <span>Visible</span>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="visible" name="visible">
+                                <span class="toggle-slider"></span>
+                            </div>
                         </label>
                     </div>
                 </div>
@@ -46,4 +50,4 @@
         </div>
     </section>
 </main>
-{{ template "footer.tmpl" . }}
+{{ template "admin_footer.tmpl" . }}
