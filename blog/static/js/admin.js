@@ -67,6 +67,113 @@ function initializeEditor() {
     });
 }
 
+// static/js/admin.js - Update tag handling
+function initializeTags() {
+    const tagInput = document.getElementById('tag-input');
+    const tagSuggestions = document.getElementById('tag-suggestions');
+    const selectedTags = document.getElementById('selected-tags');
+    const tagsHidden = document.getElementById('tags-hidden');
+    let existingTags = [];
+    let selectedTagsList = [];
+
+    // Initialize selected tags if editing
+    selectedTags.querySelectorAll('.selected-tag').forEach(tag => {
+        selectedTagsList.push(tag.textContent.trim());
+    });
+    
+    // Fetch existing tags
+    fetch('/admin/api/tags')
+        .then(res => res.json())
+        .then(tags => {
+            existingTags = tags;
+        });
+
+    tagInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = tagInput.value.trim();
+            if (value) {
+                addTag(value);
+            }
+        }
+    });
+
+    tagInput.addEventListener('input', () => {
+        const value = tagInput.value.toLowerCase();
+        if (value.length < 2) {
+            tagSuggestions.style.display = 'none';
+            return;
+        }
+
+        const matches = existingTags.filter(tag => 
+            tag.name.toLowerCase().includes(value)
+        );
+
+        tagSuggestions.innerHTML = matches
+            .map(tag => `<div class="tag-suggestion">${tag.name}</div>`)
+            .join('');
+        tagSuggestions.style.display = matches.length ? 'block' : 'none';
+    });
+
+    tagSuggestions.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tag-suggestion')) {
+            addTag(e.target.textContent);
+        }
+    });
+
+    function addTag(name) {
+        if (!selectedTagsList.includes(name)) {
+            selectedTagsList.push(name);
+            updateTags();
+        }
+        tagInput.value = '';
+        tagSuggestions.style.display = 'none';
+    }
+
+    function updateTags() {
+        selectedTags.innerHTML = selectedTagsList
+            .map(tag => `
+                <span class="selected-tag">
+                    ${tag}
+                    <span class="remove-tag" data-tag="${tag}">&times;</span>
+                </span>
+            `).join('');
+        tagsHidden.value = JSON.stringify(selectedTagsList);
+    }
+
+    selectedTags.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-tag')) {
+            const tag = e.target.dataset.tag;
+            selectedTagsList = selectedTagsList.filter(t => t !== tag);
+            updateTags();
+        }
+    });
+}
+
+function initializeSlugWarning() {
+    const slugInput = document.getElementById('slug');
+    const originalSlug = slugInput.value;
+
+    slugInput.addEventListener('input', () => {
+        if (originalSlug && slugInput.value !== originalSlug) {
+            if (!document.getElementById('slug-warning')) {
+                const warning = document.createElement('div');
+                warning.id = 'slug-warning';
+                warning.className = 'warning-message';
+                warning.textContent = 'Warning: Changing the slug will break existing links to this post';
+                slugInput.parentNode.appendChild(warning);
+            }
+        } else {
+            const warning = document.getElementById('slug-warning');
+            if (warning) {
+                warning.remove();
+            }
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initializeEditor();
+    initializeTags();
+    initializeSlugWarning();
 });

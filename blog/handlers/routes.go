@@ -50,4 +50,7 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB) {
 	admin.GET("/posts", adminHandlers.ListPosts)
 	admin.GET("/posts/:id/delete", adminHandlers.ConfirmDeletePost)
 	admin.DELETE("/posts/:id", adminHandlers.DeletePost)
+	admin.GET("/posts/:id/edit", adminHandlers.EditPost)
+	admin.POST("/posts/:id", adminHandlers.UpdatePost)
+	admin.GET("/api/tags", adminHandlers.GetTags)
 }
