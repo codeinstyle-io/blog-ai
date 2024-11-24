@@ -1,6 +1,21 @@
 - [x] Add create post route
 - [x] Add edit post route
+- [x] Public posts rendering improvements
+- [ ] Make /posts the root and move the rest of the code to another project
+- [ ] Add readme describing the project and mentioning the AI based contribution model
+- [ ] Add tests
+- [ ] Fix mobile admin styles
+- [ ] Default Excerpt to an extract of the content if not Excerpt is defined
+- [ ] Generate a user from cli
+- [ ] Change password from the cli
 - [ ] Backend GHM rendering
 - [ ] GHM rendering cache
-- [ ] Public posts rendering improvements
-- [ ] Fix mobile admin styles
+- [ ] Extract existing styles in a theme and create theme support
+- [ ] Allow title and slogan to be customized
+- [ ] Allow time zone customization
+- [ ] Add user management
+- [ ] Allow author customization by post
+- [ ] I18N
+- [ ] Date format customization
+- [ ] Allow publish date to be set to Immediately
+- [ ] Allow tags creation

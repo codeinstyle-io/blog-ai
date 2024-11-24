@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"text/template"
 
 	"codeinstyle.io/blog/db"
 	"codeinstyle.io/blog/handlers"
@@ -17,8 +18,21 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/**/*")
+	// Serve static files
 	r.Static("/static", "static")
+
+	// Custom template functions
+	r.SetFuncMap(template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"sub": func(a, b int) int {
+			return a - b
+		},
+	})
+
+	// Load templates
+	r.LoadHTMLGlob("templates/**/*")
 
 	// Register all routes
 	handlers.RegisterPublicRoutes(r, database)

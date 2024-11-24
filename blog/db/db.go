@@ -3,10 +3,13 @@ package db
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"log"
+	mathrand "math/rand/v2"
+	"os"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -93,6 +96,42 @@ func UpdateUserSessionToken(db *gorm.DB, user *User) error {
 	return db.Save(user).Error
 }
 
+// Add helper function for random tag selection
+func getRandomTags(tags []Tag, min, max int) []Tag {
+	if len(tags) == 0 {
+		return []Tag{}
+	}
+
+	// Get random count between min and max
+	count := min + mathrand.IntN(max-min+1)
+	if count > len(tags) {
+		count = len(tags)
+	}
+
+	// Shuffle tags
+	shuffled := make([]Tag, len(tags))
+	copy(shuffled, tags)
+	mathrand.Shuffle(len(shuffled), func(i, j int) {
+		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+	})
+
+	return shuffled[:count]
+}
+
+type testData struct {
+	Tags  []string   `json:"tags"`
+	Posts []testPost `json:"posts"`
+}
+
+type testPost struct {
+	Title       string `json:"title"`
+	Slug        string `json:"slug"`
+	Content     string `json:"content"`
+	PublishedAt string `json:"publishedAt"`
+	Visible     bool   `json:"visible"`
+	Excerpt     string `json:"excerpt"`
+}
+
 func InsertTestData(db *gorm.DB) error {
 	var count int64
 	err := db.Model(&Post{}).Count(&count).Error
@@ -101,74 +140,46 @@ func InsertTestData(db *gorm.DB) error {
 	}
 
 	if count == 0 {
-		// Create test user
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		// Read test data
+		data, err := os.ReadFile("data/test_posts.json")
 		if err != nil {
 			return err
 		}
 
-		token, err := generateSessionToken()
-		if err != nil {
-			return err
-		}
-
-		testUser := &User{
-			Email:        "test@example.com",
-			Password:     string(hashedPassword),
-			SessionToken: token,
-		}
-		if err := db.Create(testUser).Error; err != nil {
+		var testData testData
+		if err := json.Unmarshal(data, &testData); err != nil {
 			return err
 		}
 
 		// Create tags
-		tags := []Tag{
-			{Name: "Go"},
-			{Name: "Programming"},
-			{Name: "Tutorial"},
-		}
-		for _, tag := range tags {
-			err := db.FirstOrCreate(&tag, Tag{Name: tag.Name}).Error
-			if err != nil {
+		tags := make([]Tag, len(testData.Tags))
+		for i, name := range testData.Tags {
+			tag := Tag{Name: name}
+			if err := db.FirstOrCreate(&tag, Tag{Name: name}).Error; err != nil {
 				return err
 			}
+			tags[i] = tag
 		}
 
-		// Create test posts with associated tags and excerpts
-		excerpt1 := "This is an excerpt for the first post."
-		testPosts := []Post{
-			{
-				Title:       "First Post",
-				Slug:        "first-post",
-				Content:     "This is the first post.",
-				PublishedAt: time.Now(),
-				Visible:     true,
-				Excerpt:     &excerpt1,
-				Tags:        []Tag{tags[0], tags[1]},
-			},
-			{
-				Title:       "Second Post",
-				Slug:        "second-post",
-				Content:     "This is the second post.",
-				PublishedAt: time.Now(),
-				Visible:     true,
-				// Excerpt is nil; an extract of Content will be used
-				Tags: []Tag{tags[1], tags[2]},
-			},
-			{
-				Title:       "Third Post",
-				Slug:        "third-post",
-				Content:     "This is the third post.",
-				PublishedAt: time.Now(),
-				Visible:     true,
-				Excerpt:     nil, // Excerpt is nil
-				Tags:        []Tag{tags[0], tags[2]},
-			},
-		}
+		// Create posts
+		for _, p := range testData.Posts {
+			// Parse relative date
+			days := 0
+			if n, err := fmt.Sscanf(p.PublishedAt, "-%dd", &days); err != nil || n != 1 {
+				return fmt.Errorf("invalid publishedAt format: %s", p.PublishedAt)
+			}
 
-		for _, post := range testPosts {
-			err := db.Create(&post).Error
-			if err != nil {
+			post := Post{
+				Title:       p.Title,
+				Slug:        p.Slug,
+				Content:     p.Content,
+				PublishedAt: time.Now().AddDate(0, 0, -days),
+				Visible:     p.Visible,
+				Excerpt:     &p.Excerpt,
+				Tags:        getRandomTags(tags, 2, 4),
+			}
+
+			if err := db.Create(&post).Error; err != nil {
 				return err
 			}
 		}

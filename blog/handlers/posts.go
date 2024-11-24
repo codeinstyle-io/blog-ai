@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"math"
 	"net/http"
+	"strconv"
 
 	"codeinstyle.io/blog/db"
 	"github.com/gin-gonic/gin"
@@ -40,16 +42,33 @@ func (h *PostHandlers) GetPostBySlug(c *gin.Context) {
 }
 
 func (h *PostHandlers) ListPosts(c *gin.Context) {
-	posts, err := db.GetPosts(h.db, 5)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
-			"title": "Error",
-		})
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	perPage := 3 // Posts per page
+
+	var total int64
+	h.db.Model(&db.Post{}).Where("visible = ?", true).Count(&total)
+
+	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
+	offset := (page - 1) * perPage
+
+	var posts []db.Post
+	result := h.db.Preload("Tags").
+		Where("visible = ?", true).
+		Order("published_at desc").
+		Offset(offset).
+		Limit(perPage).
+		Find(&posts)
+
+	if result.Error != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
+
 	c.HTML(http.StatusOK, "posts.tmpl", gin.H{
-		"title": "Latest articles",
-		"posts": posts,
+		"title":       "Latest Articles",
+		"posts":       posts,
+		"currentPage": page,
+		"totalPages":  totalPages,
 	})
 }
 

@@ -1,18 +1,35 @@
 {{ template "header.tmpl" . }}
 <main class="main-content">
     <section class="text-section centered-container">
-        <h2>{{ .title }}</h2>
+        <h1 class="latest-articles">Latest Articles</h1>
         {{ range .posts }}
-            <article>
-                <h3><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h3>
-                <div class="content">{{ .Content }}</div>
-                <p>Published on: {{ .PublishedAt.Format "January 2, 2006" }}</p>
-                <div class="tags">
+            <article class="post-item">
+                <div class="post-date">{{ .PublishedAt.Format "January 2006" }}</div>
+                <h2 class="post-title"><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h2>
+                {{ if .Excerpt }}
+                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                {{ end }}
+                <div class="post-tags">
                     {{ range .Tags }}
-                        <span>{{ .Name }}</span>
+                        <span class="post-tag">#{{ .Name }}</span>
                     {{ end }}
                 </div>
             </article>
+            <hr class="post-separator">
+        {{ end }}
+
+        {{ if gt .totalPages 1 }}
+        <div class="pagination">
+            {{ if gt .currentPage 1 }}
+                <a href="?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+            {{ end }}
+
+            <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+
+            {{ if lt .currentPage .totalPages }}
+                <a href="?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+            {{ end }}
+        </div>
         {{ end }}
     </section>
 </main>
