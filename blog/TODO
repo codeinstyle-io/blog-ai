@@ -1,2 +1,6 @@
-- [ ] Add create post route
-- [ ] Add edit post route
+- [x] Add create post route
+- [x] Add edit post route
+- [ ] Backend GHM rendering
+- [ ] GHM rendering cache
+- [ ] Public posts rendering improvements
+- [ ] Fix mobile admin styles

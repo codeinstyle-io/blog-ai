@@ -1,14 +1,11 @@
 {{define "admin_header.tmpl"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{.theme}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - {{.title}}</title>
     <link rel="stylesheet" href="/static/css/admin.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="admin-container">
@@ -19,7 +16,13 @@
                 <li><a href="/admin/posts">Posts</a></li>
                 <li><a href="/admin/tags">Tags</a></li>
                 <li><a href="/admin/users">Users</a></li>
-                <li><a href="/logout" class="logout">Logout</a></li>
+                <li><a href="/admin/logout" class="logout">Logout</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
+                        <span class="light-icon">☀️</span>
+                        <span class="dark-icon">🌙</span>
+                    </button>
+                </li>
             </ul>
         </nav>
         <main class="admin-content">

@@ -18,13 +18,19 @@ func NewAuthHandlers(database *gorm.DB) *AuthHandlers {
 }
 
 func (h *AuthHandlers) Login(c *gin.Context) {
+	returnTo := c.Query("returnTo")
+	if returnTo == "" {
+		returnTo = "/admin"
+	}
+
 	email := c.PostForm("email")
 	password := c.PostForm("password")
 
 	user, err := db.GetUserByEmail(h.db, email)
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		c.HTML(http.StatusUnauthorized, "login.tmpl", gin.H{
-			"error": "Invalid credentials",
+			"error":    "Invalid credentials",
+			"returnTo": returnTo,
 		})
 		return
 	}
@@ -35,10 +41,22 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 	}
 
 	c.SetCookie("session", user.SessionToken, 3600*24, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/")
+
+	// Redirect to original destination
+	c.Redirect(http.StatusFound, returnTo)
 }
 
 func (h *AuthHandlers) Logout(c *gin.Context) {
+	// Clear session cookie
 	c.SetCookie("session", "", -1, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/login")
+
+	// Save theme preference before logout
+	theme, _ := c.Cookie("admin_theme")
+
+	c.Redirect(http.StatusFound, "/")
+
+	// Restore theme after redirect is set
+	if theme != "" {
+		c.SetCookie("admin_theme", theme, 3600*24*365, "/", "", false, false)
+	}
 }

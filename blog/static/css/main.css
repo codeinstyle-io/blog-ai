@@ -401,6 +401,21 @@ ul li {
     min-width: 40px; /* Ensure consistent width */
 }
 
+/* Subtle admin link in footer */
+.footer-admin-link {
+    text-align: center;
+    padding: 1rem;
+    opacity: 0.5;
+}
+
+.subtle-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.subtle-link:hover {
+    opacity: 0.8;
+}
 
 /* Mobile-specific styles */
 @media (max-width: 600px) {

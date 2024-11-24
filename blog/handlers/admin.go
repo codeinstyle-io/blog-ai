@@ -323,13 +323,17 @@ func (h *AdminHandlers) Index(c *gin.Context) {
 	// Get 5 most recent posts
 	h.db.Order("published_at desc").Limit(5).Find(&recentPosts)
 
-	c.HTML(http.StatusOK, "admin_index.tmpl", gin.H{
+	data := gin.H{
 		"title":       "Dashboard",
 		"postCount":   postCount,
 		"tagCount":    tagCount,
 		"userCount":   userCount,
 		"recentPosts": recentPosts,
-	})
+	}
+
+	data = h.addCommonData(c, data)
+
+	c.HTML(http.StatusOK, "admin_index.tmpl", data)
 }
 
 // Add response struct
@@ -356,4 +360,35 @@ func (h *AdminHandlers) GetTags(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, tags)
+}
+
+// handlers/admin.go
+func (h *AdminHandlers) SavePreferences(c *gin.Context) {
+	var prefs struct {
+		Theme string `json:"theme"`
+	}
+
+	if err := c.BindJSON(&prefs); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid preferences"})
+		return
+	}
+
+	// Save theme preference in cookie
+	c.SetCookie("admin_theme", prefs.Theme, 3600*24*365, "/", "", false, false)
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// Add to all admin handlers:
+func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
+	if data == nil {
+		data = gin.H{}
+	}
+
+	theme, _ := c.Cookie("admin_theme")
+	if theme == "" {
+		theme = "light"
+	}
+
+	data["theme"] = theme
+	return data
 }
