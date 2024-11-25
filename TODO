@@ -1,5 +1,5 @@
-- [ ] Generate a user from cli
-- [ ] Change password from the cli
+- [x] Generate a user from cli
+- [x] Change password from the cli
 - [ ] Add tests
 - [ ] Add readme describing the project and mentioning the AI based contribution model
 - [ ] Fix mobile admin styles
