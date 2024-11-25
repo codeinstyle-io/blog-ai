@@ -9,18 +9,24 @@
 - [ ] Default Excerpt to an extract of the content if not Excerpt is defined
 - [ ] Generate a user from cli
 - [ ] Change password from the cli
+- [ ] Add an option to populate the database with test data, don't do it automatically
+- [ ] When no user exist on first startup present a new form
+
 - [ ] v1.0
 - [ ] Backend GHM rendering
 - [ ] GHM rendering cache
 - [ ] Extract existing styles in a theme and create theme support
+
 - [ ] v1.1
 - [ ] Allow publish date to be set to Immediately
 - [ ] Allow tags creation
+
 - [ ] v1.2
 - [ ] Allow title and slogan to be customized
 - [ ] Allow time zone customization
 - [ ] Date format customization
 - [ ] Add user management
 - [ ] Allow author customization by post
+
 - [ ] v1.3
 - [ ] I18N
