@@ -11,7 +11,6 @@ import (
 // RegisterPublicRoutes registers all public routes
 func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB) {
 	postHandlers := NewPostHandlers(database)
-
 	authHandlers := NewAuthHandlers(database) // Add this
 
 	// Auth routes (public)
