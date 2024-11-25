@@ -35,6 +35,7 @@ func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB) {
 	r.GET("/posts", postHandlers.ListPosts)
 	r.GET("/posts/:slug", postHandlers.GetPostBySlug)
 	r.GET("/skills", skillsHandlers.GetSkills)
+	r.GET("/tags/:tag", postHandlers.ListPostsByTag)
 }
 
 // RegisterAdminRoutes registers all admin routes

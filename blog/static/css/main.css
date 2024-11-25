@@ -466,7 +466,12 @@ ul li {
 
 .post-tag {
     color: var(--accent);
-    font-size: 0.9rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.post-tag:hover {
+    opacity: 0.8;
 }
 
 .post-separator {
@@ -474,6 +479,12 @@ ul li {
     height: 1px;
     background: linear-gradient(to right, transparent, var(--lighter-text), transparent);
     margin: 3rem 0;
+}
+
+.tag-title {
+    margin-bottom: 2rem;
+    color: var(--text);
+    font-size: 2rem;
 }
 
 /* Pagination */
