@@ -1,5 +1,12 @@
 # Stage 1: Build the binary
-FROM golang:1.23.2-alpine AS builder
+FROM golang:1.23-bookworm AS builder
+ENV CGO_ENABLED=1
+
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    apt-get install --no-install-recommends --assume-yes \
+      build-essential \
+      libsqlite3-dev
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -16,15 +23,21 @@ COPY . .
 # Build the Go app
 RUN go build -o main .
 
-# Stage 2: Copy the binary to a minimal image
-FROM scratch
+FROM debian:bookworm
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    apt-get install --no-install-recommends --assume-yes \
+      libsqlite3-0
 
-# Copy the binary from the builder stage
+# Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main /main
 
 # Copy the templates and static files
 COPY --from=builder /app/templates /templates
-COPY --from=builder /app/blog/static /blog/static
+COPY --from=builder /app/static /static
+COPY --from=builder /app/data /data
+
+EXPOSE 8080
 
 # Command to run the executable
 ENTRYPOINT ["/main"]
