@@ -43,12 +43,21 @@ func TestGetValidInput(t *testing.T) {
 			os.Stdin = r
 
 			// Write all inputs
+			errCh := make(chan error, 1)
 			go func() {
 				for _, input := range tt.inputs {
-					w.Write([]byte(input))
+					if _, err := w.Write([]byte(input)); err != nil {
+						errCh <- err
+						return
+					}
 				}
 				w.Close()
+				errCh <- nil
 			}()
+
+			if err := <-errCh; err != nil {
+				t.Fatalf("failed to write test input: %v", err)
+			}
 
 			if got := getValidInput("Test: ", tt.validator); got != tt.want {
 				t.Errorf("getValidInput() = %v, want %v", got, tt.want)

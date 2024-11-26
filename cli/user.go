@@ -17,7 +17,10 @@ func getValidInput(prompt string, validator func(string) error) string {
 	for {
 		var input string
 		fmt.Print(prompt)
-		fmt.Scanln(&input)
+		if _, err := fmt.Scanln(&input); err != nil {
+			fmt.Printf("Error: failed to read input: %v. Please try again.\n", err)
+			continue
+		}
 
 		if err := validator(input); err != nil {
 			fmt.Printf("Error: %v. Please try again.\n", err)

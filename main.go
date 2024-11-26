@@ -84,5 +84,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	handlers.RegisterAdminRoutes(r, database)
 
 	fmt.Printf("Server running on http://%s:%d\n", host, port)
-	r.Run(fmt.Sprintf("%s:%d", host, port))
+	if err := r.Run(fmt.Sprintf("%s:%d", host, port)); err != nil {
+		log.Fatalf("failed to start server: %v", err)
+	}
 }
