@@ -3,32 +3,33 @@
 - [X] Do not display the password in plain text
 - [X] Do not exit the create-user until the password satisfies the rules
 - [X] Add tests
-- [ ] Ignore coverage ouput
+- [X] Ignore coverage ouput
+- [ ] Add readme describing the project and mentioning the AI based contribution model
+
+
 - [ ] Create CI github actions (+ coverage)
 - [ ] Configure database path from env
 - [ ] Configure gorm log level from env
 - [ ] Configure gin release from env
-- [ ] Add readme describing the project and mentioning the AI based contribution model
 - [ ] Fix mobile admin styles
+- [ ] Fix admin login form
 - [ ] Default Excerpt to an extract of the content if not Excerpt is defined
 - [ ] Add an option to populate the database with test data, don't do it automatically
 - [ ] When no user exist on first startup present an initial connection form
-
-- [ ] v1.0
 - [ ] Backend GHM rendering
 - [ ] GHM rendering cache
-- [ ] Extract existing styles in a theme and create theme support
 
-- [ ] v1.1
+- [ ] v1.0
+- [ ] Extract existing styles in a theme and create theme support
 - [ ] Allow publish date to be set to Immediately
 - [ ] Allow tags creation
 
-- [ ] v1.2
+- [ ] v1.1
 - [ ] Allow title and slogan to be customized
 - [ ] Allow time zone customization
 - [ ] Date format customization
 - [ ] Add user management
 - [ ] Allow author customization by post
 
-- [ ] v1.3
+- [ ] v1.2
 - [ ] I18N
