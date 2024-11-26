@@ -7,7 +7,7 @@
 - [X] Add readme describing the project and mentioning the AI based contribution model
 - [X] Create CI github actions (+ coverage)
 - [X] Add an option to populate the database with test data, don't do it automatically
-- [ ] Fix admin login form
+- [X] Fix admin login form
 - [ ] Default Excerpt to an extract of the content if not Excerpt is defined
 - [ ] Backend GHM rendering
 - [ ] v1.0
