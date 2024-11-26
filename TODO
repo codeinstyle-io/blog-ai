@@ -1,6 +1,9 @@
 - [x] Generate a user from cli
 - [x] Change password from the cli
+- [X] Do not display the password in plain text
+- [X] Do not exit the create-user until the password satisfies the rules
 - [ ] Add tests
+- [ ] Create CI github actions
 - [ ] Add readme describing the project and mentioning the AI based contribution model
 - [ ] Fix mobile admin styles
 - [ ] Default Excerpt to an extract of the content if not Excerpt is defined

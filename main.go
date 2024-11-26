@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
-	"strings"
 	"text/template"
 
+	"codeinstyle.io/captain/cli"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/handlers"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -42,13 +40,13 @@ func main() {
 	var userCreateCmd = &cobra.Command{
 		Use:   "create",
 		Short: "Create a new user",
-		Run:   createUser,
+		Run:   cli.CreateUser,
 	}
 
 	var userUpdatePasswordCmd = &cobra.Command{
 		Use:   "update-password",
 		Short: "Update user password",
-		Run:   updateUserPassword,
+		Run:   cli.UpdateUserPassword,
 	}
 
 	userCmd.AddCommand(userCreateCmd, userUpdatePasswordCmd)
@@ -94,119 +92,4 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	fmt.Printf("Server running on http://%s:%d\n", host, port)
 	r.Run(fmt.Sprintf("%s:%d", host, port))
-}
-
-func createUser(cmd *cobra.Command, args []string) {
-	var firstName, lastName, email, password string
-	fmt.Print("First Name: ")
-	fmt.Scanln(&firstName)
-	fmt.Print("Last Name: ")
-	fmt.Scanln(&lastName)
-	fmt.Print("Email: ")
-	fmt.Scanln(&email)
-	fmt.Print("Password: ")
-	fmt.Scanln(&password)
-
-	if err := validateUserInput(firstName, lastName, email, password); err != nil {
-		fmt.Printf("Validation error: %v\n", err)
-		return
-	}
-
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	database := db.InitDB()
-	user := db.User{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Password:  string(hashedPassword),
-	}
-
-	if err := database.Create(&user).Error; err != nil {
-		log.Printf("Failed to create user: %v\n", err)
-		return
-	}
-
-	fmt.Println("User created successfully")
-}
-
-func updateUserPassword(cmd *cobra.Command, args []string) {
-	var email, oldPassword, newPassword, confirmPassword string
-
-	fmt.Print("Email: ")
-	fmt.Scanln(&email)
-
-	database := db.InitDB()
-	var user db.User
-	if err := database.Where("email = ?", email).First(&user).Error; err != nil {
-		fmt.Println("User not found")
-		return
-	}
-
-	fmt.Print("Old Password: ")
-	fmt.Scanln(&oldPassword)
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
-		fmt.Println("Incorrect password")
-		return
-	}
-
-	fmt.Print("New Password: ")
-	fmt.Scanln(&newPassword)
-	fmt.Print("Confirm Password: ")
-	fmt.Scanln(&confirmPassword)
-
-	if newPassword != confirmPassword {
-		fmt.Println("Passwords don't match")
-		return
-	}
-
-	if err := validatePassword(newPassword); err != nil {
-		fmt.Printf("Password validation error: %v\n", err)
-		return
-	}
-
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	user.Password = string(hashedPassword)
-
-	if err := database.Save(&user).Error; err != nil {
-		log.Printf("Failed to update password: %v\n", err)
-		return
-	}
-
-	fmt.Println("Password updated successfully")
-}
-
-func validateUserInput(firstName, lastName, email, password string) error {
-	if len(firstName) < 1 || len(firstName) > 255 {
-		return fmt.Errorf("first name must be between 1 and 255 characters")
-	}
-	if len(lastName) < 1 || len(lastName) > 255 {
-		return fmt.Errorf("last name must be between 1 and 255 characters")
-	}
-
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
-	if !emailRegex.MatchString(strings.ToLower(email)) {
-		return fmt.Errorf("invalid email format")
-	}
-
-	return validatePassword(password)
-}
-
-func validatePassword(password string) error {
-	if len(password) < 8 {
-		return fmt.Errorf("password must be at least 8 characters")
-	}
-	if !regexp.MustCompile(`[A-Z]`).MatchString(password) {
-		return fmt.Errorf("password must contain at least one uppercase letter")
-	}
-	if !regexp.MustCompile(`[a-z]`).MatchString(password) {
-		return fmt.Errorf("password must contain at least one lowercase letter")
-	}
-	if !regexp.MustCompile(`[0-9]`).MatchString(password) {
-		return fmt.Errorf("password must contain at least one number")
-	}
-	if !regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).MatchString(password) {
-		return fmt.Errorf("password must contain at least one special character (!@#$%%^&*(),.?\":{}|<>)")
-	}
-	return nil
 }
