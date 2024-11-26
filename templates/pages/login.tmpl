@@ -1,21 +1,20 @@
-
 {{ template "header.tmpl" . }}
 <main class="main-content">
-    <section class="text-section centered-container">
+    <section class="login-container">
         <h2>Login</h2>
         <form id="login-form" method="POST" action="/login">
             {{ if .error }}
             <div class="error-message">{{ .error }}</div>
             {{ end }}
             <p>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
             </p>
             <p>
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
             </p>
-            <button type="submit">Login</button>
+            <button type="submit">Sign In</button>
         </form>
     </section>
 </main>
