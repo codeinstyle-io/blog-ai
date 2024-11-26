@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"text/template"
 
 	"codeinstyle.io/captain/cli"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/handlers"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -73,14 +73,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	r.Static("/static", "static")
 
 	// Custom template functions
-	r.SetFuncMap(template.FuncMap{
-		"add": func(a, b int) int {
-			return a + b
-		},
-		"sub": func(a, b int) int {
-			return a - b
-		},
-	})
+	r.SetFuncMap(utils.GetTemplateFuncs())
 
 	// Load templates
 	r.LoadHTMLGlob("templates/**/*")
