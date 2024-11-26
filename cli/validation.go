@@ -42,7 +42,7 @@ func validatePassword(password string) error {
 		return fmt.Errorf("password must contain at least one number")
 	}
 	if !regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).MatchString(password) {
-		return fmt.Errorf("password must contain at least one special character (!@#$%%^&*(),.?\":{}|<>)")
+		return fmt.Errorf("password must contain at least one special character")
 	}
 	return nil
 }

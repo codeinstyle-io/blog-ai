@@ -1,6 +1,10 @@
 package db
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Post struct {
 	ID          uint      `gorm:"primaryKey"`
@@ -16,4 +20,14 @@ type Post struct {
 type Tag struct {
 	ID   uint   `gorm:"primaryKey"`
 	Name string `gorm:"uniqueIndex;not null"`
+}
+
+// User represents a user in the system
+type User struct {
+	gorm.Model
+	FirstName    string
+	LastName     string
+	Email        string `gorm:"uniqueIndex"`
+	Password     string
+	SessionToken string `gorm:"uniqueIndex"`
 }
