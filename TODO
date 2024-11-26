@@ -5,31 +5,31 @@
 - [X] Add tests
 - [X] Ignore coverage ouput
 - [X] Add readme describing the project and mentioning the AI based contribution model
+- [X] Create CI github actions (+ coverage)
+- [X] Add an option to populate the database with test data, don't do it automatically
+- [ ] Fix admin login form
+- [ ] Default Excerpt to an extract of the content if not Excerpt is defined
+- [ ] Backend GHM rendering
+- [ ] v1.0
 
-
-- [ ] Create CI github actions (+ coverage)
+- [ ] Allow publish date to be set to Immediately
+- [ ] Allow tags creation
 - [ ] Configure database path from env
 - [ ] Configure gorm log level from env
 - [ ] Configure gin release from env
-- [ ] Fix mobile admin styles
-- [ ] Fix admin login form
-- [ ] Default Excerpt to an extract of the content if not Excerpt is defined
-- [ ] Add an option to populate the database with test data, don't do it automatically
-- [ ] When no user exist on first startup present an initial connection form
-- [ ] Backend GHM rendering
-- [ ] GHM rendering cache
+- [ ] V1.1
 
-- [ ] v1.0
 - [ ] Extract existing styles in a theme and create theme support
-- [ ] Allow publish date to be set to Immediately
-- [ ] Allow tags creation
+- [ ] Fix mobile admin styles
+- [ ] Logo
+- [ ] v1.2
 
-- [ ] v1.1
+- [ ] When no user exist on first startup present an initial connection form
 - [ ] Allow title and slogan to be customized
 - [ ] Allow time zone customization
 - [ ] Date format customization
+- [ ] v1.3
+
 - [ ] Add user management
 - [ ] Allow author customization by post
-
-- [ ] v1.2
 - [ ] I18N
