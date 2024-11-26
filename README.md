@@ -2,14 +2,6 @@
 
 Captain is an experimental blog engine entirely written by AI models. This project explores the possibilities and limitations of AI-generated software by creating a fully functional blogging platform. Every line of code, from the architecture decisions to the implementation details, has been crafted through AI assistance.
 
-## Contributing
-
-This project is an AI-first experiment. While all contributions are welcome, we encourage:
-
-1. Using AI assistants (like GitHub Copilot) for code generation
-2. Documenting AI-human collaboration in pull requests
-3. Sharing insights about AI-assisted development
-
 ## Project Structure
 
 Captain is written in Go and uses:
@@ -42,3 +34,11 @@ Then open http://localhost:8080 in your browser
 ### User Management
 - `make create-user` - Creates a new user interactively
 - `make update-password` - Updates user password
+
+# Contributing
+
+This project is an AI-first experiment. While all contributions are welcome, we encourage:
+
+1. Using AI assistants (like GitHub Copilot) for code generation
+2. Documenting AI-human collaboration in pull requests
+3. Sharing insights about AI-assisted development

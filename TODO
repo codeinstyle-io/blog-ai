@@ -4,7 +4,7 @@
 - [X] Do not exit the create-user until the password satisfies the rules
 - [X] Add tests
 - [X] Ignore coverage ouput
-- [ ] Add readme describing the project and mentioning the AI based contribution model
+- [X] Add readme describing the project and mentioning the AI based contribution model
 
 
 - [ ] Create CI github actions (+ coverage)
