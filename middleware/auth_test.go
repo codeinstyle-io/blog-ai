@@ -12,7 +12,8 @@ import (
 
 func TestAuthRequired(t *testing.T) {
 	database := db.SetupTestDB()
-	router := gin.Default()
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
 
 	// Create test user with session
 	user := &db.User{

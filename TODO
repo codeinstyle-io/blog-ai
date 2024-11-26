@@ -3,7 +3,11 @@
 - [X] Do not display the password in plain text
 - [X] Do not exit the create-user until the password satisfies the rules
 - [ ] Add tests
-- [ ] Create CI github actions
+- [ ] Ignore coverage ouput
+- [ ] Create CI github actions (+ coverage)
+- [ ] Configure database path from env
+- [ ] Configure gorm log level from env
+- [ ] Configure gin release from env
 - [ ] Add readme describing the project and mentioning the AI based contribution model
 - [ ] Fix mobile admin styles
 - [ ] Default Excerpt to an extract of the content if not Excerpt is defined

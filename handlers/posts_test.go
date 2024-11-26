@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,6 +17,8 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	handlers := NewPostHandlers(database)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
+	router.SetFuncMap(utils.GetTemplateFuncs())
+	router.LoadHTMLGlob("../templates/**/*.tmpl")
 
 	// Create test post
 	post := &db.Post{
@@ -44,11 +47,12 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 		},
 	}
 
+	router.GET("/posts/:slug", handlers.GetPostBySlug)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/posts/"+tt.slug, nil)
-			router.GET("/posts/:slug", handlers.GetPostBySlug)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.wantStatus, w.Code)
@@ -61,6 +65,8 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	handlers := NewPostHandlers(database)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
+	router.SetFuncMap(utils.GetTemplateFuncs())
+	router.LoadHTMLGlob("../templates/**/*.tmpl")
 
 	// Create test posts
 	posts := []db.Post{
@@ -92,11 +98,12 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 		},
 	}
 
+	router.GET("/", handlers.ListPosts)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET", "/?page="+tt.page, nil)
-			router.GET("/", handlers.ListPosts)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.wantStatus, w.Code)
