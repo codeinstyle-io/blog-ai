@@ -12,15 +12,27 @@ func TestGetValidInput(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		input     string
+		inputs    []string
 		validator func(string) error
 		want      string
 	}{
 		{
-			name:      "Valid input",
-			input:     "test\n",
+			name:      "Valid input first try",
+			inputs:    []string{"test\n"},
 			validator: validateFirstName,
 			want:      "test",
+		},
+		{
+			name:      "Valid input after invalid",
+			inputs:    []string{"123\n", "test\n"},
+			validator: validateFirstName,
+			want:      "test",
+		},
+		{
+			name:      "Valid email",
+			inputs:    []string{"test@example.com\n"},
+			validator: validateEmail,
+			want:      "test@example.com",
 		},
 	}
 
@@ -30,9 +42,13 @@ func TestGetValidInput(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdin = r
 
-			// Write test input
-			w.Write([]byte(tt.input))
-			w.Close()
+			// Write all inputs
+			go func() {
+				for _, input := range tt.inputs {
+					w.Write([]byte(input))
+				}
+				w.Close()
+			}()
 
 			if got := getValidInput("Test: ", tt.validator); got != tt.want {
 				t.Errorf("getValidInput() = %v, want %v", got, tt.want)

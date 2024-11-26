@@ -31,6 +31,35 @@ func TestValidateFirstName(t *testing.T) {
 	}
 }
 
+func TestValidateLastName(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+		errMsg  string
+	}{
+		{"Valid name", "Smith", false, ""},
+		{"Empty name", "", true, "last name must be between 1 and 255 characters"},
+		{"Too long name", string(make([]byte, 256)), true, "last name must be between 1 and 255 characters"},
+		{"Name with numbers", "Smith123", true, "first name can only contain letters"},
+		{"Name with special chars", "Smith!", true, "first name can only contain letters"},
+		{"Name with spaces", "van Smith", true, "first name can only contain letters"},
+		{"Unicode letters", "González", false, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateLastName(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateLastName() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && err.Error() != tt.errMsg {
+				t.Errorf("validateLastName() error message = %v, want %v", err.Error(), tt.errMsg)
+			}
+		})
+	}
+}
+
 func TestValidateEmail(t *testing.T) {
 	tests := []struct {
 		name    string

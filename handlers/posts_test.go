@@ -14,7 +14,8 @@ import (
 func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	database := db.SetupTestDB()
 	handlers := NewPostHandlers(database)
-	router := gin.Default()
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
 
 	// Create test post
 	post := &db.Post{
@@ -58,7 +59,8 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 func TestPostHandlers_ListPosts(t *testing.T) {
 	database := db.SetupTestDB()
 	handlers := NewPostHandlers(database)
-	router := gin.Default()
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
 
 	// Create test posts
 	posts := []db.Post{

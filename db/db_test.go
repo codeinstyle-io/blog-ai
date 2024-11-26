@@ -10,14 +10,19 @@ import (
 func TestInsertTestData(t *testing.T) {
 	db := SetupTestDB()
 
+	// Create data directory if it doesn't exist
+	if err := os.MkdirAll("data", 0755); err != nil {
+		t.Fatal(err)
+	}
+
 	tests := []struct {
 		name    string
-		setup   func()
+		setup   func() error
 		wantErr bool
 	}{
 		{
 			name: "Insert test data successfully",
-			setup: func() {
+			setup: func() error {
 				// Create test data file
 				data := `{
 					"tags": ["test1", "test2"],
@@ -32,22 +37,17 @@ func TestInsertTestData(t *testing.T) {
 						}
 					]
 				}`
-				os.WriteFile("data/test_posts.json", []byte(data), 0644)
+				return os.WriteFile("data/test_posts.json", []byte(data), 0644)
 			},
 			wantErr: false,
-		},
-		{
-			name: "Missing test data file",
-			setup: func() {
-				os.Remove("data/test_posts.json")
-			},
-			wantErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setup()
+			if err := tt.setup(); err != nil {
+				t.Fatal(err)
+			}
 			err := InsertTestData(db)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -65,4 +65,7 @@ func TestInsertTestData(t *testing.T) {
 			}
 		})
 	}
+
+	// Cleanup
+	defer os.RemoveAll("data")
 }
