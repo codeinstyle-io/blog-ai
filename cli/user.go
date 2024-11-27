@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
@@ -81,14 +82,18 @@ func CreateUser(cmd *cobra.Command, args []string) {
 	email := getValidInput("Email: ", validateEmail)
 	password := getValidPassword("Password: ")
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		log.Printf("Failed to hash password: %v\n", err)
+		return
+	}
 
 	database := db.InitDB()
 	user := db.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
-		Password:  string(hashedPassword),
+		Password:  hashedPassword,
 	}
 
 	if err := database.Create(&user).Error; err != nil {
@@ -137,8 +142,12 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 		break
 	}
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	user.Password = string(hashedPassword)
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		log.Printf("Failed to hash password: %v\n", err)
+		return
+	}
+	user.Password = hashedPassword
 
 	if err := database.Save(&user).Error; err != nil {
 		log.Printf("Failed to update password: %v\n", err)
