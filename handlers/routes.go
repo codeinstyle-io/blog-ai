@@ -3,14 +3,15 @@ package handlers
 import (
 	"net/http"
 
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/middleware"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // RegisterPublicRoutes registers all public routes
-func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB) {
-	postHandlers := NewPostHandlers(database)
+func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
+	publicHandlers := NewPublicHandlers(database, cfg)
 	authHandlers := NewAuthHandlers(database) // Add this
 
 	// Auth routes (public)
@@ -18,9 +19,10 @@ func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB) {
 		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
 	})
 	r.POST("/login", authHandlers.Login)
-	r.GET("/", postHandlers.ListPosts)
-	r.GET("/posts/:slug", postHandlers.GetPostBySlug)
-	r.GET("/tags/:tag", postHandlers.ListPostsByTag)
+	r.GET("/", publicHandlers.ListPosts)
+	r.GET("/posts/:slug", publicHandlers.GetPostBySlug)
+	r.GET("/tags/:tag", publicHandlers.ListPostsByTag)
+	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
 }
 
 // RegisterAdminRoutes registers all admin routes

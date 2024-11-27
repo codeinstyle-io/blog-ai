@@ -96,36 +96,11 @@
         typeText();
     }
 
-    function renderMarkdown() {
-        const contentElements = document.querySelectorAll('.content');
-        
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            highlight: function(code, lang) {
-                if (Prism && lang) {
-                    try {
-                        return Prism.highlight(code, Prism.languages[lang], lang);
-                    } catch (e) {
-                        return code;
-                    }
-                }
-                return code;
-            }
-        });
-
-        contentElements.forEach(element => {
-            const content = element.textContent;
-            element.innerHTML = marked.parse(content);
-        });
-    }
-
     displayProgressBar();
 
     document.addEventListener("DOMContentLoaded", () => {
         displaySkills();
         typeTitle();
-        renderMarkdown();
     });
 
 }());

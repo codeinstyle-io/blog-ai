@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"codeinstyle.io/captain/cli"
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/handlers"
 	"codeinstyle.io/captain/utils"
@@ -62,6 +63,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	database := db.InitDB()
 	r := gin.Default()
 
+	cfg := config.NewDefaultConfig()
+
 	if initDevDB {
 		err := db.InsertTestData(database)
 		if err != nil {
@@ -78,9 +81,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Load templates
 	r.LoadHTMLGlob("templates/**/*")
 
-	// Register routes
-	handlers.RegisterPublicRoutes(r, database)
-
+	// Register routes with config
+	handlers.RegisterPublicRoutes(r, database, cfg)
 	handlers.RegisterAdminRoutes(r, database)
 
 	fmt.Printf("Server running on http://%s:%d\n", host, port)
