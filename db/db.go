@@ -66,6 +66,7 @@ func GetUserByEmail(db *gorm.DB, email string) (*User, error) {
 }
 
 func CreateUser(db *gorm.DB, user *User) error {
+	user.SessionToken = nil // Explicitly set to nil for new users
 	return db.Create(user).Error
 }
 
@@ -92,7 +93,7 @@ func UpdateUserSessionToken(db *gorm.DB, user *User) error {
 	if err != nil {
 		return err
 	}
-	user.SessionToken = token
+	user.SessionToken = &token
 	return db.Save(user).Error
 }
 

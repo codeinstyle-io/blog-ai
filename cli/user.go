@@ -89,14 +89,14 @@ func CreateUser(cmd *cobra.Command, args []string) {
 	}
 
 	database := db.InitDB()
-	user := db.User{
+	user := &db.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
 		Password:  hashedPassword,
 	}
 
-	if err := database.Create(&user).Error; err != nil {
+	if err := db.CreateUser(database, user); err != nil {
 		log.Printf("Failed to create user: %v\n", err)
 		return
 	}

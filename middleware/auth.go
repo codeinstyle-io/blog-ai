@@ -20,7 +20,7 @@ func AuthRequired(database *gorm.DB) gin.HandlerFunc {
 		}
 
 		user, err := db.GetUserByToken(database, token)
-		if err != nil {
+		if err != nil || user.SessionToken == nil {
 			c.SetCookie("session", "", -1, "/", "", false, true)
 			// Store requested URL and redirect to login
 			returnTo := c.Request.URL.String()

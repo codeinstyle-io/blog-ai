@@ -40,7 +40,7 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("session", user.SessionToken, 3600*24, "/", "", false, true)
+	c.SetCookie("session", *user.SessionToken, 3600*24, "/", "", false, true)
 
 	// Redirect to original destination
 	c.Redirect(http.StatusFound, returnTo)

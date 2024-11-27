@@ -15,10 +15,11 @@ func TestAuthRequired(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 
+	token := "valid-token"
 	// Create test user with session
 	user := &db.User{
 		Email:        "test@example.com",
-		SessionToken: "valid-token",
+		SessionToken: &token,
 	}
 	database.Create(user)
 
