@@ -5,17 +5,22 @@ import (
 	"net/http"
 	"time"
 
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type AdminHandlers struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config *config.Config
 }
 
-func NewAdminHandlers(database *gorm.DB) *AdminHandlers {
-	return &AdminHandlers{db: database}
+func NewAdminHandlers(database *gorm.DB, config *config.Config) *AdminHandlers {
+	return &AdminHandlers{
+		db:     database,
+		config: config,
+	}
 }
 
 // ListTags shows all tags and their post counts
@@ -97,8 +102,8 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// Parse the published date
-	parsedTime, err := time.Parse("2006-01-02T15:04", publishedAt)
+	// Parse the published date in configured timezone and convert to UTC for storage
+	parsedTime, err := time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.Timezone)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
 			"error": "Invalid date format",
@@ -111,7 +116,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		Title:       title,
 		Slug:        slug,
 		Content:     content,
-		PublishedAt: parsedTime,
+		PublishedAt: parsedTime.UTC(),
 		Visible:     visible,
 	}
 
@@ -172,6 +177,12 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
 		return
 	}
+
+	// Convert UTC times to configured timezone for display
+	for i := range posts {
+		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.Timezone)
+	}
+
 	c.HTML(http.StatusOK, "admin_posts.tmpl", gin.H{
 		"title": "Posts",
 		"posts": posts,
@@ -236,6 +247,9 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 		return
 	}
 
+	// Convert UTC time to configured timezone for display
+	post.PublishedAt = post.PublishedAt.In(h.config.Timezone)
+
 	c.HTML(http.StatusOK, "admin_edit_post.tmpl", gin.H{
 		"title":   "Edit Post",
 		"post":    post,
@@ -258,7 +272,9 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	post.Content = c.PostForm("content")
 	post.Visible = c.PostForm("visible") == "on"
 
-	publishedAt, err := time.Parse("2006-01-02T15:04", c.PostForm("publishedAt"))
+	// Parse the published date in configured timezone
+	publishedAt, err := time.ParseInLocation("2006-01-02T15:04", c.PostForm("publishedAt"), h.config.Timezone)
+	post.PublishedAt = publishedAt
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", gin.H{
 			"error": "Invalid date format",
@@ -266,7 +282,6 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		})
 		return
 	}
-	post.PublishedAt = publishedAt
 
 	// Handle tags
 	var tagNames []string
@@ -286,6 +301,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		tags = append(tags, tag)
 	}
 	post.Tags = tags
+	post.PublishedAt = publishedAt.UTC()
 
 	// Update with transaction
 	tx := h.db.Begin()

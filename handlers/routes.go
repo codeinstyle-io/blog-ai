@@ -26,11 +26,11 @@ func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) 
 }
 
 // RegisterAdminRoutes registers all admin routes
-func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB) {
+func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin := r.Group("/admin")
 	admin.Use(middleware.AuthRequired(database))
 
-	adminHandlers := NewAdminHandlers(database)
+	adminHandlers := NewAdminHandlers(database, cfg)
 	authHandlers := NewAuthHandlers(database) // Add this line
 
 	// Add index route

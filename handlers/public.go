@@ -84,6 +84,9 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	// Render markdown content
 	post.Content = renderMarkdown(post.Content)
 
+	// Convert UTC time to configured timezone for display
+	post.PublishedAt = post.PublishedAt.In(h.config.Timezone)
+
 	c.HTML(http.StatusOK, "post.tmpl", gin.H{
 		"title": post.Title,
 		"post":  post,
@@ -115,6 +118,7 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	}
 
 	processPostsContent(posts)
+	processPostsPublishedAt(posts)
 
 	c.HTML(http.StatusOK, "posts.tmpl", gin.H{
 		"title":       "Latest Articles",
@@ -156,6 +160,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	}
 
 	processPostsContent(posts)
+	processPostsPublishedAt(posts)
 
 	c.HTML(http.StatusOK, "tag_posts.tmpl", gin.H{
 		"title":       fmt.Sprintf("Posts tagged with #%s", tagName),
@@ -164,6 +169,12 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 		"currentPage": page,
 		"totalPages":  totalPages,
 	})
+}
+
+func processPostsPublishedAt(posts []db.Post) {
+	for i := range posts {
+		posts[i].PublishedAt = posts[i].PublishedAt.In(time.UTC)
+	}
 }
 
 func processPostsContent(posts []db.Post) {
