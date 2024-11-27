@@ -83,7 +83,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	// Register routes with config
 	handlers.RegisterPublicRoutes(r, database, cfg)
-	handlers.RegisterAdminRoutes(r, database)
+	handlers.RegisterAdminRoutes(r, database, cfg)
 
 	fmt.Printf("Server running on http://%s:%d\n", host, port)
 	if err := r.Run(fmt.Sprintf("%s:%d", host, port)); err != nil {
