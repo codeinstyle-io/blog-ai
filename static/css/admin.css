@@ -505,6 +505,39 @@ input:checked + .toggle-slider:before {
     transform: scale(1.1);
 }
 
+
+/* Tag Input and Suggestions Styles */
+.tag-input-container {
+    position: relative;
+}
+
+.tag-suggestions {
+    position: absolute;
+    top: auto;
+    left: 0;
+    right: 0;
+    background: var(--admin-card-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 4px var(--admin-shadow);
+    display: none;
+}
+
+.tag-suggestion {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.tag-suggestion:hover {
+    background-color: var(--admin-input-bg);
+    color: var(--admin-accent);
+}
+
+
 /* Slug Warning Styles */
 .slug-warning {
     margin-top: 0.5rem;

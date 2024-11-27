@@ -70,8 +70,8 @@ function initializeEditor() {
 // static/js/admin.js - Update tag handling
 function initializeTags() {
     const tagInput = document.getElementById('tag-input');
-
     if (!tagInput) return;
+
     const tagSuggestions = document.getElementById('tag-suggestions');
     const selectedTags = document.getElementById('selected-tags');
     const tagsHidden = document.getElementById('tags-hidden');
@@ -79,10 +79,12 @@ function initializeTags() {
     let selectedTagsList = [];
 
     // Initialize selected tags if editing
-    selectedTags.querySelectorAll('.selected-tag').forEach(tag => {
-        selectedTagsList.push(tag.textContent.trim());
-    });
-    
+    const initialValue = tagsHidden.value.trim();
+    if (initialValue) {
+        selectedTagsList = initialValue.split(',');
+        updateTags();
+    }
+
     // Fetch existing tags
     fetch('/admin/api/tags')
         .then(res => res.json())

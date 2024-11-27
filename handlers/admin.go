@@ -122,12 +122,15 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 
 	// Handle tags
 	var tagNames []string
-	if err := json.Unmarshal([]byte(c.PostForm("tags")), &tagNames); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
-			"error": "Invalid tags format",
-			"post":  post,
-		})
-		return
+	tagsJSON := c.PostForm("tags")
+	if tagsJSON != "" {
+		if err := json.Unmarshal([]byte(tagsJSON), &tagNames); err != nil {
+			c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
+				"error": "Invalid tags format",
+				"post":  post,
+			})
+			return
+		}
 	}
 
 	// Create/get tags and associate
@@ -285,12 +288,15 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 
 	// Handle tags
 	var tagNames []string
-	if err := json.Unmarshal([]byte(c.PostForm("tags")), &tagNames); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", gin.H{
-			"error": "Invalid tags format",
-			"post":  post,
-		})
-		return
+	tagsJSON := c.PostForm("tags")
+	if tagsJSON != "" {
+		if err := json.Unmarshal([]byte(tagsJSON), &tagNames); err != nil {
+			c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", gin.H{
+				"error": "Invalid tags format",
+				"post":  post,
+			})
+			return
+		}
 	}
 
 	// Update tags

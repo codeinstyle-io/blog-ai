@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"html/template"
 )
 
@@ -15,6 +16,13 @@ func GetTemplateFuncs() template.FuncMap {
 		},
 		"raw": func(s string) template.HTML {
 			return template.HTML(s)
+		},
+		"json": func(v interface{}) string {
+			b, err := json.Marshal(v)
+			if err != nil {
+				return "[]"
+			}
+			return string(b)
 		},
 	}
 }
