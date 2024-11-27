@@ -68,7 +68,9 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	now := time.Now()
 
 	var post db.Post
-	if err := h.db.Where("slug = ? AND visible = ? AND published_at <= ?", slug, true, now).First(&post).Error; err != nil {
+	if err := h.db.Preload("Tags").Preload("Author").
+		Where("slug = ? AND visible = ? AND published_at <= ?", slug, true, now).
+		First(&post).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
 				"title": "Post not found",
@@ -105,7 +107,7 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	offset := (page - 1) * perPage
 
 	var posts []db.Post
-	result := h.db.Preload("Tags").
+	result := h.db.Preload("Tags").Preload("Author").
 		Where("visible = ? AND published_at <= ?", true, now).
 		Order("published_at desc").
 		Offset(offset).
@@ -145,7 +147,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	offset := (page - 1) * perPage
 
 	var posts []db.Post
-	result := h.db.Preload("Tags").
+	result := h.db.Preload("Tags").Preload("Author").
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Joins("JOIN tags ON post_tags.tag_id = tags.id").
 		Where("tags.name = ? AND posts.visible = ? AND posts.published_at <= ?", tagName, true, now).

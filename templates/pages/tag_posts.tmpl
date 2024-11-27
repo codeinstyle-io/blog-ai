@@ -7,7 +7,7 @@
                 <div class="post-date">{{ .PublishedAt.Format "January 2006" }}</div>
                 <h2 class="post-title"><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h2>
                 {{ if .Excerpt }}
-                    <p class="post-excerpt">{{ .Excerpt }}</p>
+                    <p class="post-excerpt">{{ raw .Excerpt }}</p>
                 {{ end }}
                 <div class="post-tags">
                     {{ range .Tags }}

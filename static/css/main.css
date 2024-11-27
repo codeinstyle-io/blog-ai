@@ -426,3 +426,16 @@ code {
     border-radius: 4px;
     margin-bottom: 1rem;
 }
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--lighter-text);
+    font-size: 0.9rem;
+}
+
+.post-meta-separator {
+    color: var(--lighter-text);
+    opacity: 0.5;
+}
