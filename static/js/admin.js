@@ -79,12 +79,10 @@ function initializeTags() {
     let selectedTagsList = [];
 
     // Initialize selected tags if editing
-    try {
-        const initialTags = tagsHidden.value ? JSON.parse(tagsHidden.value) : [];
-        selectedTagsList = [...initialTags];
+    const initialValue = tagsHidden.value.trim();
+    if (initialValue) {
+        selectedTagsList = initialValue.split(',');
         updateTags();
-    } catch (e) {
-        console.error('Failed to parse initial tags:', e);
     }
 
     // Fetch existing tags
