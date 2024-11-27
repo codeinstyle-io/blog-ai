@@ -29,5 +29,5 @@ type User struct {
 	LastName     string
 	Email        string `gorm:"uniqueIndex"`
 	Password     string
-	SessionToken string `gorm:"uniqueIndex"`
+	SessionToken *string `gorm:"uniqueIndex"` // Changed to pointer to allow NULL
 }
