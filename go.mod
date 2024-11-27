@@ -4,6 +4,7 @@ go 1.23.2
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/gomarkdown/markdown v0.0.0-20241105142532-d03b89096d81
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/crypto v0.29.0
 	golang.org/x/term v0.26.0
@@ -13,10 +14,12 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 )
 
 require (
+	github.com/alecthomas/chroma v0.10.0
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

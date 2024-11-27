@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,8 @@ import (
 
 func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	database := db.SetupTestDB()
-	handlers := NewPostHandlers(database)
+	cfg := config.NewDefaultConfig()
+	handlers := NewPublicHandlers(database, cfg)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.SetFuncMap(utils.GetTemplateFuncs())
@@ -62,7 +64,8 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 
 func TestPostHandlers_ListPosts(t *testing.T) {
 	database := db.SetupTestDB()
-	handlers := NewPostHandlers(database)
+	cfg := config.NewDefaultConfig()
+	handlers := NewPublicHandlers(database, cfg)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.SetFuncMap(utils.GetTemplateFuncs())
