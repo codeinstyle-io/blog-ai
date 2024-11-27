@@ -32,6 +32,7 @@ func InitDB() *gorm.DB {
 func GetPosts(db *gorm.DB, limit int) ([]Post, error) {
 	var posts []Post
 	result := db.Preload("Tags").
+		Preload("Author"). // Add Author preload
 		Where("published_at <= ?", time.Now()).
 		Where("visible = ?", true).
 		Order("id desc").
@@ -46,6 +47,7 @@ func GetPosts(db *gorm.DB, limit int) ([]Post, error) {
 func GetPostBySlug(db *gorm.DB, slug string) (Post, error) {
 	var post Post
 	result := db.Preload("Tags").
+		Preload("Author"). // Add Author preload
 		Where("slug = ?", slug).
 		Where("published_at <= ?", time.Now()).
 		Where("visible = ?", true).
@@ -141,6 +143,17 @@ func InsertTestData(db *gorm.DB) error {
 	}
 
 	if count == 0 {
+		// Create default author for test posts
+		author := User{
+			FirstName: "Test",
+			LastName:  "Author",
+			Email:     "test@example.com",
+			Password:  "hashed_password", // In real app, this should be properly hashed
+		}
+		if err := db.FirstOrCreate(&author, User{Email: "test@example.com"}).Error; err != nil {
+			return err
+		}
+
 		// Read test data
 		data, err := os.ReadFile("data/test_posts.json")
 		if err != nil {
@@ -178,6 +191,7 @@ func InsertTestData(db *gorm.DB) error {
 				Visible:     p.Visible,
 				Excerpt:     &p.Excerpt,
 				Tags:        getRandomTags(tags, 2, 4),
+				AuthorID:    author.ID, // Set the author ID for test posts
 			}
 
 			if err := db.Create(&post).Error; err != nil {

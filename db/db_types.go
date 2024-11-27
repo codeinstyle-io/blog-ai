@@ -15,6 +15,8 @@ type Post struct {
 	Visible     bool      `gorm:"not null"`
 	Excerpt     *string   `gorm:"type:text"` // New nullable field
 	Tags        []Tag     `gorm:"many2many:post_tags;"`
+	AuthorID    uint      `gorm:"not null"`
+	Author      *User     `gorm:"foreignKey:AuthorID"`
 }
 
 type Tag struct {

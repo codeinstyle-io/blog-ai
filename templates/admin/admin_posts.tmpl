@@ -9,6 +9,7 @@
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Author</th>
                     <th>Published</th>
                     <th>Visible</th>
                     <th>Tags</th>
@@ -19,6 +20,7 @@
                 {{range .posts}}
                 <tr>
                     <td>{{.Title}}</td>
+                    <td>{{.Author.FirstName}} {{.Author.LastName}}</td>
                     <td>{{.PublishedAt.Format "2006-01-02 15:04"}}</td>
                     <td>{{if .Visible}}Yes{{else}}No{{end}}</td>
                     <td>

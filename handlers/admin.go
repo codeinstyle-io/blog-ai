@@ -85,6 +85,16 @@ func (h *AdminHandlers) ShowCreatePost(c *gin.Context) {
 }
 
 func (h *AdminHandlers) CreatePost(c *gin.Context) {
+	// Get the logged in user
+	userInterface, exists := c.Get("user")
+	if !exists {
+		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", gin.H{
+			"error": "User session not found",
+		})
+		return
+	}
+	user := userInterface.(*db.User)
+
 	var post db.Post
 
 	// Parse form data
@@ -118,6 +128,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		Content:     content,
 		PublishedAt: parsedTime.UTC(),
 		Visible:     visible,
+		AuthorID:    user.ID, // Set the author ID
 	}
 
 	// Handle tags
@@ -176,7 +187,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 // ListPosts shows all posts for admin
 func (h *AdminHandlers) ListPosts(c *gin.Context) {
 	var posts []db.Post
-	if err := h.db.Preload("Tags").Find(&posts).Error; err != nil {
+	if err := h.db.Preload("Tags").Preload("Author").Find(&posts).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
 		return
 	}
