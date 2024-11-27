@@ -201,10 +201,10 @@ ul li {
 
 /* Posts List Styles */
 .latest-articles {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     color: var(--accent);
-    margin-bottom: 3rem;
-    text-align: center;
+    margin: 3rem 0;
+    text-transform: uppercase;
 }
 
 .post-item {
