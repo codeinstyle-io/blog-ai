@@ -123,7 +123,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	// Handle tags
 	var tagNames []string
 	if err := json.Unmarshal([]byte(c.PostForm("tags")), &tagNames); err != nil {
-		c.HTML(http.StatusBadRequest, "admin/create_post.tmpl", gin.H{
+		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
 			"error": "Invalid tags format",
 			"post":  post,
 		})
@@ -136,7 +136,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		var tag db.Tag
 		result := h.db.Where(db.Tag{Name: name}).FirstOrCreate(&tag)
 		if result.Error != nil {
-			c.HTML(http.StatusInternalServerError, "admin/create_post.tmpl", gin.H{
+			c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", gin.H{
 				"error": "Failed to create tag",
 				"post":  post,
 			})
@@ -150,7 +150,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	tx := h.db.Begin()
 	if err := tx.Create(&post).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "admin/create_post.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", gin.H{
 			"error": "Failed to create post",
 			"post":  post,
 		})
@@ -159,7 +159,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 
 	if err := tx.Model(&post).Association("Tags").Replace(tags); err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "admin/create_post.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", gin.H{
 			"error": "Failed to associate tags",
 			"post":  post,
 		})
@@ -307,7 +307,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	tx := h.db.Begin()
 	if err := tx.Save(&post).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "admin/edit_post.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", gin.H{
 			"error": "Failed to update post",
 			"post":  post,
 		})
@@ -316,7 +316,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 
 	if err := tx.Model(&post).Association("Tags").Replace(tags); err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "admin/edit_post.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", gin.H{
 			"error": "Failed to update tags",
 			"post":  post,
 		})
