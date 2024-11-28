@@ -30,9 +30,6 @@ func main() {
 		Run:   runServer,
 	}
 
-	// Remove these flags as they're now handled by config
-	// runCmd.Flags().IntVarP(&port, "port", "p", 8080, "Port to run the server on")
-	// runCmd.Flags().StringVarP(&host, "bind", "b", "localhost", "Host to run the server on")
 	runCmd.Flags().BoolVarP(&initDevDB, "init-dev-db", "i", false, "Initialize the development database with test data")
 
 	var userCmd = &cobra.Command{
