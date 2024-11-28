@@ -203,6 +203,41 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 	})
 }
 
+// ListPostsByTag shows all posts for a specific tag
+func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
+	tagID := c.Param("id")
+
+	var tag db.Tag
+	if err := h.db.First(&tag, tagID).Error; err != nil {
+		c.HTML(http.StatusNotFound, "errors/404.tmpl", gin.H{})
+		return
+	}
+
+	var posts []db.Post
+	if err := h.db.Joins("JOIN post_tags ON post_tags.post_id = posts.id").
+		Where("post_tags.tag_id = ?", tagID).
+		Preload("Tags").
+		Preload("Author").
+		Find(&posts).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		return
+	}
+
+	// Convert UTC times to configured timezone for display
+	for i := range posts {
+		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.Timezone)
+	}
+
+	data := gin.H{
+		"title": "Posts tagged with " + tag.Name,
+		"tag":   tag,
+		"posts": posts,
+	}
+	data = h.addCommonData(c, data)
+
+	c.HTML(http.StatusOK, "admin_tag_posts.tmpl", data)
+}
+
 // ConfirmDeletePost shows deletion confirmation page
 func (h *AdminHandlers) ConfirmDeletePost(c *gin.Context) {
 	id := c.Param("id")
