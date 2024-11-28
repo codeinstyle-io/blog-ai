@@ -460,3 +460,31 @@ func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
 	data["theme"] = theme
 	return data
 }
+
+// ShowCreateTag displays the tag creation form
+func (h *AdminHandlers) ShowCreateTag(c *gin.Context) {
+	c.HTML(http.StatusOK, "admin_create_tag.tmpl", gin.H{
+		"title": "Create Tag",
+	})
+}
+
+// CreateTag handles tag creation
+func (h *AdminHandlers) CreateTag(c *gin.Context) {
+	name := c.PostForm("name")
+	if name == "" {
+		c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", gin.H{
+			"error": "Tag name is required",
+		})
+		return
+	}
+
+	tag := db.Tag{Name: name}
+	if err := h.db.Create(&tag).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_create_tag.tmpl", gin.H{
+			"error": "Failed to create tag",
+		})
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/tags")
+}

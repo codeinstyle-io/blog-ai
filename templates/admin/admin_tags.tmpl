@@ -1,6 +1,14 @@
 {{ template "admin_header.tmpl" . }}
 <div class="admin-page">
-    <h1>Tags</h1>
+    <div class="page-header">
+        <h1>Tags</h1>
+        <a href="/admin/tags/create" class="btn btn-primary">Create New Tag</a>
+    </div>
+    
+    {{if .error}}
+    <div class="alert alert-error">{{.error}}</div>
+    {{end}}
+
     <div class="table-container">
         <table class="admin-table">
             <thead>
@@ -25,4 +33,20 @@
         </table>
     </div>
 </div>
+
+<script>
+function deleteTag(id) {
+    if (confirm('Are you sure you want to delete this tag?')) {
+        fetch(`/admin/tags/${id}`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete tag');
+            }
+        });
+    }
+}
+</script>
 {{ template "admin_footer.tmpl" . }}
