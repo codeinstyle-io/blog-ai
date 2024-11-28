@@ -15,7 +15,10 @@ import (
 
 func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	database := db.SetupTestDB()
-	cfg := config.NewDefaultConfig()
+	cfg, err := config.InitConfig()
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
 	handlers := NewPublicHandlers(database, cfg)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
@@ -64,7 +67,10 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 
 func TestPostHandlers_ListPosts(t *testing.T) {
 	database := db.SetupTestDB()
-	cfg := config.NewDefaultConfig()
+	cfg, err := config.InitConfig()
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
 	handlers := NewPublicHandlers(database, cfg)
 	gin.SetMode(gin.TestMode)
 	router := gin.New()

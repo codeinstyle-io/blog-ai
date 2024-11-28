@@ -15,7 +15,10 @@ import (
 
 func TestListPostsByTag(t *testing.T) {
 	database := db.SetupTestDB()
-	cfg := config.NewDefaultConfig()
+	cfg, err := config.InitConfig()
+	if err != nil {
+		t.Fatalf("Failed to load config: %v", err)
+	}
 	handlers := NewAdminHandlers(database, cfg)
 
 	// Setup Gin
