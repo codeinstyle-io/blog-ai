@@ -113,7 +113,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	}
 
 	// Parse the published date in configured timezone and convert to UTC for storage
-	parsedTime, err := time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.Timezone)
+	parsedTime, err := time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.GetLocation())
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
 			"error": "Invalid date format",
@@ -194,7 +194,7 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 
 	// Convert UTC times to configured timezone for display
 	for i := range posts {
-		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.Timezone)
+		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.GetLocation())
 	}
 
 	c.HTML(http.StatusOK, "admin_posts.tmpl", gin.H{
@@ -225,7 +225,7 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 
 	// Convert UTC times to configured timezone for display
 	for i := range posts {
-		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.Timezone)
+		posts[i].PublishedAt = posts[i].PublishedAt.In(h.config.GetLocation())
 	}
 
 	data := gin.H{
@@ -297,7 +297,7 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 	}
 
 	// Convert UTC time to configured timezone for display
-	post.PublishedAt = post.PublishedAt.In(h.config.Timezone)
+	post.PublishedAt = post.PublishedAt.In(h.config.GetLocation())
 
 	c.HTML(http.StatusOK, "admin_edit_post.tmpl", gin.H{
 		"title":   "Edit Post",
@@ -322,7 +322,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	post.Visible = c.PostForm("visible") == "on"
 
 	// Parse the published date in configured timezone
-	publishedAt, err := time.ParseInLocation("2006-01-02T15:04", c.PostForm("publishedAt"), h.config.Timezone)
+	publishedAt, err := time.ParseInLocation("2006-01-02T15:04", c.PostForm("publishedAt"), h.config.GetLocation())
 	post.PublishedAt = publishedAt
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", gin.H{

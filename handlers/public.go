@@ -44,7 +44,7 @@ func NewPublicHandlers(database *gorm.DB, cfg *config.Config) *PublicHandlers {
 
 func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	chromaOnce.Do(func() {
-		style := styles.Get(h.config.ChromaStyle)
+		style := styles.Get(h.config.Site.ChromaStyle)
 		if style == nil {
 			style = styles.Fallback
 		}
@@ -87,7 +87,7 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	post.Content = renderMarkdown(post.Content)
 
 	// Convert UTC time to configured timezone for display
-	post.PublishedAt = post.PublishedAt.In(h.config.Timezone)
+	post.PublishedAt = post.PublishedAt.In(h.config.GetLocation())
 
 	c.HTML(http.StatusOK, "post.tmpl", gin.H{
 		"title": post.Title,

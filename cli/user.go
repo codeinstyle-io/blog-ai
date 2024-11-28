@@ -6,6 +6,7 @@ import (
 	"os"
 	"syscall"
 
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
 	"github.com/pkg/errors"
@@ -77,6 +78,12 @@ func readPassword(prompt string) ([]byte, error) {
 }
 
 func CreateUser(cmd *cobra.Command, args []string) {
+	cfg, err := config.InitConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+	database := db.InitDB(cfg)
+
 	firstName := getValidInput("First Name: ", validateFirstName)
 	lastName := getValidInput("Last Name: ", validateLastName)
 	email := getValidInput("Email: ", validateEmail)
@@ -88,7 +95,6 @@ func CreateUser(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	database := db.InitDB()
 	user := &db.User{
 		FirstName: firstName,
 		LastName:  lastName,
@@ -105,9 +111,14 @@ func CreateUser(cmd *cobra.Command, args []string) {
 }
 
 func UpdateUserPassword(cmd *cobra.Command, args []string) {
+	cfg, err := config.InitConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+	database := db.InitDB(cfg)
+
 	email := getValidInput("Email: ", validateEmail)
 
-	database := db.InitDB()
 	var user db.User
 	if err := database.Where("email = ?", email).First(&user).Error; err != nil {
 		fmt.Println("User not found")

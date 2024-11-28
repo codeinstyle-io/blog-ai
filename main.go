@@ -15,8 +15,6 @@ import (
 )
 
 var (
-	port       int
-	host       string
 	initDevDB  bool
 	configFile string
 )

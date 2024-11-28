@@ -42,14 +42,15 @@ func InitConfig() (*Config, error) {
 	viper.AutomaticEnv()
 
 	// Read config file if exists
-	err := viper.ReadInConfig()
-
-	if err != nil {
-		return nil, err
+	if err := viper.ReadInConfig(); err != nil {
+		// Only return error if it's not a "config file not found" error
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, err
+		}
 	}
 
 	var config Config
-	err = viper.Unmarshal(&config)
+	err := viper.Unmarshal(&config)
 	return &config, err
 }
 
