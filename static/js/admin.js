@@ -246,6 +246,32 @@ function getCookie(name) {
     return null;
 }
 
+function initializePublishDateToggle() {
+    const publishType = document.getElementById('publishType');
+    const publishDateGroup = document.getElementById('publishDateGroup');
+    const publishedAtInput = document.getElementById('publishedAt');
+    
+    if (!publishType || !publishDateGroup || !publishedAtInput) return;
+
+    function updatePublishDate() {
+        if (publishType.value === 'immediately') {
+            publishDateGroup.style.display = 'none';
+            publishedAtInput.removeAttribute('required');
+        } else {
+            publishDateGroup.style.display = 'block';
+            publishedAtInput.setAttribute('required', 'required');
+        }
+    }
+
+    publishType.addEventListener('change', updatePublishDate);
+    
+    // Initial state
+    if (publishedAtInput.value) {
+        publishType.value = 'scheduled';
+    }
+    updatePublishDate();
+}
+
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeEditor();
@@ -262,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
     }
+
+    initializePublishDateToggle();
 });
 
 

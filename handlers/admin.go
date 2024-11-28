@@ -102,21 +102,27 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	slug := c.PostForm("slug")
 	content := c.PostForm("content")
 	publishedAt := c.PostForm("publishedAt")
+	var parsedTime time.Time
+
+	if publishedAt == "" {
+		// If no date provided, use current time
+		parsedTime = time.Now().In(h.config.GetLocation())
+	} else {
+		var err error
+		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.GetLocation())
+		if err != nil {
+			c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
+				"error": "Invalid date format",
+			})
+			return
+		}
+	}
 	visible := c.PostForm("visible") == "on"
 
 	// Basic validation
-	if title == "" || slug == "" || content == "" || publishedAt == "" {
+	if title == "" || slug == "" || content == "" {
 		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
 			"error": "All fields are required",
-		})
-		return
-	}
-
-	// Parse the published date in configured timezone and convert to UTC for storage
-	parsedTime, err := time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.GetLocation())
-	if err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
-			"error": "Invalid date format",
 		})
 		return
 	}
