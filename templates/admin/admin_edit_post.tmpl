@@ -69,7 +69,10 @@
                         </label>
                     </div>
                 </div>
-                <button type="submit" class="btn-submit">Update Post</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Update Post</button> &nbsp;
+                    <a href="/posts/{{.post.Slug}}" target="_blank">View Post</a>
+                </div>
             </form>
         </div>
     </section>
