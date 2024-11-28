@@ -119,6 +119,7 @@ code {
     padding: 0.5rem 1rem;
     border-radius: 5px;
     transition: all 0.3s ease;
+    border-bottom: none;
 }
 
 .nav a::after {
@@ -514,4 +515,29 @@ code {
     .error-home-link {
         padding: 0.8rem 1.5rem;
     }
+}
+
+/* Default link styles for public site */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid transparent;
+}
+
+a:hover {
+    color: var(--hover);
+    border-bottom-color: var(--hover);
+}
+
+/* Article/content link styles */
+.content a {
+    border-bottom: 1px dashed var(--accent);
+    padding-bottom: 1px;
+}
+
+.content a:hover {
+    border-bottom-style: solid;
+    color: var(--hover);
+    border-bottom-color: var(--hover);
 }
