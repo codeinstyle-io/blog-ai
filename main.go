@@ -15,13 +15,16 @@ import (
 )
 
 var (
-	port      int
-	host      string
-	initDevDB bool
+	port       int
+	host       string
+	initDevDB  bool
+	configFile string
 )
 
 func main() {
 	var rootCmd = &cobra.Command{Use: "captain"}
+
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file path")
 
 	var runCmd = &cobra.Command{
 		Use:   "run",
@@ -29,8 +32,9 @@ func main() {
 		Run:   runServer,
 	}
 
-	runCmd.Flags().IntVarP(&port, "port", "p", 8080, "Port to run the server on")
-	runCmd.Flags().StringVarP(&host, "bind", "b", "localhost", "Host to run the server on")
+	// Remove these flags as they're now handled by config
+	// runCmd.Flags().IntVarP(&port, "port", "p", 8080, "Port to run the server on")
+	// runCmd.Flags().StringVarP(&host, "bind", "b", "localhost", "Host to run the server on")
 	runCmd.Flags().BoolVarP(&initDevDB, "init-dev-db", "i", false, "Initialize the development database with test data")
 
 	var userCmd = &cobra.Command{
@@ -60,10 +64,13 @@ func main() {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
-	database := db.InitDB()
-	r := gin.Default()
+	cfg, err := config.InitConfig()
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
 
-	cfg := config.NewDefaultConfig()
+	database := db.InitDB(cfg)
+	r := gin.Default()
 
 	if initDevDB {
 		err := db.InsertTestData(database)
@@ -85,8 +92,8 @@ func runServer(cmd *cobra.Command, args []string) {
 	handlers.RegisterPublicRoutes(r, database, cfg)
 	handlers.RegisterAdminRoutes(r, database, cfg)
 
-	fmt.Printf("Server running on http://%s:%d\n", host, port)
-	if err := r.Run(fmt.Sprintf("%s:%d", host, port)); err != nil {
+	fmt.Printf("Server running on http://%s:%d\n", cfg.Server.Host, cfg.Server.Port)
+	if err := r.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }

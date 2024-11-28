@@ -10,12 +10,16 @@ import (
 	"os"
 	"time"
 
+	"codeinstyle.io/captain/config"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-func InitDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("blog.db"), &gorm.Config{})
+func InitDB(cfg *config.Config) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(cfg.DB.Path), &gorm.Config{
+		Logger: logger.Default.LogMode(cfg.GetGormLogLevel()),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
