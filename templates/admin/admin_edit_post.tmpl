@@ -47,9 +47,18 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="publishType">Publish:</label>
+                        <select id="publishType" class="form-control">
+                            <option value="immediately">Immediately</option>
+                            <option value="scheduled">Specific Date</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="publishDateGroup">
                         <label for="publishedAt">Published At:</label>
                         <input type="datetime-local" id="publishedAt" name="publishedAt" class="form-control" value="{{.post.PublishedAt.Format "2006-01-02T15:04"}}" required>
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="toggle-label">
                             <span>Visible</span>
