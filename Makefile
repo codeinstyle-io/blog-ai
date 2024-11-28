@@ -2,7 +2,7 @@
         docker-build docker-run \
         dev lint fmt \
         test test-coverage \
-        create-user update-password
+        create-user update-password quality
 
 # Variables
 BINARY_NAME=dist/captain
@@ -47,6 +47,8 @@ lint:
 
 fmt:
 	go fmt ./...
+
+quality: fmt lint test
 
 # User management commands
 create-user: build
