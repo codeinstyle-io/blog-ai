@@ -219,6 +219,11 @@ function toggleTheme() {
     });
 }
 
+function toggleMenu() {
+    const menu = document.querySelector('.admin-nav');
+    menu.classList.toggle('active');
+}
+
 // Cookie Helpers
 function setCookie(name, value, days) {
     let expires = "";
@@ -247,8 +252,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTags();
     initializeSlugWarning();
     initializeTheme();
-    const toggle = document.getElementById('theme-toggle');
-    if (toggle) {
-        toggle.addEventListener('click', toggleTheme);
+
+    const menuToggle = document.getElementById('menu-toggle')
+    if(menuToggle) {
+        menuToggle.addEventListener('click', toggleMenu);
+    }
+
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
     }
 });
+
+

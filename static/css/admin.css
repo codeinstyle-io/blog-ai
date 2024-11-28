@@ -194,6 +194,7 @@ code, pre {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--admin-border);
+    white-space: nowrap;
 }
 
 .admin-table thead tr {
@@ -207,6 +208,17 @@ code, pre {
     color: var(--admin-text);
 }
 
+/* Add minimum widths for specific columns */
+.admin-table th:nth-child(5), /* Tags column */
+.admin-table td:nth-child(5) {
+    min-width: 200px;
+}
+
+.admin-table th:nth-child(6), /* Actions column */
+.admin-table td:nth-child(6) {
+    min-width: 180px;
+}
+
 .btn {
     display: inline-block;
     padding: 0.5rem 1rem;
@@ -215,6 +227,7 @@ code, pre {
     cursor: pointer;
     text-decoration: none;
     font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .btn-primary {
@@ -452,7 +465,6 @@ input:checked + .toggle-slider:before {
 
 /* Responsive Tables */
 .table-container {
-    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     margin: 1rem 0;
@@ -556,22 +568,54 @@ input:checked + .toggle-slider:before {
     content: "⚠️";
 }
 
+/* Add hamburger menu styles */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1001;
+    background-color: var(--admin-primary);
+    border-radius: 4px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+    .table-container {
+        max-width: 400px;
+    }
+
     .admin-container {
         grid-template-columns: 1fr;
     }
 
     .admin-nav {
-        position: sticky;
+        position: fixed;
         top: 0;
-        width: 100%;
-        height: auto;
-        z-index: 100;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .admin-nav.active {
+        transform: translateX(0);
     }
 
     .admin-content {
         grid-column: 1;
         padding: 1rem;
+        padding-top: 4rem; /* Space for the menu toggle */
+    }
+
+    .menu-toggle {
+        display: block;
     }
 }
