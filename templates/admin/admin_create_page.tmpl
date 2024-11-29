@@ -1,0 +1,37 @@
+
+{{ template "admin_header.tmpl" . }}
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Create New Page</h1>
+    </div>
+    <div class="editor-container">
+        <form method="POST" action="/admin/pages/create">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="slug">Slug</label>
+                <input type="text" id="slug" name="slug" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="content_type">Content Type</label>
+                <select id="content_type" name="content_type" class="form-control">
+                    <option value="markdown">Markdown</option>
+                    <option value="html">HTML</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="content">Content</label>
+                <div id="editor-area">
+                    <textarea id="content" name="content" class="form-control content-editor" required></textarea>
+                    <div id="preview-area" class="markdown-preview" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create Page</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{ template "admin_footer.tmpl" . }}

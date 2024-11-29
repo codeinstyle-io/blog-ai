@@ -20,6 +20,8 @@ type Config struct {
 	Site struct {
 		ChromaStyle string
 		Timezone    string
+		Title       string
+		Subtitle    string
 	}
 }
 
@@ -30,6 +32,8 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("db.log_level", "warn")
 	viper.SetDefault("site.chroma_style", "paraiso-dark")
 	viper.SetDefault("site.timezone", "UTC")
+	viper.SetDefault("site.title", "Captain")
+	viper.SetDefault("site.subtitle", "A simple blog engine")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")

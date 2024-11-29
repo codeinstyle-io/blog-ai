@@ -122,12 +122,12 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
 
-	c.HTML(http.StatusOK, "posts.tmpl", gin.H{
+	c.HTML(http.StatusOK, "posts.tmpl", h.addCommonData(c, gin.H{
 		"title":       "Latest Articles",
 		"posts":       posts,
 		"currentPage": page,
 		"totalPages":  totalPages,
-	})
+	}))
 }
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
@@ -171,6 +171,44 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 		"currentPage": page,
 		"totalPages":  totalPages,
 	})
+}
+
+func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+
+	var page db.Page
+	if err := h.db.Where("slug = ? AND visible = ?", slug, true).First(&page).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
+				"title": "Page not found",
+			})
+			return
+		}
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
+			"title": "Error",
+		})
+		return
+	}
+
+	// Render content based on type
+	if page.ContentType == "markdown" {
+		page.Content = renderMarkdown(page.Content)
+	}
+
+	c.HTML(http.StatusOK, "page.tmpl", h.addCommonData(c, gin.H{
+		"title": page.Title,
+		"page":  page,
+	}))
+}
+
+func (h *PublicHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
+	// Get menu items
+	var menuItems []db.MenuItem
+	h.db.Preload("Page").Order("position").Find(&menuItems)
+
+	// Add menu items to the data
+	data["menuItems"] = menuItems
+	return data
 }
 
 func processPostsPublishedAt(posts []db.Post) {

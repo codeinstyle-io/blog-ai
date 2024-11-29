@@ -25,7 +25,7 @@ func InitDB(cfg *config.Config) *gorm.DB {
 	}
 
 	// Run migrations
-	err = db.AutoMigrate(&Post{}, &Tag{}, &User{})
+	err = db.AutoMigrate(&Post{}, &Tag{}, &User{}, &Page{}, &MenuItem{})
 	if err != nil {
 		log.Fatal(err)
 	}

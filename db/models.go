@@ -33,3 +33,25 @@ type User struct {
 	Password     string
 	SessionToken *string `gorm:"uniqueIndex"` // Changed to pointer to allow NULL
 }
+
+type Page struct {
+	ID          uint   `gorm:"primaryKey"`
+	Title       string `gorm:"not null"`
+	Slug        string `gorm:"uniqueIndex;not null"`
+	Content     string `gorm:"not null"`
+	ContentType string `gorm:"not null;default:'markdown'"` // 'markdown' or 'html'
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Visible     bool
+}
+
+type MenuItem struct {
+	ID        uint    `gorm:"primaryKey"`
+	Label     string  `gorm:"not null"`
+	URL       *string `gorm:"null"` // External or internal URL
+	PageID    *uint   `gorm:"null"` // Reference to Page
+	Page      *Page   `gorm:"foreignKey:PageID"`
+	Position  int     `gorm:"not null;default:0"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

@@ -21,6 +21,7 @@ func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) 
 	r.POST("/login", authHandlers.Login)
 	r.GET("/", publicHandlers.ListPosts)
 	r.GET("/posts/:slug", publicHandlers.GetPostBySlug)
+	r.GET("/pages/:slug", publicHandlers.GetPageBySlug)
 	r.GET("/tags/:tag", publicHandlers.ListPostsByTag)
 	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
 }
@@ -58,6 +59,20 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.GET("/posts/:id/edit", adminHandlers.EditPost)
 	admin.POST("/posts/:id", adminHandlers.UpdatePost)
 	admin.GET("/api/tags", adminHandlers.GetTags)
+
+	// Admin routes
+	admin.GET("/pages", adminHandlers.ListPages)
+	admin.GET("/pages/create", adminHandlers.ShowCreatePage)
+	admin.POST("/pages/create", adminHandlers.CreatePage)
+	admin.GET("/pages/:id/edit", adminHandlers.EditPage)
+	admin.POST("/pages/:id", adminHandlers.UpdatePage)
+	admin.DELETE("/pages/:id", adminHandlers.DeletePage)
+
+	admin.GET("/menus", adminHandlers.ListMenuItems)
+	admin.GET("/menus/create", adminHandlers.ShowCreateMenuItem)
+	admin.POST("/menus/create", adminHandlers.CreateMenuItem)
+	admin.POST("/menus/:id/move/:direction", adminHandlers.MoveMenuItem)
+	admin.DELETE("/menus/:id", adminHandlers.DeleteMenuItem)
 
 	// Preferences route
 	admin.POST("/preferences", adminHandlers.SavePreferences)

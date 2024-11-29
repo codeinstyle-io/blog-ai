@@ -81,7 +81,7 @@
             return;
         }
 
-        const text = "Code In Style";
+        const text = h1Span.textContent;
         h1Span.textContent = "";
 
         let charIndex = 0;

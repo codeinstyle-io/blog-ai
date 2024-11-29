@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Code In Style</title>
+        <title>{{.config.SiteTitle}}</title>
         <link rel="stylesheet" href="/static/css/main.css">
         <link rel="stylesheet" href="/generated/css/chroma.css">
     </head>
@@ -14,16 +14,16 @@
             <nav class="nav">
                 <ul>
                     <li><a href="/">Home</a></li>
-                    <li><a href="/posts">Posts</a></li>
-                    <li><a href="/contact">Contact</a></li>
-                    <li><a href="/about">About</a></li>
+                    {{range .menuItems}}
+                        <li><a href="{{if .PageID}}/pages/{{.Page.Slug}}{{else}}{{.URL}}{{end}}">{{.Label}}</a></li>
+                    {{end}}
                 </ul>
             </nav>
         </header>
         <div class="logo">
             <h1 class="type-title">
-                <span class="terminal-prompt">Code In Style</span>
+                <span class="terminal-prompt">{{.config.SiteTitle}}</span>
             </h1>
-            <p class="lighter-text">Just rambling about internets things</p>
+            <p class="lighter-text">{{.config.SiteSubtitle}}</p>
         </div>
 {{end}}

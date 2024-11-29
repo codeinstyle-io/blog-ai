@@ -16,6 +16,39 @@ function deletePost(id) {
     });
 }
 
+function deletePage(id) {
+    if (confirm('Are you sure you want to delete this page?')) {
+        fetch(`/admin/pages/${id}/delete`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    }
+}
+
+function deleteMenuItem(id) {
+    if (confirm('Are you sure you want to delete this menu item?')) {
+        fetch(`/admin/menus/${id}/delete`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    }
+}
+
+function moveItem(id, direction) {
+    fetch(`/admin/menus/${id}/move/${direction}`, {
+        method: 'POST',
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    });
+}
 
 function initializeEditor() {
     const editor = document.getElementById('content');
@@ -178,7 +211,83 @@ function initializeSlugWarning() {
     });
 }
 
-// static/js/admin.js
+function initializeMenuItemForm() {
+    const pageSelect = document.getElementById('page_id');
+    const urlInput = document.getElementById('url');
+    const labelInput = document.getElementById('label');
+    const form = document.querySelector('form');
+
+    if (!pageSelect || !urlInput || !labelInput || !form) return;
+
+    pageSelect.addEventListener('change', function() {
+        const pageId = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (pageId) {
+            const pageSlug = selectedOption.getAttribute('data-slug');
+            urlInput.value = '/pages/' + pageSlug;
+            if (!labelInput.value) {
+                labelInput.value = selectedOption.text;
+            }
+            urlInput.readOnly = true;
+        } else {
+            urlInput.readOnly = false;
+        }
+    });
+
+    // Clear page selection when URL is manually edited
+    urlInput.addEventListener('input', function() {
+        if (this.value !== this.defaultValue) {
+            pageSelect.value = '';
+            this.readOnly = false;
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        if (!labelInput.value.trim()) {
+            alert('Please enter a label for the menu item');
+            return;
+        }
+
+        if (!urlInput.value.trim() && !pageSelect.value) {
+            alert('Please either enter a URL or select a page');
+            return;
+        }
+
+        // If validation passes, submit the form
+        this.submit();
+    });
+}
+
+function initializeMenuItems() {
+    const moveUpButtons = document.querySelectorAll('.move-up');
+    const moveDownButtons = document.querySelectorAll('.move-down');
+    const deleteMenuButtons = document.querySelectorAll('.delete-menu-item');
+
+    moveUpButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            moveItem(id, 'up');
+        });
+    });
+
+    moveDownButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            moveItem(id, 'down');
+        });
+    });
+
+    deleteMenuButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            deleteMenuItem(id);
+        });
+    });
+}
 
 // Initialize Theme based on Cookie
 function initializeTheme() {
@@ -278,18 +387,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTags();
     initializeSlugWarning();
     initializeTheme();
-
-    const menuToggle = document.getElementById('menu-toggle')
-    if(menuToggle) {
-        menuToggle.addEventListener('click', toggleMenu);
-    }
+    initializeMenuItemForm();
+    initializeMenuItems();
+    initializePublishDateToggle();
 
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
     }
 
-    initializePublishDateToggle();
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMenu);
+    }
 });
-
-
