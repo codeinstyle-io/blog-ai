@@ -27,8 +27,8 @@
                     </td>
                     <td class="actions">
                         <div class="action-buttons">
-                            <a href="/admin/menus/{{.ID}}/edit" class="btn btn-small">Edit</a>
-                            <a href="/admin/menus/{{.ID}}/delete" class="btn btn-small btn-danger">Delete</a>
+                            <a href="/admin/menus/{{.ID}}/edit" class="btn btn-edit">Edit</a>
+                            <a href="/admin/menus/{{.ID}}/delete" class="btn btn-delete">Delete</a>
                             <button class="btn btn-small move-up" data-id="{{.ID}}" {{if eq .Position 0}}disabled{{end}}>↑</button>
                             <button class="btn btn-small move-down" data-id="{{.ID}}" {{if eq .Position $.lastPosition}}disabled{{end}}>↓</button>
                         </div>
