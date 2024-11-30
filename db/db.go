@@ -77,7 +77,7 @@ func CreateUser(db *gorm.DB, user *User) error {
 }
 
 // New function to generate random session token
-func generateSessionToken() (string, error) {
+func GenerateSessionToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", err
@@ -95,7 +95,7 @@ func GetUserByToken(db *gorm.DB, token string) (*User, error) {
 }
 
 func UpdateUserSessionToken(db *gorm.DB, user *User) error {
-	token, err := generateSessionToken()
+	token, err := GenerateSessionToken()
 	if err != nil {
 		return err
 	}

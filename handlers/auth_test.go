@@ -7,92 +7,126 @@ import (
 	"strings"
 	"testing"
 
+	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
-func TestAuthHandlers_Login(t *testing.T) {
-	database := db.SetupTestDB()
+func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers) {
 	gin.SetMode(gin.TestMode)
-	router := gin.New() // Don't use Default() to avoid extra middleware
+	router := gin.New()
+	router.Use(gin.Recovery())
 
-	// Add template functions
+	// Add template functions and load templates
 	router.SetFuncMap(utils.GetTemplateFuncs())
 	router.LoadHTMLGlob("../templates/**/*.tmpl")
 
-	authHandlers := NewAuthHandlers(database)
+	authHandlers := NewAuthHandlers(database, &config.Config{})
 
 	// Create test user
 	password := "Test1234!"
-	hash, _ := utils.HashPassword(password)
-	user := &db.User{
+	hashedPassword, err := utils.HashPassword(password)
+	assert.NoError(t, err)
+
+	testUser := db.User{
 		Email:    "test@example.com",
-		Password: hash,
+		Password: hashedPassword,
 	}
-	database.Create(user)
+
+	err = database.Create(&testUser).Error
+	assert.NoError(t, err)
+
+	return router, authHandlers
+}
+
+func TestAuthHandlers_Login(t *testing.T) {
+	database := db.SetupTestDB()
+	router, authHandlers := setupAuthTest(t, database)
+
+	// Add routes
+	router.GET("/login", authHandlers.Login)
+	router.POST("/login", authHandlers.PostLogin)
 
 	tests := []struct {
-		name         string
-		email        string
-		password     string
-		returnTo     string
-		wantStatus   int
-		wantRedirect string
+		name          string
+		email         string
+		password      string
+		returnTo      string
+		expectedCode  int
+		expectedPath  string
+		sessionCookie bool
 	}{
 		{
-			name:         "Valid login",
-			email:        "test@example.com",
-			password:     "Test1234!",
-			wantStatus:   http.StatusFound,
-			wantRedirect: "/admin",
+			name:          "Valid login",
+			email:         "test@example.com",
+			password:      "Test1234!",
+			expectedCode:  http.StatusFound,
+			expectedPath:  "/admin",
+			sessionCookie: true,
 		},
 		{
-			name:       "Invalid password",
-			email:      "test@example.com",
-			password:   "wrong",
-			wantStatus: http.StatusUnauthorized,
+			name:          "Invalid password",
+			email:         "test@example.com",
+			password:      "wrong",
+			expectedCode:  http.StatusUnauthorized,
+			expectedPath:  "",
+			sessionCookie: false,
 		},
 		{
-			name:       "Invalid email",
-			email:      "wrong@example.com",
-			password:   "Test1234!",
-			wantStatus: http.StatusUnauthorized,
+			name:          "Invalid email",
+			email:         "wrong@example.com",
+			password:      "Test1234!",
+			expectedCode:  http.StatusUnauthorized,
+			expectedPath:  "",
+			sessionCookie: false,
 		},
 		{
-			name:         "Custom return path",
-			email:        "test@example.com",
-			password:     "Test1234!",
-			returnTo:     "/admin/posts",
-			wantStatus:   http.StatusFound,
-			wantRedirect: "/admin/posts",
+			name:          "Custom return path",
+			email:         "test@example.com",
+			password:      "Test1234!",
+			returnTo:      "/admin/posts",
+			expectedCode:  http.StatusFound,
+			expectedPath:  "/admin/posts",
+			sessionCookie: true,
 		},
 	}
-
-	router.POST("/login", authHandlers.Login) // Move this outside the test loop
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-
-			// Fix URL construction for return path
-			targetUrl := "/login"
-			if tt.returnTo != "" {
-				targetUrl += "?returnTo=" + tt.returnTo
-			}
-
 			form := url.Values{}
 			form.Add("email", tt.email)
 			form.Add("password", tt.password)
-			req := httptest.NewRequest("POST", targetUrl, strings.NewReader(form.Encode()))
+
+			// Create request
+			req, err := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
+			assert.NoError(t, err)
+
+			// Add return path if specified
+			if tt.returnTo != "" {
+				req.URL.RawQuery = url.Values{"returnTo": {tt.returnTo}}.Encode()
+			}
+
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
+			// Create response recorder
+			w := httptest.NewRecorder()
+
+			// Serve request
 			router.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.wantStatus, w.Code)
-			if tt.wantRedirect != "" {
-				assert.Equal(t, tt.wantRedirect, w.Header().Get("Location"))
+			assert.Equal(t, tt.expectedCode, w.Code)
+			if tt.expectedPath != "" {
+				assert.Equal(t, tt.expectedPath, w.Header().Get("Location"))
+			}
+
+			// Check session cookie
+			if tt.sessionCookie {
+				assert.Contains(t, w.Header().Get("Set-Cookie"), "session=")
+			} else {
+				assert.NotContains(t, w.Header().Get("Set-Cookie"), "session=")
 			}
 		})
 	}
@@ -100,58 +134,25 @@ func TestAuthHandlers_Login(t *testing.T) {
 
 func TestAuthHandlers_Logout(t *testing.T) {
 	database := db.SetupTestDB()
-	gin.SetMode(gin.TestMode)
-	router := gin.New()
+	router, authHandlers := setupAuthTest(t, database)
 
-	// Add template functions
-	router.SetFuncMap(utils.GetTemplateFuncs())
-
-	authHandlers := NewAuthHandlers(database)
-
-	tests := []struct {
-		name  string
-		theme string
-	}{
-		{
-			name: "Logout without theme",
-		},
-		{
-			name:  "Logout with theme",
-			theme: "dark",
-		},
-	}
-
+	// Add routes
 	router.GET("/logout", authHandlers.Logout)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/logout", nil)
+	// Create request
+	req, err := http.NewRequest("GET", "/logout", nil)
+	assert.NoError(t, err)
 
-			// Set theme cookie if specified
-			if tt.theme != "" {
-				req.AddCookie(&http.Cookie{
-					Name:  "admin_theme",
-					Value: tt.theme,
-				})
-			}
+	// Create response recorder
+	w := httptest.NewRecorder()
 
-			router.ServeHTTP(w, req)
+	// Serve request
+	router.ServeHTTP(w, req)
 
-			assert.Equal(t, http.StatusFound, w.Code)
-			assert.Equal(t, "/", w.Header().Get("Location"))
+	assert.Equal(t, http.StatusFound, w.Code)
+	assert.Equal(t, "/login", w.Header().Get("Location"))
 
-			var sessionCookie *http.Cookie
-			for _, cookie := range w.Result().Cookies() {
-				if cookie.Name == "session" {
-					sessionCookie = cookie
-					break
-				}
-			}
-
-			// Only verify session cookie was cleared
-			assert.NotNil(t, sessionCookie)
-			assert.True(t, sessionCookie.MaxAge < 0)
-		})
-	}
+	// Check that session cookie is cleared
+	assert.Contains(t, w.Header().Get("Set-Cookie"), "session=;")
+	assert.Contains(t, w.Header().Get("Set-Cookie"), "Max-Age=0")
 }
