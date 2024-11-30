@@ -72,14 +72,14 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 		Where("slug = ? AND visible = ? AND published_at <= ?", slug, true, now).
 		First(&post).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
+			c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
 				"title": "Post not found",
-			})
+			}))
 			return
 		}
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
 			"title": "Error",
-		})
+		}))
 		return
 	}
 
@@ -89,10 +89,10 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	// Convert UTC time to configured timezone for display
 	post.PublishedAt = post.PublishedAt.In(h.config.GetLocation())
 
-	c.HTML(http.StatusOK, "post.tmpl", gin.H{
+	c.HTML(http.StatusOK, "post.tmpl", h.addCommonData(gin.H{
 		"title": post.Title,
 		"post":  post,
-	})
+	}))
 }
 
 func (h *PublicHandlers) ListPosts(c *gin.Context) {
@@ -122,12 +122,12 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
 
-	c.HTML(http.StatusOK, "posts.tmpl", gin.H{
+	c.HTML(http.StatusOK, "posts.tmpl", h.addCommonData(gin.H{
 		"title":       "Latest Articles",
 		"posts":       posts,
 		"currentPage": page,
 		"totalPages":  totalPages,
-	})
+	}))
 }
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
@@ -164,13 +164,49 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
 
-	c.HTML(http.StatusOK, "tag_posts.tmpl", gin.H{
+	c.HTML(http.StatusOK, "tag_posts.tmpl", h.addCommonData(gin.H{
 		"title":       fmt.Sprintf("Posts tagged with #%s", tagName),
 		"tag":         tagName,
 		"posts":       posts,
 		"currentPage": page,
 		"totalPages":  totalPages,
-	})
+	}))
+}
+
+func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+	var page db.Page
+	if err := h.db.Where("slug = ? AND visible = true", slug).First(&page).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	// Render content based on type
+	if page.ContentType == "markdown" {
+		page.Content = renderMarkdown(page.Content)
+	}
+
+	c.HTML(http.StatusOK, "page.tmpl", h.addCommonData(gin.H{
+		"title": page.Title,
+		"page":  page,
+	}))
+}
+
+func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
+	// Get menu items
+	var menuItems []db.MenuItem
+	h.db.Preload("Page").Order("position").Find(&menuItems)
+
+	// Add menu items to the data
+	data["menuItems"] = menuItems
+
+	// Add site config
+	data["config"] = gin.H{
+		"SiteTitle":    h.config.Site.Title,
+		"SiteSubtitle": h.config.Site.Subtitle,
+	}
+
+	return data
 }
 
 func processPostsPublishedAt(posts []db.Post) {

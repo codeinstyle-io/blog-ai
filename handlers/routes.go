@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/http"
-
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/middleware"
 	"github.com/gin-gonic/gin"
@@ -12,17 +10,19 @@ import (
 // RegisterPublicRoutes registers all public routes
 func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	publicHandlers := NewPublicHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database) // Add this
+	authHandlers := NewAuthHandlers(database, cfg) // Add this
 
 	// Auth routes (public)
-	r.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
-	})
-	r.POST("/login", authHandlers.Login)
 	r.GET("/", publicHandlers.ListPosts)
 	r.GET("/posts/:slug", publicHandlers.GetPostBySlug)
+	r.GET("/pages/:slug", publicHandlers.GetPageBySlug)
 	r.GET("/tags/:tag", publicHandlers.ListPostsByTag)
 	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
+
+	// Auth routes (private)
+	r.GET("/logout", authHandlers.Logout)
+	r.GET("/login", authHandlers.Login)
+	r.POST("/login", authHandlers.PostLogin)
 }
 
 // RegisterAdminRoutes registers all admin routes
@@ -31,7 +31,7 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.Use(middleware.AuthRequired(database))
 
 	adminHandlers := NewAdminHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database) // Add this line
+	authHandlers := NewAuthHandlers(database, cfg) // Add this line
 
 	// Add index route
 	admin.GET("/", adminHandlers.Index)
@@ -58,6 +58,24 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.GET("/posts/:id/edit", adminHandlers.EditPost)
 	admin.POST("/posts/:id", adminHandlers.UpdatePost)
 	admin.GET("/api/tags", adminHandlers.GetTags)
+
+	// Admin routes
+	admin.GET("/pages", adminHandlers.ListPages)
+	admin.GET("/pages/create", adminHandlers.ShowCreatePage)
+	admin.POST("/pages/create", adminHandlers.CreatePage)
+	admin.GET("/pages/:id/edit", adminHandlers.EditPage)
+	admin.POST("/pages/:id", adminHandlers.UpdatePage)
+	admin.DELETE("/pages/:id", adminHandlers.DeletePage)
+
+	// Menu routes
+	admin.GET("/menus", adminHandlers.ListMenuItems)
+	admin.GET("/menus/create", adminHandlers.ShowCreateMenuItem)
+	admin.POST("/menus/create", adminHandlers.CreateMenuItem)
+	admin.GET("/menus/:id/edit", adminHandlers.EditMenuItem)
+	admin.POST("/menus/:id", adminHandlers.UpdateMenuItem)
+	admin.POST("/menus/:id/move/:direction", adminHandlers.MoveMenuItem)
+	admin.GET("/menus/:id/delete", adminHandlers.ConfirmDeleteMenuItem)
+	admin.POST("/menus/:id/delete", adminHandlers.DeleteMenuItem)
 
 	// Preferences route
 	admin.POST("/preferences", adminHandlers.SavePreferences)

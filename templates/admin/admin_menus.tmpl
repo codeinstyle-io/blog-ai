@@ -1,0 +1,48 @@
+{{ template "admin_header.tmpl" . }}
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Menu Items</h1>
+        <a href="/admin/menus/create" class="btn btn-primary">Add Menu Item</a>
+    </div>
+
+    <div class="table-container">
+        {{if .menuItems}}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Label</th>
+                    <th>Type</th>
+                    <th>Target</th>
+                    <th>Position</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .menuItems}}
+                <tr>
+                    <td>{{.Label}}</td>
+                    <td>{{if .PageID}}Page{{else}}URL{{end}}</td>
+                    <td>{{if .PageID}}{{.Page.Title}}{{else}}{{.URL}}{{end}}</td>
+                    <td>
+                    </td>
+                    <td class="actions">
+                        <div class="action-buttons">
+                            <a href="/admin/menus/{{.ID}}/edit" class="btn btn-edit">Edit</a>
+                            <a href="/admin/menus/{{.ID}}/delete" class="btn btn-delete">Delete</a>
+                            <button class="btn btn-small move-up" data-id="{{.ID}}" {{if eq .Position 0}}disabled{{end}}>↑</button>
+                            <button class="btn btn-small move-down" data-id="{{.ID}}" {{if eq .Position $.lastPosition}}disabled{{end}}>↓</button>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty-state">
+            <p>No menu items found. Add items to create your site navigation!</p>
+            <a href="/admin/menus/create" class="btn btn-primary">Add Menu Item</a>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{ template "admin_footer.tmpl" . }}

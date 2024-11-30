@@ -5,6 +5,7 @@
         <a href="/admin/new_post" class="btn btn-primary">Create New Post</a>
     </div>
     <div class="table-container">
+        {{if .posts}}
         <table class="admin-table">
             <thead>
                 <tr>
@@ -37,6 +38,12 @@
                 {{end}}
             </tbody>
         </table>
+        {{else}}
+        <div class="empty-state">
+            <p>No posts found. Start writing your first blog post!</p>
+            <a href="/admin/new_post" class="btn btn-primary">Create Post</a>
+        </div>
+        {{end}}
     </div>
 </div>
 {{ template "admin_footer.tmpl" . }}

@@ -10,6 +10,7 @@
     {{end}}
 
     <div class="table-container">
+        {{if .tags}}
         <table class="admin-table">
             <thead>
                 <tr>
@@ -31,6 +32,12 @@
                 {{end}}
             </tbody>
         </table>
+        {{else}}
+        <div class="empty-state">
+            <p>No tags found. Create tags to organize your posts!</p>
+            <a href="/admin/tags/create" class="btn btn-primary">Create Tag</a>
+        </div>
+        {{end}}
     </div>
 </div>
 

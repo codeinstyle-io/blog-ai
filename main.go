@@ -9,6 +9,7 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/handlers"
+	"codeinstyle.io/captain/middleware"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -86,6 +87,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	// Register routes with config
 	handlers.RegisterPublicRoutes(r, database, cfg)
 	handlers.RegisterAdminRoutes(r, database, cfg)
+
+	// Add middleware to load menu items
+	r.Use(middleware.LoadMenuItems(database))
 
 	fmt.Printf("Server running on http://%s:%d\n", cfg.Server.Host, cfg.Server.Port)
 	if err := r.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)); err != nil {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"codeinstyle.io/captain/config"
@@ -37,7 +38,7 @@ func (h *AdminHandlers) ListTags(c *gin.Context) {
 		Find(&tags)
 
 	if result.Error != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 
@@ -61,7 +62,7 @@ func (h *AdminHandlers) DeleteTag(c *gin.Context) {
 func (h *AdminHandlers) ListUsers(c *gin.Context) {
 	var users []db.User
 	if err := h.db.Select("id, first_name, last_name, email, created_at, updated_at").Find(&users).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 	c.HTML(http.StatusOK, "admin_users.tmpl", gin.H{
@@ -74,7 +75,7 @@ func (h *AdminHandlers) ListUsers(c *gin.Context) {
 func (h *AdminHandlers) ShowCreatePost(c *gin.Context) {
 	var tags []db.Tag
 	if err := h.db.Find(&tags).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 
@@ -194,7 +195,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 func (h *AdminHandlers) ListPosts(c *gin.Context) {
 	var posts []db.Post
 	if err := h.db.Preload("Tags").Preload("Author").Find(&posts).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 
@@ -215,7 +216,7 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 
 	var tag db.Tag
 	if err := h.db.First(&tag, tagID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "errors/404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
 		return
 	}
 
@@ -225,7 +226,7 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 		Preload("Tags").
 		Preload("Author").
 		Find(&posts).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 
@@ -249,7 +250,7 @@ func (h *AdminHandlers) ConfirmDeletePost(c *gin.Context) {
 	id := c.Param("id")
 	var post db.Post
 	if err := h.db.First(&post, id).Error; err != nil {
-		c.HTML(http.StatusNotFound, "errors/404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
 		return
 	}
 	c.HTML(http.StatusOK, "admin_confirm_delete.tmpl", gin.H{
@@ -268,7 +269,7 @@ func (h *AdminHandlers) DeletePost(c *gin.Context) {
 	// Delete post_tags associations
 	if err := tx.Exec("DELETE FROM post_tags WHERE post_id = ?", id).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
 			"error": "Failed to delete post tags",
 		})
 		return
@@ -277,7 +278,7 @@ func (h *AdminHandlers) DeletePost(c *gin.Context) {
 	// Delete post
 	if err := tx.Delete(&db.Post{}, id).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
 			"error": "Failed to delete post",
 		})
 		return
@@ -292,13 +293,13 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 	var post db.Post
 
 	if err := h.db.Preload("Tags").First(&post, id).Error; err != nil {
-		c.HTML(http.StatusNotFound, "errors/404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
 		return
 	}
 
 	var allTags []db.Tag
 	if err := h.db.Find(&allTags).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "errors/500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
 
@@ -317,7 +318,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	var post db.Post
 
 	if err := h.db.First(&post, id).Error; err != nil {
-		c.HTML(http.StatusNotFound, "errors/404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
 		return
 	}
 
@@ -493,4 +494,301 @@ func (h *AdminHandlers) CreateTag(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, "/admin/tags")
+}
+
+// Page handlers
+func (h *AdminHandlers) ListPages(c *gin.Context) {
+	var pages []db.Page
+	if err := h.db.Find(&pages).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		return
+	}
+	c.HTML(http.StatusOK, "admin_pages.tmpl", h.addCommonData(c, gin.H{
+		"title": "Pages",
+		"pages": pages,
+	}))
+}
+
+func (h *AdminHandlers) CreatePage(c *gin.Context) {
+	page := db.Page{
+		Title:       c.PostForm("title"),
+		Slug:        c.PostForm("slug"),
+		Content:     c.PostForm("content"),
+		ContentType: c.PostForm("content_type"),
+		Visible:     c.PostForm("visible") == "on",
+	}
+
+	if err := h.db.Create(&page).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_create_page.tmpl", h.addCommonData(c, gin.H{
+			"error": "Failed to create page",
+			"page":  page,
+		}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/pages")
+}
+
+func (h *AdminHandlers) ShowCreatePage(c *gin.Context) {
+	c.HTML(http.StatusOK, "admin_create_page.tmpl", h.addCommonData(c, gin.H{
+		"title": "Create Page",
+	}))
+}
+
+func (h *AdminHandlers) EditPage(c *gin.Context) {
+	id := c.Param("id")
+	var page db.Page
+	if err := h.db.First(&page, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
+		"title": "Edit Page",
+		"page":  page,
+	}))
+}
+
+func (h *AdminHandlers) UpdatePage(c *gin.Context) {
+	id := c.Param("id")
+	var page db.Page
+	if err := h.db.First(&page, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	page.Title = c.PostForm("title")
+	page.Slug = c.PostForm("slug")
+	page.Content = c.PostForm("content")
+	page.ContentType = c.PostForm("content_type")
+	page.Visible = c.PostForm("visible") == "on"
+
+	if err := h.db.Save(&page).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
+			"error": "Failed to update page",
+			"page":  page,
+		}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/pages")
+}
+
+func (h *AdminHandlers) DeletePage(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.db.Delete(&db.Page{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete page"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+// Menu handlers
+func (h *AdminHandlers) ListMenuItems(c *gin.Context) {
+	var items []db.MenuItem
+	if err := h.db.Preload("Page").Order("position").Find(&items).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		return
+	}
+	c.HTML(http.StatusOK, "admin_menus.tmpl", h.addCommonData(c, gin.H{
+		"title":     "Menu Items",
+		"menuItems": items,
+	}))
+}
+
+func (h *AdminHandlers) CreateMenuItem(c *gin.Context) {
+	item := db.MenuItem{
+		Label:    c.PostForm("label"),
+		Position: h.getNextMenuPosition(),
+	}
+
+	// Handle either URL or Page reference
+	if pageID := c.PostForm("page_id"); pageID != "" {
+		pid := parseUint(pageID)
+		item.PageID = &pid
+	} else if url := c.PostForm("url"); url != "" {
+		item.URL = &url
+	}
+
+	if err := h.db.Create(&item).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_create_menu_item.tmpl", h.addCommonData(c, gin.H{
+			"error": "Failed to create menu item",
+			"item":  item,
+		}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/menus")
+}
+
+func (h *AdminHandlers) ShowCreateMenuItem(c *gin.Context) {
+	var pages []db.Page
+	if err := h.db.Find(&pages).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", nil)
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_create_menu_item.tmpl", h.addCommonData(c, gin.H{
+		"title": "Create Menu Item",
+		"pages": pages,
+	}))
+}
+
+func (h *AdminHandlers) MoveMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	direction := c.Param("direction")
+
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
+		return
+	}
+
+	var targetItem db.MenuItem
+	query := h.db
+	if direction == "up" {
+		query = query.Where("position < ?", item.Position).Order("position DESC")
+	} else {
+		query = query.Where("position > ?", item.Position).Order("position ASC")
+	}
+
+	if err := query.First(&targetItem).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot move item further"})
+		return
+	}
+
+	// Swap positions
+	tempPosition := item.Position
+	item.Position = targetItem.Position
+	targetItem.Position = tempPosition
+
+	tx := h.db.Begin()
+	if err := tx.Save(&item).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update item position"})
+		return
+	}
+
+	if err := tx.Save(&targetItem).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update target position"})
+		return
+	}
+
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+func (h *AdminHandlers) ConfirmDeleteMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_delete_menu_item.tmpl", h.addCommonData(c, gin.H{
+		"title": "Delete Menu Item",
+		"item":  item,
+	}))
+}
+
+func (h *AdminHandlers) DeleteMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		if c.Request.Header.Get("Accept") == "application/json" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
+		} else {
+			c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		}
+		return
+	}
+
+	if err := h.db.Delete(&item).Error; err != nil {
+		if c.Request.Header.Get("Accept") == "application/json" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete menu item"})
+		} else {
+			c.HTML(http.StatusInternalServerError, "500.tmpl", nil)
+		}
+		return
+	}
+
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, gin.H{"status": "success"})
+	} else {
+		c.Redirect(http.StatusFound, "/admin/menus")
+	}
+}
+
+func (h *AdminHandlers) EditMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.Preload("Page").First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	var pages []db.Page
+	if err := h.db.Find(&pages).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", nil)
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_edit_menu_item.tmpl", h.addCommonData(c, gin.H{
+		"title": "Edit Menu Item",
+		"item":  item,
+		"pages": pages,
+	}))
+}
+
+func (h *AdminHandlers) UpdateMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	item.Label = c.PostForm("label")
+
+	// Reset both URL and PageID
+	item.URL = nil
+	item.PageID = nil
+
+	// Handle either URL or Page reference
+	if pageID := c.PostForm("page_id"); pageID != "" {
+		pid := parseUint(pageID)
+		item.PageID = &pid
+	} else if url := c.PostForm("url"); url != "" {
+		item.URL = &url
+	}
+
+	if err := h.db.Save(&item).Error; err != nil {
+		var pages []db.Page
+		h.db.Find(&pages)
+		c.HTML(http.StatusInternalServerError, "admin_edit_menu_item.tmpl", h.addCommonData(c, gin.H{
+			"error": "Failed to update menu item",
+			"item":  item,
+			"pages": pages,
+		}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/menus")
+}
+
+func parseUint(pageID string) uint {
+	pid, err := strconv.ParseUint(pageID, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint(pid)
+
+}
+
+func (h *AdminHandlers) getNextMenuPosition() int {
+	var maxPos struct{ Max int }
+	h.db.Model(&db.MenuItem{}).Select("COALESCE(MAX(position), -1) as max").Scan(&maxPos)
+	return maxPos.Max + 1
 }

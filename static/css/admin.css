@@ -517,6 +517,27 @@ input:checked + .toggle-slider:before {
     transform: scale(1.1);
 }
 
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    background: var(--admin-card-bg);
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 1px solid var(--admin-border);
+    box-shadow: var(--table-shadow);
+}
+
+.empty-state p {
+    font-size: 1.1em;
+    color: var(--admin-text);
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.empty-state .btn {
+    display: inline-block;
+}
 
 /* Tag Input and Suggestions Styles */
 .tag-input-container {
@@ -548,7 +569,6 @@ input:checked + .toggle-slider:before {
     background-color: var(--admin-input-bg);
     color: var(--admin-accent);
 }
-
 
 /* Slug Warning Styles */
 .slug-warning {
@@ -650,4 +670,16 @@ a:hover {
     .menu-toggle {
         display: block;
     }
+}
+
+/* Menu list styles */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-buttons .btn {
+    min-width: auto;
+    padding: 0.25rem 0.75rem;
 }
