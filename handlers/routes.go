@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/http"
-
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/middleware"
 	"github.com/gin-gonic/gin"
@@ -12,18 +10,19 @@ import (
 // RegisterPublicRoutes registers all public routes
 func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	publicHandlers := NewPublicHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database) // Add this
+	authHandlers := NewAuthHandlers(database, cfg) // Add this
 
 	// Auth routes (public)
-	r.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
-	})
-	r.POST("/login", authHandlers.Login)
 	r.GET("/", publicHandlers.ListPosts)
 	r.GET("/posts/:slug", publicHandlers.GetPostBySlug)
 	r.GET("/pages/:slug", publicHandlers.GetPageBySlug)
 	r.GET("/tags/:tag", publicHandlers.ListPostsByTag)
 	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
+
+	// Auth routes (private)
+	r.GET("/logout", authHandlers.Logout)
+	r.GET("/login", authHandlers.Login)
+	r.POST("/login", authHandlers.PostLogin)
 }
 
 // RegisterAdminRoutes registers all admin routes
@@ -32,7 +31,7 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.Use(middleware.AuthRequired(database))
 
 	adminHandlers := NewAdminHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database) // Add this line
+	authHandlers := NewAuthHandlers(database, cfg) // Add this line
 
 	// Add index route
 	admin.GET("/", adminHandlers.Index)
