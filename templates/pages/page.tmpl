@@ -1,0 +1,13 @@
+{{ template "header.tmpl" . }}
+<div class="text-section centered-container">
+    <article class="page">
+        <header class="page-header">
+            <h1>{{.page.Title}}</h1>
+        </header>
+        
+        <div class="page-content">
+            {{raw .page.Content }}
+        </div>
+    </article>
+</div>
+{{ template "footer.tmpl" . }}

@@ -2,32 +2,39 @@
 <main class="main-content">
     <section class="text-section centered-container">
         <h1 class="latest-articles">Latest Articles</h1>
-        {{ range .posts }}
-            <article class="post-item">
-                <div class="post-date">{{ .PublishedAt.Format "January 2, 2006" }}</div>
-                <h2 class="post-title"><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h2>
-                <p class="post-excerpt">{{ raw .Excerpt }}</p>
-                <div class="post-tags">
-                    {{ range .Tags }}
-                        <a href="/tags/{{ .Name }}" class="post-tag">#{{ .Name }}</a>
-                    {{ end }}
-                </div>
-            </article>
-            <hr class="post-separator">
-        {{ end }}
-
-        {{ if gt .totalPages 1 }}
-        <div class="pagination">
-            {{ if gt .currentPage 1 }}
-                <a href="?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+        {{ if .posts }}
+            {{ range .posts }}
+                <article class="post-item">
+                    <div class="post-date">{{ .PublishedAt.Format "January 2, 2006" }}</div>
+                    <h2 class="post-title"><a href="/posts/{{ .Slug }}">{{ .Title }}</a></h2>
+                    <p class="post-excerpt">{{ raw .Excerpt }}</p>
+                    <div class="post-tags">
+                        {{ range .Tags }}
+                            <a href="/tags/{{ .Name }}" class="post-tag">#{{ .Name }}</a>
+                        {{ end }}
+                    </div>
+                </article>
+                <hr class="post-separator">
             {{ end }}
 
-            <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+            {{ if gt .totalPages 1 }}
+            <div class="pagination">
+                {{ if gt .currentPage 1 }}
+                    <a href="?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+                {{ end }}
 
-            {{ if lt .currentPage .totalPages }}
-                <a href="?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+                <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+
+                {{ if lt .currentPage .totalPages }}
+                    <a href="?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+                {{ end }}
+            </div>
             {{ end }}
-        </div>
+        {{ else }}
+            <div class="empty-state">
+                <h2>No Posts Yet</h2>
+                <p>There are no posts published yet. Check back soon!</p>
+            </div>
         {{ end }}
     </section>
 </main>

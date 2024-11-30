@@ -515,6 +515,7 @@ func (h *AdminHandlers) CreatePage(c *gin.Context) {
 		Slug:        c.PostForm("slug"),
 		Content:     c.PostForm("content"),
 		ContentType: c.PostForm("content_type"),
+		Visible:     c.PostForm("visible") == "on",
 	}
 
 	if err := h.db.Create(&page).Error; err != nil {
@@ -556,23 +557,11 @@ func (h *AdminHandlers) UpdatePage(c *gin.Context) {
 		return
 	}
 
-	title := c.PostForm("title")
-	slug := c.PostForm("slug")
-	content := c.PostForm("content")
-	visible := c.PostForm("visible") == "on"
-
-	if title == "" || slug == "" || content == "" {
-		c.HTML(http.StatusBadRequest, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
-			"error": "All fields are required",
-			"page":  page,
-		}))
-		return
-	}
-
-	page.Title = title
-	page.Slug = slug
-	page.Content = content
-	page.Visible = visible
+	page.Title = c.PostForm("title")
+	page.Slug = c.PostForm("slug")
+	page.Content = c.PostForm("content")
+	page.ContentType = c.PostForm("content_type")
+	page.Visible = c.PostForm("visible") == "on"
 
 	if err := h.db.Save(&page).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
@@ -690,13 +679,103 @@ func (h *AdminHandlers) MoveMenuItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "success"})
 }
 
-func (h *AdminHandlers) DeleteMenuItem(c *gin.Context) {
+func (h *AdminHandlers) ConfirmDeleteMenuItem(c *gin.Context) {
 	id := c.Param("id")
-	if err := h.db.Delete(&db.MenuItem{}, id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete menu item"})
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "success"})
+
+	c.HTML(http.StatusOK, "admin_delete_menu_item.tmpl", h.addCommonData(c, gin.H{
+		"title": "Delete Menu Item",
+		"item":  item,
+	}))
+}
+
+func (h *AdminHandlers) DeleteMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		if c.Request.Header.Get("Accept") == "application/json" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
+		} else {
+			c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		}
+		return
+	}
+
+	if err := h.db.Delete(&item).Error; err != nil {
+		if c.Request.Header.Get("Accept") == "application/json" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete menu item"})
+		} else {
+			c.HTML(http.StatusInternalServerError, "500.tmpl", nil)
+		}
+		return
+	}
+
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, gin.H{"status": "success"})
+	} else {
+		c.Redirect(http.StatusFound, "/admin/menus")
+	}
+}
+
+func (h *AdminHandlers) EditMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.Preload("Page").First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	var pages []db.Page
+	if err := h.db.Find(&pages).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", nil)
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_edit_menu_item.tmpl", h.addCommonData(c, gin.H{
+		"title": "Edit Menu Item",
+		"item":  item,
+		"pages": pages,
+	}))
+}
+
+func (h *AdminHandlers) UpdateMenuItem(c *gin.Context) {
+	id := c.Param("id")
+	var item db.MenuItem
+	if err := h.db.First(&item, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+		return
+	}
+
+	item.Label = c.PostForm("label")
+
+	// Reset both URL and PageID
+	item.URL = nil
+	item.PageID = nil
+
+	// Handle either URL or Page reference
+	if pageID := c.PostForm("page_id"); pageID != "" {
+		pid := parseUint(pageID)
+		item.PageID = &pid
+	} else if url := c.PostForm("url"); url != "" {
+		item.URL = &url
+	}
+
+	if err := h.db.Save(&item).Error; err != nil {
+		var pages []db.Page
+		h.db.Find(&pages)
+		c.HTML(http.StatusInternalServerError, "admin_edit_menu_item.tmpl", h.addCommonData(c, gin.H{
+			"error": "Failed to update menu item",
+			"item":  item,
+			"pages": pages,
+		}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/menus")
 }
 
 func parseUint(pageID string) uint {

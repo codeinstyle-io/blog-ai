@@ -68,11 +68,15 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.POST("/pages/:id", adminHandlers.UpdatePage)
 	admin.DELETE("/pages/:id", adminHandlers.DeletePage)
 
+	// Menu routes
 	admin.GET("/menus", adminHandlers.ListMenuItems)
 	admin.GET("/menus/create", adminHandlers.ShowCreateMenuItem)
 	admin.POST("/menus/create", adminHandlers.CreateMenuItem)
+	admin.GET("/menus/:id/edit", adminHandlers.EditMenuItem)
+	admin.POST("/menus/:id", adminHandlers.UpdateMenuItem)
 	admin.POST("/menus/:id/move/:direction", adminHandlers.MoveMenuItem)
-	admin.DELETE("/menus/:id", adminHandlers.DeleteMenuItem)
+	admin.GET("/menus/:id/delete", adminHandlers.ConfirmDeleteMenuItem)
+	admin.POST("/menus/:id/delete", adminHandlers.DeleteMenuItem)
 
 	// Preferences route
 	admin.POST("/preferences", adminHandlers.SavePreferences)

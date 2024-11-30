@@ -211,6 +211,26 @@ function initializeSlugWarning() {
     });
 }
 
+function initializeSlugGeneration() {
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
+
+    if (!titleInput || !slugInput) return;
+
+    titleInput.addEventListener('input', function() {
+        if (!slugInput.value || slugInput.value === slugInput.defaultValue) {
+            slugInput.value = generateSlug(this.value);
+        }
+    });
+}
+
+function generateSlug(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
 function initializeMenuItemForm() {
     const pageSelect = document.getElementById('page_id');
     const urlInput = document.getElementById('url');
@@ -390,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMenuItemForm();
     initializeMenuItems();
     initializePublishDateToggle();
+    initializeSlugGeneration();
 
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {

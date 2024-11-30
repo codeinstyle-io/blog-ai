@@ -175,18 +175,9 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 
 func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
 	slug := c.Param("slug")
-
 	var page db.Page
-	if err := h.db.Where("slug = ? AND visible = ?", slug, true).First(&page).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.HTML(http.StatusNotFound, "404.tmpl", gin.H{
-				"title": "Page not found",
-			})
-			return
-		}
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{
-			"title": "Error",
-		})
+	if err := h.db.Where("slug = ? AND visible = true", slug).First(&page).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", nil)
 		return
 	}
 
@@ -208,6 +199,13 @@ func (h *PublicHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
 
 	// Add menu items to the data
 	data["menuItems"] = menuItems
+
+	// Add site config
+	data["config"] = gin.H{
+		"SiteTitle":    h.config.Site.Title,
+		"SiteSubtitle": h.config.Site.Subtitle,
+	}
+
 	return data
 }
 

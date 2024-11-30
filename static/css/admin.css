@@ -671,3 +671,15 @@ a:hover {
         display: block;
     }
 }
+
+/* Menu list styles */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.action-buttons .btn {
+    min-width: auto;
+    padding: 0.25rem 0.75rem;
+}

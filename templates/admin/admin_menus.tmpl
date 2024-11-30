@@ -24,12 +24,14 @@
                     <td>{{if .PageID}}Page{{else}}URL{{end}}</td>
                     <td>{{if .PageID}}{{.Page.Title}}{{else}}{{.URL}}{{end}}</td>
                     <td>
-                        <button class="move-up" data-id="{{.ID}}" {{if eq .Position 0}}disabled{{end}}>↑</button>
-                        <button class="move-down" data-id="{{.ID}}" {{if eq .Position $.lastPosition}}disabled{{end}}>↓</button>
                     </td>
                     <td class="actions">
-                        <a href="/admin/menus/{{.ID}}/edit" class="btn btn-edit">Edit</a>
-                        <button class="delete-menu-item btn btn-delete" data-id="{{.ID}}">Delete</button>
+                        <div class="action-buttons">
+                            <a href="/admin/menus/{{.ID}}/edit" class="btn btn-small">Edit</a>
+                            <a href="/admin/menus/{{.ID}}/delete" class="btn btn-small btn-danger">Delete</a>
+                            <button class="btn btn-small move-up" data-id="{{.ID}}" {{if eq .Position 0}}disabled{{end}}>↑</button>
+                            <button class="btn btn-small move-down" data-id="{{.ID}}" {{if eq .Position $.lastPosition}}disabled{{end}}>↓</button>
+                        </div>
                     </td>
                 </tr>
                 {{end}}
