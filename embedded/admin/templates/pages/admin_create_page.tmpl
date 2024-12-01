@@ -3,14 +3,17 @@
     <div class="page-header">
         <h1>Create New Page</h1>
     </div>
+    {{ if .error }}
+        <div class="error-message">{{ .error }}</div>
+    {{ end }}
     <div class="editor-container">
-        <form method="POST" action="/admin/pages/create" id="pageForm">
+        <form id="create-page-form" method="POST" action="/admin/pages/create">
             <div class="form-group">
-                <label for="title">Title</label>
+                <label for="title">Title:</label>
                 <input type="text" id="title" name="title" class="form-control" required>
             </div>
             <div class="form-group">
-                <label for="slug">Slug</label>
+                <label for="slug">Slug:</label>
                 <input type="text" id="slug" name="slug" class="form-control" required>
                 <small class="help-text">The URL-friendly version of the title</small>
             </div>
@@ -48,25 +51,5 @@
         </form>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-
-    function generateSlug(text) {
-        return text
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
-    }
-
-    titleInput.addEventListener('input', function() {
-        if (!slugInput.value || slugInput.value === slugInput.defaultValue) {
-            slugInput.value = generateSlug(this.value);
-        }
-    });
-});
-</script>
 
 {{ template "admin_footer.tmpl" . }}

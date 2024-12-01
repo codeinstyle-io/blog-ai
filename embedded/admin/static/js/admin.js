@@ -87,17 +87,6 @@ function initializeEditor() {
         previewBtn.classList.add('active');
         preview.innerHTML = marked.parse(editor.value);
     });
-
-    // Auto-generate slug from title
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-    
-    titleInput.addEventListener('input', () => {
-        slugInput.value = titleInput.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-    });
 }
 
 // static/js/admin.js - Update tag handling
@@ -187,129 +176,66 @@ function initializeTags() {
     });
 }
 
-function initializeSlugWarning() {
-    const slugInput = document.getElementById('slug');
-
-    if (!slugInput) return;
-    const originalSlug = slugInput.value;
-
-    slugInput.addEventListener('input', () => {
-        if (originalSlug && slugInput.value !== originalSlug) {
-            if (!document.getElementById('slug-warning')) {
-                const warning = document.createElement('div');
-                warning.id = 'slug-warning';
-                warning.className = 'warning-message';
-                warning.textContent = 'Warning: Changing the slug will break existing links to this post';
-                slugInput.parentNode.appendChild(warning);
-            }
-        } else {
-            const warning = document.getElementById('slug-warning');
-            if (warning) {
-                warning.remove();
-            }
-        }
-    });
-}
-
-function initializeSlugGeneration() {
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-
-    if (!titleInput || !slugInput) return;
-
-    titleInput.addEventListener('input', function() {
-        if (!slugInput.value || slugInput.value === slugInput.defaultValue) {
-            slugInput.value = generateSlug(this.value);
-        }
-    });
-}
-
+// Unified slug generation function
 function generateSlug(text) {
     return text
         .toLowerCase()
+        .trim()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
 
-function initializeMenuItemForm() {
-    const pageSelect = document.getElementById('page_id');
-    const urlInput = document.getElementById('url');
-    const labelInput = document.getElementById('label');
+// Initialize slug handling for both create and edit forms
+function initializeSlugHandling() {
+    const titleInput = document.getElementById('title');
+    const slugInput = document.getElementById('slug');
     const form = document.querySelector('form');
 
-    if (!pageSelect || !urlInput || !labelInput || !form) return;
+    if (!titleInput || !slugInput || !form) return;
 
-    pageSelect.addEventListener('change', function() {
-        const pageId = this.value;
-        const selectedOption = this.options[this.selectedIndex];
-        
-        if (pageId) {
-            const pageSlug = selectedOption.getAttribute('data-slug');
-            urlInput.value = '/pages/' + pageSlug;
-            if (!labelInput.value) {
-                labelInput.value = selectedOption.text;
+    const isEditForm = form.id === 'edit-post-form' || form.id === 'edit-page-form';
+    const originalSlug = slugInput.value;
+
+    console.log(isEditForm);
+
+    // Auto-generate slug from title only in create forms
+    if (!isEditForm) {
+        titleInput.addEventListener('input', () => {
+            slugInput.value = generateSlug(titleInput.value);
+        });
+    }
+
+    // Show warning when slug is modified in edit forms
+    if (isEditForm) {
+        slugInput.addEventListener('input', () => {
+            const warning = document.getElementById('slug-warning');
+            const hasChanged = slugInput.value !== originalSlug;
+
+            if (hasChanged) {
+                if (!warning) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.id = 'slug-warning';
+                    warningDiv.className = 'warning-message';
+                    warningDiv.textContent = 'Warning: Changing the slug will break existing links to this content';
+                    slugInput.parentNode.appendChild(warningDiv);
+                }
+            } else if (warning) {
+                warning.remove();
             }
-            urlInput.readOnly = true;
+        });
+    }
+
+    // Validate slug format for both forms
+    slugInput.addEventListener('input', () => {
+        const isValidSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugInput.value);
+        if (!isValidSlug && slugInput.value) {
+            slugInput.setCustomValidity('Slug can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.');
         } else {
-            urlInput.readOnly = false;
+            slugInput.setCustomValidity('');
         }
-    });
-
-    // Clear page selection when URL is manually edited
-    urlInput.addEventListener('input', function() {
-        if (this.value !== this.defaultValue) {
-            pageSelect.value = '';
-            this.readOnly = false;
-        }
-    });
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Validate form
-        if (!labelInput.value.trim()) {
-            alert('Please enter a label for the menu item');
-            return;
-        }
-
-        if (!urlInput.value.trim() && !pageSelect.value) {
-            alert('Please either enter a URL or select a page');
-            return;
-        }
-
-        // If validation passes, submit the form
-        this.submit();
     });
 }
 
-function initializeMenuItems() {
-    const moveUpButtons = document.querySelectorAll('.move-up');
-    const moveDownButtons = document.querySelectorAll('.move-down');
-    const deleteMenuButtons = document.querySelectorAll('.delete-menu-item');
-
-    moveUpButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            moveItem(id, 'up');
-        });
-    });
-
-    moveDownButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            moveItem(id, 'down');
-        });
-    });
-
-    deleteMenuButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.getAttribute('data-id');
-            deleteMenuItem(id);
-        });
-    });
-}
-
-// Initialize Theme based on Cookie
 function initializeTheme() {
     const html = document.documentElement;
     const theme = getCookie('admin_theme') || 'light';
@@ -401,16 +327,93 @@ function initializePublishDateToggle() {
     updatePublishDate();
 }
 
+function initializeMenuItemForm() {
+    const pageSelect = document.getElementById('page_id');
+    const urlInput = document.getElementById('url');
+    const labelInput = document.getElementById('label');
+    const form = document.querySelector('form');
+
+    if (!pageSelect || !urlInput || !labelInput || !form) return;
+
+    pageSelect.addEventListener('change', function() {
+        const pageId = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (pageId) {
+            const pageSlug = selectedOption.getAttribute('data-slug');
+            urlInput.value = '/pages/' + pageSlug;
+            if (!labelInput.value) {
+                labelInput.value = selectedOption.text;
+            }
+            urlInput.readOnly = true;
+        } else {
+            urlInput.readOnly = false;
+        }
+    });
+
+    // Clear page selection when URL is manually edited
+    urlInput.addEventListener('input', function() {
+        if (this.value !== this.defaultValue) {
+            pageSelect.value = '';
+            this.readOnly = false;
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        if (!labelInput.value.trim()) {
+            alert('Please enter a label for the menu item');
+            return;
+        }
+
+        if (!urlInput.value.trim() && !pageSelect.value) {
+            alert('Please either enter a URL or select a page');
+            return;
+        }
+
+        // If validation passes, submit the form
+        this.submit();
+    });
+}
+
+function initializeMenuItems() {
+    const moveUpButtons = document.querySelectorAll('.move-up');
+    const moveDownButtons = document.querySelectorAll('.move-down');
+    const deleteMenuButtons = document.querySelectorAll('.delete-menu-item');
+
+    moveUpButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            moveItem(id, 'up');
+        });
+    });
+
+    moveDownButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            moveItem(id, 'down');
+        });
+    });
+
+    deleteMenuButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            deleteMenuItem(id);
+        });
+    });
+}
+
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeEditor();
     initializeTags();
-    initializeSlugWarning();
+    initializeSlugHandling();
     initializeTheme();
     initializeMenuItemForm();
     initializeMenuItems();
     initializePublishDateToggle();
-    initializeSlugGeneration();
 
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
