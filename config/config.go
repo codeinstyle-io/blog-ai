@@ -22,6 +22,7 @@ type Config struct {
 		Timezone    string
 		Title       string
 		Subtitle    string
+		Theme       string
 	}
 }
 
@@ -34,6 +35,7 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("site.timezone", "UTC")
 	viper.SetDefault("site.title", "Captain")
 	viper.SetDefault("site.subtitle", "A simple blog engine")
+	viper.SetDefault("site.theme", "")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
