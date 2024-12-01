@@ -1,0 +1,77 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          cache: true
+      
+      - name: Run tests
+        run: go test -v ./...
+
+  build:
+    name: Build Binaries
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+          - os: windows
+            arch: amd64
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.2'
+          cache: true
+      
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          BINARY_NAME=captain
+          if [ "${{ matrix.os }}" = "windows" ]; then
+            BINARY_NAME=captain.exe
+          fi
+          go build -v -o "dist/captain-${{ matrix.os }}-${{ matrix.arch }}/$BINARY_NAME" .
+
+      - name: Package release assets
+        run: |
+          cd dist
+          for dir in */; do
+            if [ -d "$dir" ]; then
+              platform=${dir%/}
+              zip -r "../captain-${platform}.zip" "$platform"
+            fi
+          done
+          cd ..
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: captain-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.ARTIFACTS_SECRET_TOKEN }}
