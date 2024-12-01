@@ -204,7 +204,7 @@ code, pre {
 
 .admin-table th {
     background-color: var(--admin-card-bg); /* Use themed background */
-    font-weight: 600;
+    font-weight: strong;
     color: var(--admin-text);
 }
 
@@ -571,6 +571,28 @@ input:checked + .toggle-slider:before {
 }
 
 /* Slug Warning Styles */
+.warning-message {
+    background-color: #fff3cd;
+    border: 2px solid #ffeeba;
+    border-left: 4px solid #ffc107;
+    color: #856404;
+    padding: 12px;
+    margin-top: 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.warning-message::before {
+    content: "⚠️";
+    margin-right: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .slug-warning {
     margin-top: 0.5rem;
     padding: 0.75rem 1rem;
