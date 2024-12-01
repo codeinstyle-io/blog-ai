@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -20,9 +21,22 @@ func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers)
 	router := gin.New()
 	router.Use(gin.Recovery())
 
-	// Add template functions and load templates
+	// Add template functions and set up test templates
 	router.SetFuncMap(utils.GetTemplateFuncs())
-	router.LoadHTMLGlob("../templates/**/*.tmpl")
+
+	// Create minimal templates for testing
+	templates := template.Must(template.New("login.tmpl").Parse(`
+		<form method="post" action="/login">
+			<input type="email" name="email" />
+			<input type="password" name="password" />
+			<button type="submit">Login</button>
+		</form>
+	`))
+
+	// Add error template
+	template.Must(templates.New("500.tmpl").Parse(`<h1>Internal Server Error</h1>`))
+
+	router.SetHTMLTemplate(templates)
 
 	authHandlers := NewAuthHandlers(database, &config.Config{})
 
@@ -136,17 +150,12 @@ func TestAuthHandlers_Logout(t *testing.T) {
 	database := db.SetupTestDB()
 	router, authHandlers := setupAuthTest(t, database)
 
-	// Add routes
+	// Add route
 	router.GET("/logout", authHandlers.Logout)
 
-	// Create request
-	req, err := http.NewRequest("GET", "/logout", nil)
-	assert.NoError(t, err)
-
-	// Create response recorder
+	// Test GET /logout
 	w := httptest.NewRecorder()
-
-	// Serve request
+	req, _ := http.NewRequest("GET", "/logout", nil)
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusFound, w.Code)
