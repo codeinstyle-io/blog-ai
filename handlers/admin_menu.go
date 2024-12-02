@@ -14,9 +14,12 @@ func (h *AdminHandlers) ListMenuItems(c *gin.Context) {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return
 	}
+
+	lastPosition := len(menuItems) - 1
 	c.HTML(http.StatusOK, "admin_menu_items.tmpl", gin.H{
-		"title":     "Menu Items",
-		"menuItems": menuItems,
+		"title":        "Menu Items",
+		"menuItems":    menuItems,
+		"lastPosition": lastPosition,
 	})
 }
 
