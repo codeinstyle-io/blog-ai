@@ -1,6 +1,10 @@
 # Captain
 
-[![CI](https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg)](https://github.com/shinuza/captain/actions/workflows/ci.yml)
+[![CI](https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg)](https://github.com/shinuza/captain/actions/workflows/ci.yml) [![](https://img.shields.io/github/v/release/shinuza/captain)](https://github.com/shinuza/captain/releases) [![](https://img.shields.io/badge/license-MIT-green)](https://github.com/shinuza/captain/blob/master/LICENSE)
+
+Captain is a no-installation AI written blog engine. Just run the binary and you are ready to start writing. No database setup, no dependencies to install. Just pure blogging.
+
+## Trivia
 
 Captain is an experimental blog engine entirely written by AI models. This project explores the possibilities and limitations of AI-generated software by creating a fully functional blogging platform. Every line of code, from the architecture decisions to the implementation details, has been crafted through AI assistance.
 
@@ -10,6 +14,46 @@ Captain is written in Go and uses:
 - Sqlite for data storage
 - Gin framework for HTTP routing
 - [html/template](https://pkg.go.dev/html/template) for HTML templates
+
+
+## Installation
+
+### From Binary Releases
+
+1. Download the latest release for your platform from the [releases page](https://github.com/shinuza/captain/releases)
+2. Extract the archive:
+   ```sh
+   unzip captain-<platform>.zip
+   ```
+3. Move the binary to a location in your PATH:
+   ```sh
+   sudo mv captain /usr/local/bin/
+   ```
+4. Verify the installation:
+   ```sh
+   captain
+   ```
+
+### From Source
+
+1. Ensure you have Go 1.21 or later installed
+2. Clone the repository:
+   ```sh
+   git clone https://github.com/shinuza/captain.git
+   cd captain
+   ```
+3. Build and install:
+   ```sh
+   make build
+   sudo mv dist/captain /usr/local/bin/
+   ```
+
+### Using Docker
+
+```sh
+docker pull shinuza/captain:latest
+docker run -p 8080:8080 shinuza/captain:latest
+```
 
 ## Available Make Commands
 
@@ -48,6 +92,8 @@ The config file can be specified using the -c flag:
 ```sh
 captain run -c /path/to/config.yaml
 ```
+
+If the -c flag is not provided, Captain will look for a config file named config.yaml in the current directory or in /etc/captain/
 
 Here are the available options:
 
