@@ -205,7 +205,7 @@ func (h *AdminHandlers) UpdateMenuItem(c *gin.Context) {
 		return
 	}
 
-	menuItem.Label = c.PostForm("title")
+	menuItem.Label = c.PostForm("label")
 
 	// Reset both URL and PageID
 	menuItem.URL = nil
@@ -230,5 +230,5 @@ func (h *AdminHandlers) UpdateMenuItem(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/admin/menu")
+	c.Redirect(http.StatusFound, "/admin/menus")
 }

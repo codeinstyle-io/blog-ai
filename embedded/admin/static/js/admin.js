@@ -4,7 +4,16 @@ function deleteTag(id) {
     }).then((response) => {
         if (response.ok) {
             window.location.href = '/admin/tags';
+        } else {
+            response.json().then(data => {
+                showError(data.error || 'Failed to delete tag');
+            }).catch(() => {
+                showError('Failed to delete tag');
+            });
         }
+    }).catch(error => {
+        showError('Failed to delete tag');
+        console.error('Error:', error);
     });
 }
 
@@ -14,7 +23,16 @@ function deletePost(id) {
     }).then((response) => {
         if (response.ok) {
             window.location.href = '/admin/posts';
+        } else {
+            response.json().then(data => {
+                showError(data.error || 'Failed to delete post');
+            }).catch(() => {
+                showError('Failed to delete post');
+            });
         }
+    }).catch(error => {
+        showError('Failed to delete post');
+        console.error('Error:', error);
     });
 }
 
@@ -24,7 +42,16 @@ function deletePage(id) {
     }).then(response => {
         if (response.ok) {
             window.location.href = '/admin/pages';
+        } else {
+            response.json().then(data => {
+                showError(data.error || 'Failed to delete page');
+            }).catch(() => {
+                showError('Failed to delete page');
+            });
         }
+    }).catch(error => {
+        showError('Failed to delete page');
+        console.error('Error:', error);
     });
 }
 
@@ -34,29 +61,34 @@ function deleteMenuItem(id) {
     }).then(response => {
         if (response.ok) {
             window.location.href = '/admin/menus';
-        }
-    });
-}
-
-function moveItem(id, direction) {
-    const button = document.querySelector(`button[data-id="${id}"].move-${direction}`);
-    if (button && button.disabled) {
-        return; // Don't move if button is disabled
-    }
-
-    fetch(`/admin/menus/${id}/move/${direction}`, {
-        method: 'POST',
-    }).then(response => {
-        if (response.ok) {
-            window.location.reload();
         } else {
             response.json().then(data => {
-                console.error('Error moving item:', data.error);
+                showError(data.error || 'Failed to delete menu item');
+            }).catch(() => {
+                showError('Failed to delete menu item');
             });
         }
     }).catch(error => {
-        console.error('Error moving item:', error);
+        showError('Failed to delete menu item');
+        console.error('Error:', error);
     });
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-error';
+    errorDiv.textContent = message;
+    
+    // Insert at the top of the main content area
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+        mainContent.insertBefore(errorDiv, mainContent.firstChild);
+    }
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
 }
 
 function initializeEditor() {
@@ -344,6 +376,17 @@ function initializeMenuItemForm() {
 
     if (!pageSelect || !urlInput || !labelInput || !form) return;
 
+    // Initialize form fields from server data
+    const initialPageId = pageSelect.value;
+    if (initialPageId) {
+        const selectedOption = pageSelect.options[pageSelect.selectedIndex];
+        if (selectedOption) {
+            const pageSlug = selectedOption.getAttribute('data-slug');
+            urlInput.value = '/pages/' + pageSlug;
+            urlInput.readOnly = true;
+        }
+    }
+
     pageSelect.addEventListener('change', function() {
         const pageId = this.value;
         const selectedOption = this.options[this.selectedIndex];
@@ -369,21 +412,20 @@ function initializeMenuItemForm() {
     });
 
     form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
         // Validate form
         if (!labelInput.value.trim()) {
+            e.preventDefault();
             alert('Please enter a label for the menu item');
             return;
         }
 
         if (!urlInput.value.trim() && !pageSelect.value) {
+            e.preventDefault();
             alert('Please either enter a URL or select a page');
             return;
         }
 
-        // If validation passes, submit the form
-        this.submit();
+        // Form is valid - let it submit naturally
     });
 }
 
@@ -411,6 +453,30 @@ function initializeMenuItems() {
             const id = this.getAttribute('data-id');
             deleteMenuItem(id);
         });
+    });
+}
+
+function moveItem(id, direction) {
+    const button = document.querySelector(`button[data-id="${id}"].move-${direction}`);
+    if (button && button.disabled) {
+        return; // Don't move if button is disabled
+    }
+
+    fetch(`/admin/menus/${id}/move/${direction}`, {
+        method: 'POST',
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            response.json().then(data => {
+                showError(data.error || 'Failed to move item');
+            }).catch(() => {
+                showError('Failed to move item');
+            });
+        }
+    }).catch(error => {
+        showError('Failed to move item');
+        console.error('Error:', error);
     });
 }
 
