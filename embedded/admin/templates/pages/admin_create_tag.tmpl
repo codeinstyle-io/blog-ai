@@ -5,9 +5,9 @@
         <a href="/admin/tags" class="btn">← Back to Tags</a>
     </div>
 
-    {{if .error}}
-    <div class="alert alert-error">{{.error}}</div>
-    {{end}}
+    {{ if .error }}
+        <div class="error-message">{{ .error }}</div>
+    {{ end }}
 
     <div class="editor-container">
         <form method="POST" action="/admin/tags/create" class="form">

@@ -2,7 +2,7 @@
 <div class="admin-page">
     <div class="page-header">
         <h1>Menu Items</h1>
-        <a href="/admin/menus/create" class="btn btn-primary">Add Menu Item</a>
+        <a href="/admin/menus/create" class="btn btn-primary">Create New Menu Item</a>
     </div>
 
     <div class="table-container">
@@ -22,9 +22,14 @@
                 <tr>
                     <td>{{.Label}}</td>
                     <td>{{if .PageID}}Page{{else}}URL{{end}}</td>
-                    <td>{{if .PageID}}{{.Page.Title}}{{else}}{{.URL}}{{end}}</td>
                     <td>
+                        {{if .PageID}}
+                            <a href="/admin/pages/{{.Page.ID}}/edit">{{.Page.Title}}</a>
+                        {{else}}
+                            {{.URL}}
+                        {{end}}
                     </td>
+                    <td>{{.Position}}</td>
                     <td class="actions">
                         <div class="action-buttons">
                             <a href="/admin/menus/{{.ID}}/edit" class="btn btn-edit">Edit</a>
@@ -39,10 +44,11 @@
         </table>
         {{else}}
         <div class="empty-state">
-            <p>No menu items found. Add items to create your site navigation!</p>
-            <a href="/admin/menus/create" class="btn btn-primary">Add Menu Item</a>
+            <p>No menu items found. Create your first menu item!</p>
+            <a href="/admin/menus/create" class="btn btn-primary">Create Menu Item</a>
         </div>
         {{end}}
     </div>
 </div>
+
 {{ template "admin_footer.tmpl" . }}

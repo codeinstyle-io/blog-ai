@@ -2,10 +2,13 @@
 <div class="admin-page">
     <div class="page-header">
         <h1>Create New Page</h1>
+        <a href="/admin/pages" class="btn">← Back to Pages</a>
     </div>
+
     {{ if .error }}
         <div class="error-message">{{ .error }}</div>
     {{ end }}
+
     <div class="editor-container">
         <form id="create-page-form" method="POST" action="/admin/pages/create">
             <div class="form-group">

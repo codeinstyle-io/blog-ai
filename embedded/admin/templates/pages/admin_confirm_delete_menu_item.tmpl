@@ -1,0 +1,13 @@
+{{ template "admin_header.tmpl" . }}
+<div class="admin-page">
+    <h1>Confirm Delete Menu Item</h1>
+    <div class="confirm-delete">
+        <p>Are you sure you want to delete the menu item "{{.menuItem.Label}}"?</p>
+        <p>This action cannot be undone.</p>
+        <div class="actions">
+            <button onclick="deleteMenuItem({{.menuItem.ID}})" class="btn btn-delete">Delete</button>
+            <a href="/admin/menus" class="btn">Cancel</a>
+        </div>
+    </div>
+</div>
+{{ template "admin_footer.tmpl" . }}

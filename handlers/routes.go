@@ -41,23 +41,23 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 
 	// Tag routes
 	admin.GET("/tags", adminHandlers.ListTags)
-	admin.GET("/tags/:id/posts", adminHandlers.ListPostsByTag) // Add this line
-	admin.DELETE("/tags/:id", adminHandlers.DeleteTag)
 	admin.GET("/tags/create", adminHandlers.ShowCreateTag)
 	admin.POST("/tags/create", adminHandlers.CreateTag)
+	admin.GET("/tags/:id/posts", adminHandlers.ListPostsByTag)
+	admin.GET("/tags/:id/delete", adminHandlers.ConfirmDeleteTag)
+	admin.DELETE("/tags/:id", adminHandlers.DeleteTag)
 
 	// User routes
 	admin.GET("/users", adminHandlers.ListUsers)
 
 	// Post routes
-	admin.GET("/new_post", adminHandlers.ShowCreatePost)
-	admin.POST("/new_post", adminHandlers.CreatePost)
 	admin.GET("/posts", adminHandlers.ListPosts)
-	admin.GET("/posts/:id/delete", adminHandlers.ConfirmDeletePost)
-	admin.DELETE("/posts/:id", adminHandlers.DeletePost)
+	admin.GET("/posts/create", adminHandlers.ShowCreatePost)
+	admin.POST("/posts/create", adminHandlers.CreatePost)
 	admin.GET("/posts/:id/edit", adminHandlers.EditPost)
 	admin.POST("/posts/:id", adminHandlers.UpdatePost)
-	admin.GET("/api/tags", adminHandlers.GetTags)
+	admin.GET("/posts/:id/delete", adminHandlers.ConfirmDeletePost)
+	admin.DELETE("/posts/:id", adminHandlers.DeletePost)
 
 	// Admin routes
 	admin.GET("/pages", adminHandlers.ListPages)
@@ -65,6 +65,7 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.POST("/pages/create", adminHandlers.CreatePage)
 	admin.GET("/pages/:id/edit", adminHandlers.EditPage)
 	admin.POST("/pages/:id", adminHandlers.UpdatePage)
+	admin.GET("/pages/:id/delete", adminHandlers.ConfirmDeletePage)
 	admin.DELETE("/pages/:id", adminHandlers.DeletePage)
 
 	// Menu routes
@@ -75,8 +76,11 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.POST("/menus/:id", adminHandlers.UpdateMenuItem)
 	admin.POST("/menus/:id/move/:direction", adminHandlers.MoveMenuItem)
 	admin.GET("/menus/:id/delete", adminHandlers.ConfirmDeleteMenuItem)
-	admin.POST("/menus/:id/delete", adminHandlers.DeleteMenuItem)
+	admin.DELETE("/menus/:id", adminHandlers.DeleteMenuItem)
 
 	// Preferences route
 	admin.POST("/preferences", adminHandlers.SavePreferences)
+
+	// API routes
+	admin.GET("/api/tags", adminHandlers.GetTags)
 }

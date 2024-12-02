@@ -705,3 +705,14 @@ a:hover {
     min-width: auto;
     padding: 0.25rem 0.75rem;
 }
+
+.error-message {
+    font-size: 1.2rem;
+    font-weight: 600;
+    background-color: var(--admin-danger);
+    padding: 0.5rem;
+    border-radius: 4px;
+    color: white;
+    margin-bottom: 1rem;
+    display: block;
+}

@@ -1,52 +1,61 @@
 function deleteTag(id) {
-    if (confirm('Are you sure you want to delete this tag?')) {
-        fetch(`/admin/tags/${id}`, {
-            method: 'DELETE',
-        }).then(() => {
-            window.location.reload();
-        });
-    }
+    fetch(`/admin/tags/${id}`, {
+        method: 'DELETE',
+    }).then((response) => {
+        if (response.ok) {
+            window.location.href = '/admin/tags';
+        }
+    });
 }
 
 function deletePost(id) {
     fetch(`/admin/posts/${id}`, {
         method: 'DELETE',
-    }).then(() => {
-        window.location.href = '/admin/posts';
+    }).then((response) => {
+        if (response.ok) {
+            window.location.href = '/admin/posts';
+        }
     });
 }
 
 function deletePage(id) {
-    if (confirm('Are you sure you want to delete this page?')) {
-        fetch(`/admin/pages/${id}/delete`, {
-            method: 'DELETE',
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
-    }
+    fetch(`/admin/pages/${id}`, {
+        method: 'DELETE',
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = '/admin/pages';
+        }
+    });
 }
 
 function deleteMenuItem(id) {
-    if (confirm('Are you sure you want to delete this menu item?')) {
-        fetch(`/admin/menus/${id}/delete`, {
-            method: 'DELETE',
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
-    }
+    fetch(`/admin/menus/${id}`, {
+        method: 'DELETE',
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = '/admin/menus';
+        }
+    });
 }
 
 function moveItem(id, direction) {
+    const button = document.querySelector(`button[data-id="${id}"].move-${direction}`);
+    if (button && button.disabled) {
+        return; // Don't move if button is disabled
+    }
+
     fetch(`/admin/menus/${id}/move/${direction}`, {
         method: 'POST',
     }).then(response => {
         if (response.ok) {
             window.location.reload();
+        } else {
+            response.json().then(data => {
+                console.error('Error moving item:', data.error);
+            });
         }
+    }).catch(error => {
+        console.error('Error moving item:', error);
     });
 }
 

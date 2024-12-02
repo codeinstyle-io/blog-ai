@@ -5,12 +5,12 @@
         <a href="/admin/menus" class="btn">← Back to Menu Items</a>
     </div>
 
-    {{if .error}}
-    <div class="alert alert-error">{{.error}}</div>
-    {{end}}
+    {{ if .error }}
+        <div class="error-message">{{ .error }}</div>
+    {{ end }}
 
     <div class="editor-container">
-        <form method="POST" action="/admin/menus/create" class="form">
+        <form id="create-menu-item-form" method="POST" action="/admin/menus/create">
             <div class="form-group">
                 <label for="label">Label</label>
                 <input type="text" 

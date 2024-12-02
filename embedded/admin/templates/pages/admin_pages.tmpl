@@ -26,7 +26,7 @@
                     <td>{{if .Visible}}Yes{{else}}No{{end}}</td>
                     <td class="actions">
                         <a href="/admin/pages/{{.ID}}/edit" class="btn btn-edit">Edit</a>
-                        <button onclick="deletePage({{.ID}})" class="btn btn-delete">Delete</button>
+                        <a href="/admin/pages/{{.ID}}/delete" class="btn btn-delete">Delete</a>
                         <a href="/pages/{{.Slug}}" class="btn btn-view" target="_blank">View</a>
                     </td>
                 </tr>
