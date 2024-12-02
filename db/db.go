@@ -206,3 +206,10 @@ func InsertTestData(db *gorm.DB) error {
 
 	return nil
 }
+
+// HasUsers checks if there are any users in the database
+func HasUsers(db *gorm.DB) bool {
+	var count int64
+	db.Model(&User{}).Count(&count)
+	return count > 0
+}

@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-func validateFirstName(name string) error {
+func ValidateFirstName(name string) error {
 	if len(name) < 1 || len(name) > 255 {
 		return fmt.Errorf("first name must be between 1 and 255 characters")
 	}
@@ -21,20 +21,20 @@ func validateFirstName(name string) error {
 	return nil
 }
 
-func validateLastName(name string) error {
+func ValidateLastName(name string) error {
 	if len(name) < 1 || len(name) > 255 {
 		return fmt.Errorf("last name must be between 1 and 255 characters")
 	}
 
 	for _, r := range name {
 		if !unicode.IsLetter(r) {
-			return fmt.Errorf("first name can only contain letters")
+			return fmt.Errorf("last name can only contain letters")
 		}
 	}
 	return nil
 }
 
-func validateEmail(email string) error {
+func ValidateEmail(email string) error {
 	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
 
 	if email == "" {
@@ -63,7 +63,7 @@ func validateEmail(email string) error {
 	return nil
 }
 
-func validatePassword(password string) error {
+func ValidatePassword(password string) error {
 	if len(password) < 8 {
 		return fmt.Errorf("password must be at least 8 characters")
 	}

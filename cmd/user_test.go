@@ -19,19 +19,19 @@ func TestGetValidInput(t *testing.T) {
 		{
 			name:      "Valid input first try",
 			inputs:    []string{"test\n"},
-			validator: validateFirstName,
+			validator: ValidateFirstName,
 			want:      "test",
 		},
 		{
 			name:      "Valid input after invalid",
 			inputs:    []string{"123\n", "test\n"},
-			validator: validateFirstName,
+			validator: ValidateFirstName,
 			want:      "test",
 		},
 		{
 			name:      "Valid email",
 			inputs:    []string{"test@example.com\n"},
-			validator: validateEmail,
+			validator: ValidateEmail,
 			want:      "test@example.com",
 		},
 	}
@@ -55,11 +55,12 @@ func TestGetValidInput(t *testing.T) {
 				errCh <- nil
 			}()
 
+			got := getValidInput("Test: ", tt.validator)
 			if err := <-errCh; err != nil {
-				t.Fatalf("failed to write test input: %v", err)
+				t.Fatalf("Failed to write test input: %v", err)
 			}
 
-			if got := getValidInput("Test: ", tt.validator); got != tt.want {
+			if got != tt.want {
 				t.Errorf("getValidInput() = %v, want %v", got, tt.want)
 			}
 		})

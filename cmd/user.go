@@ -49,7 +49,7 @@ func getValidPassword(prompt string) string {
 		password = string(passwordBytes)
 		fmt.Println() // Add newline after password input
 
-		if err := validatePassword(password); err != nil {
+		if err := ValidatePassword(password); err != nil {
 			fmt.Printf("Error: %v. Please try again.\n", err)
 			continue
 		}
@@ -69,9 +69,9 @@ func CreateUser(cmd *cobra.Command, args []string) {
 	}
 	database := db.InitDB(cfg)
 
-	firstName := getValidInput("First Name: ", validateFirstName)
-	lastName := getValidInput("Last Name: ", validateLastName)
-	email := getValidInput("Email: ", validateEmail)
+	firstName := getValidInput("First Name: ", ValidateFirstName)
+	lastName := getValidInput("Last Name: ", ValidateLastName)
+	email := getValidInput("Email: ", ValidateEmail)
 	password := getValidPassword("Password: ")
 
 	hashedPassword, err := utils.HashPassword(password)
@@ -102,7 +102,7 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 	}
 	database := db.InitDB(cfg)
 
-	email := getValidInput("Email: ", validateEmail)
+	email := getValidInput("Email: ", ValidateEmail)
 
 	var user db.User
 	if err := database.Where("email = ?", email).First(&user).Error; err != nil {
