@@ -20,12 +20,12 @@ func TestValidateFirstName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateFirstName(tt.input)
+			err := ValidateFirstName(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validateFirstName() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ValidateFirstName() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && err.Error() != tt.errMsg {
-				t.Errorf("validateFirstName() error message = %v, want %v", err.Error(), tt.errMsg)
+				t.Errorf("ValidateFirstName() error message = %v, want %v", err.Error(), tt.errMsg)
 			}
 		})
 	}
@@ -41,20 +41,20 @@ func TestValidateLastName(t *testing.T) {
 		{"Valid name", "Smith", false, ""},
 		{"Empty name", "", true, "last name must be between 1 and 255 characters"},
 		{"Too long name", string(make([]byte, 256)), true, "last name must be between 1 and 255 characters"},
-		{"Name with numbers", "Smith123", true, "first name can only contain letters"},
-		{"Name with special chars", "Smith!", true, "first name can only contain letters"},
-		{"Name with spaces", "van Smith", true, "first name can only contain letters"},
+		{"Name with numbers", "Smith123", true, "last name can only contain letters"},
+		{"Name with special chars", "Smith!", true, "last name can only contain letters"},
+		{"Name with spaces", "van Smith", true, "last name can only contain letters"},
 		{"Unicode letters", "González", false, ""},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateLastName(tt.input)
+			err := ValidateLastName(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validateLastName() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ValidateLastName() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && err.Error() != tt.errMsg {
-				t.Errorf("validateLastName() error message = %v, want %v", err.Error(), tt.errMsg)
+				t.Errorf("ValidateLastName() error message = %v, want %v", err.Error(), tt.errMsg)
 			}
 		})
 	}
@@ -81,12 +81,12 @@ func TestValidateEmail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateEmail(tt.input)
+			err := ValidateEmail(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validateEmail() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ValidateEmail() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && err.Error() != tt.errMsg {
-				t.Errorf("validateEmail() error message = %v, want %v", err.Error(), tt.errMsg)
+				t.Errorf("ValidateEmail() error message = %v, want %v", err.Error(), tt.errMsg)
 			}
 		})
 	}
@@ -115,12 +115,12 @@ func TestValidatePassword(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validatePassword(tt.input)
+			err := ValidatePassword(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validatePassword() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ValidatePassword() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && err.Error() != tt.errMsg {
-				t.Errorf("validatePassword() error message = %v, want %v", err.Error(), tt.errMsg)
+				t.Errorf("ValidatePassword() error message = %v, want %v", err.Error(), tt.errMsg)
 			}
 		})
 	}

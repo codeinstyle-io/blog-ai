@@ -10,7 +10,14 @@ import (
 // RegisterPublicRoutes registers all public routes
 func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	publicHandlers := NewPublicHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database, cfg) // Add this
+	authHandlers := NewAuthHandlers(database, cfg)
+
+	// Setup routes (must be first)
+	r.GET("/admin/setup", authHandlers.HandleSetup)
+	r.POST("/admin/setup", authHandlers.HandleSetup)
+
+	// Add setup middleware
+	r.Use(middleware.RequireSetup(database))
 
 	// Auth routes (public)
 	r.GET("/", publicHandlers.ListPosts)
@@ -31,7 +38,7 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.Use(middleware.AuthRequired(database))
 
 	adminHandlers := NewAdminHandlers(database, cfg)
-	authHandlers := NewAuthHandlers(database, cfg) // Add this line
+	authHandlers := NewAuthHandlers(database, cfg)
 
 	// Add index route
 	admin.GET("/", adminHandlers.Index)

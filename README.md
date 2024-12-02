@@ -48,12 +48,20 @@ Captain is written in Go and uses:
    sudo mv dist/captain /usr/local/bin/
    ```
 
-### Using Docker
 
-```sh
-docker pull shinuza/captain:latest
-docker run -p 8080:8080 shinuza/captain:latest
 ```
+
+## Getting Started
+
+When you first run Captain, if no user exists, you'll be guided through a setup wizard to create your first admin user. This ensures you can immediately access the admin interface to start writing.
+
+1. Run Captain:
+   ```sh
+   captain
+   ```
+2. Follow the setup wizard prompts to create your admin account
+3. Access the admin interface at http://localhost:8080/admin
+4. Start writing!
 
 ## Available Make Commands
 

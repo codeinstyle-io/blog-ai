@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
@@ -96,4 +97,68 @@ func (h *AuthHandlers) Logout(c *gin.Context) {
 	if theme != "" {
 		c.SetCookie("admin_theme", theme, 3600*24*365, "/", "", false, false)
 	}
+}
+
+// HandleSetup handles both GET and POST requests for the setup page
+func (h *AuthHandlers) HandleSetup(c *gin.Context) {
+	// If users already exist, redirect to login
+	var count int64
+	h.db.Model(&db.User{}).Count(&count)
+	if count > 0 {
+		c.Redirect(http.StatusFound, "/admin/login")
+		return
+	}
+
+	// Handle POST request
+	if c.Request.Method == http.MethodPost {
+		email := c.PostForm("email")
+		password := c.PostForm("password")
+		firstName := c.PostForm("firstName")
+		lastName := c.PostForm("lastName")
+
+		// Validate input
+		if err := cmd.ValidateEmail(email); err != nil {
+			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": "Invalid email address"})
+			return
+		}
+		if err := cmd.ValidatePassword(password); err != nil {
+			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": "Password must be at least 8 characters"})
+			return
+		}
+		if err := cmd.ValidateFirstName(firstName); err != nil {
+			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": err.Error()})
+			return
+		}
+		if err := cmd.ValidateLastName(lastName); err != nil {
+			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": err.Error()})
+			return
+		}
+
+		// Hash password
+		hashedPassword, err := utils.HashPassword(password)
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "pages/setup.tmpl", gin.H{"Error": "Failed to hash password"})
+			return
+		}
+
+		// Create admin user
+		user := &db.User{
+			Email:     email,
+			Password:  hashedPassword,
+			FirstName: firstName,
+			LastName:  lastName,
+		}
+
+		if err := db.CreateUser(h.db, user); err != nil {
+			c.HTML(http.StatusInternalServerError, "pages/setup.tmpl", gin.H{"Error": "Failed to create user"})
+			return
+		}
+
+		// Redirect to admin login
+		c.Redirect(http.StatusFound, "/login")
+		return
+	}
+
+	// Handle GET request
+	c.HTML(http.StatusOK, "setup.tmpl", gin.H{})
 }
