@@ -53,6 +53,7 @@ jobs:
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
+          GIN_MODE: release
         run: |
           BINARY_NAME=captain
           if [ "${{ matrix.os }}" = "windows" ]; then
