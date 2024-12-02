@@ -39,12 +39,23 @@ function deleteMenuItem(id) {
 }
 
 function moveItem(id, direction) {
+    const button = document.querySelector(`button[data-id="${id}"].move-${direction}`);
+    if (button && button.disabled) {
+        return; // Don't move if button is disabled
+    }
+
     fetch(`/admin/menus/${id}/move/${direction}`, {
         method: 'POST',
     }).then(response => {
         if (response.ok) {
             window.location.reload();
+        } else {
+            response.json().then(data => {
+                console.error('Error moving item:', data.error);
+            });
         }
+    }).catch(error => {
+        console.error('Error moving item:', error);
     });
 }
 

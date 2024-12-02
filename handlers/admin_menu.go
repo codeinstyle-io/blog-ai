@@ -83,62 +83,50 @@ func (h *AdminHandlers) MoveMenuItem(c *gin.Context) {
 	id := c.Param("id")
 	direction := c.Param("direction")
 
+	// Start transaction
+	tx := h.db.Begin()
+
 	var currentItem db.MenuItem
-	if err := h.db.First(&currentItem, id).Error; err != nil {
+	if err := tx.First(&currentItem, id).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
 		return
 	}
 
-	var items []db.MenuItem
-	if err := h.db.Order("position").Find(&items).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch menu items"})
-		return
-	}
-
-	currentPos := -1
-	for i, item := range items {
-		if item.ID == currentItem.ID {
-			currentPos = i
-			break
-		}
-	}
-
-	if currentPos == -1 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Current item not found in ordered list"})
-		return
-	}
-
-	var targetPos int
+	// Find adjacent item
+	var adjacentItem db.MenuItem
 	if direction == "up" {
-		if currentPos == 0 {
+		if err := tx.Where("position < ?", currentItem.Position).Order("position DESC").First(&adjacentItem).Error; err != nil {
+			tx.Rollback()
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Item already at top"})
 			return
 		}
-		targetPos = currentPos - 1
 	} else {
-		if currentPos == len(items)-1 {
+		if err := tx.Where("position > ?", currentItem.Position).Order("position ASC").First(&adjacentItem).Error; err != nil {
+			tx.Rollback()
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Item already at bottom"})
 			return
 		}
-		targetPos = currentPos + 1
 	}
 
 	// Swap positions
-	tx := h.db.Begin()
-	if err := tx.Model(&items[currentPos]).Update("position", items[targetPos].Position).Error; err != nil {
+	currentPos := currentItem.Position
+	adjacentPos := adjacentItem.Position
+
+	if err := tx.Model(&currentItem).Update("position", adjacentPos).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update position"})
 		return
 	}
 
-	if err := tx.Model(&items[targetPos]).Update("position", items[currentPos].Position).Error; err != nil {
+	if err := tx.Model(&adjacentItem).Update("position", currentPos).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update position"})
 		return
 	}
 
 	tx.Commit()
-	c.Redirect(http.StatusFound, "/admin/menu")
+	c.JSON(http.StatusOK, gin.H{"message": "Menu item moved successfully"})
 }
 
 // ConfirmDeleteMenuItem shows deletion confirmation page
