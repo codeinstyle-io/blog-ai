@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,19 +11,20 @@ import (
 
 type Config struct {
 	Server struct {
-		Host string
-		Port int
+		Host string `mapstructure:"host"`
+		Port int    `mapstructure:"port"`
 	}
 	DB struct {
-		Path     string
-		LogLevel string
+		Path     string `mapstructure:"path"`
+		LogLevel string `mapstructure:"log_level"`
 	}
 	Site struct {
-		ChromaStyle string
-		Timezone    string
-		Title       string
-		Subtitle    string
-		Theme       string
+		ChromaStyle  string `mapstructure:"chroma_style"`
+		Timezone     string `mapstructure:"timezone"`
+		Title        string `mapstructure:"title"`
+		Subtitle     string `mapstructure:"subtitle"`
+		Theme        string `mapstructure:"theme"`
+		PostsPerPage int    `mapstructure:"posts_per_page"`
 	}
 }
 
@@ -36,6 +38,7 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("site.title", "Captain")
 	viper.SetDefault("site.subtitle", "A simple blog engine")
 	viper.SetDefault("site.theme", "")
+	viper.SetDefault("site.posts_per_page", 3)
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -49,23 +52,31 @@ func InitConfig() (*Config, error) {
 
 	// Read config file if exists
 	if err := viper.ReadInConfig(); err != nil {
-		// Only return error if it's not a "config file not found" error
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, err
 		}
 	}
 
-	var config Config
-	err := viper.Unmarshal(&config)
-	return &config, err
+	var cfg Config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Loaded config from %s\n", viper.ConfigFileUsed())
+	fmt.Printf("Unmarshaled config:\n%+v\n", cfg)
+
+	return &cfg, nil
 }
 
+// GetGormLogLevel returns the gorm logger level based on the config
 func (c *Config) GetGormLogLevel() logger.LogLevel {
 	switch strings.ToLower(c.DB.LogLevel) {
 	case "silent":
 		return logger.Silent
 	case "error":
 		return logger.Error
+	case "warn":
+		return logger.Warn
 	case "info":
 		return logger.Info
 	default:
@@ -73,10 +84,11 @@ func (c *Config) GetGormLogLevel() logger.LogLevel {
 	}
 }
 
+// GetLocation returns the configured timezone location
 func (c *Config) GetLocation() *time.Location {
 	loc, err := time.LoadLocation(c.Site.Timezone)
 	if err != nil {
-		loc, _ = time.LoadLocation("UTC")
+		return time.UTC
 	}
 	return loc
 }
