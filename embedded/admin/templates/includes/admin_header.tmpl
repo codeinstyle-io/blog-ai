@@ -5,25 +5,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - {{.title}}</title>
+    <link rel="stylesheet" href="/admin/static/css/fontawesome.min.css">
     <link rel="stylesheet" href="/admin/static/css/admin.css">
 </head>
 <body>
     <button class="menu-toggle" id="menu-toggle">☰</button>
     <div class="admin-container">
         <nav class="admin-nav">
-            <div class="logo">Admin Dashboard</div>
+            <div class="logo">
+                <i class="fas fa-tools"></i>
+                Admin Dashboard
+            </div>
             <ul>
-                <li><a href="/admin">Dashboard</a></li>
-                <li><a href="/admin/posts">Posts</a></li>
-                <li><a href="/admin/pages">Pages</a></li>
-                <li><a href="/admin/menus">Menu Items</a></li>
-                <li><a href="/admin/tags">Tags</a></li>
-                <li><a href="/admin/users">Users</a></li>
-                <li><a href="/admin/logout" class="logout">Logout</a></li>
+                <li>
+                    <a href="/admin">
+                        <i class="fas fa-gauge-high"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/posts">
+                        <i class="fas fa-newspaper"></i>
+                        Posts
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/pages">
+                        <i class="fas fa-file-lines"></i>
+                        Pages
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/menus">
+                        <i class="fas fa-bars"></i>
+                        Menu Items
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/tags">
+                        <i class="fas fa-tags"></i>
+                        Tags
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/users">
+                        <i class="fas fa-users"></i>
+                        Users
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/logout" class="logout">
+                        <i class="fas fa-right-from-bracket"></i>
+                        Logout
+                    </a>
+                </li>
                 <li>
                     <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
-                        <span class="light-icon">☀️</span>
-                        <span class="dark-icon">🌙</span>
+                        <span class="light-icon"><i class="fas fa-sun"></i></span>
+                        <span class="dark-icon"><i class="fas fa-moon"></i></span>
                     </button>
                 </li>
             </ul>

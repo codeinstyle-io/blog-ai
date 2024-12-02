@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("../fonts/fontawesome/fa-solid-900.woff2") format("woff2");
+}
+
+.fa,
+.fas,
+.fa-solid {
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+}
+
+.fa-gauge-high:before{content:"\f625"}.fa-newspaper:before{content:"\f1ea"}.fa-file-lines:before{content:"\f15c"}.fa-bars:before{content:"\f0c9"}.fa-tags:before{content:"\f02c"}.fa-users:before{content:"\f0c0"}.fa-right-from-bracket:before{content:"\f2f5"}.fa-sun:before{content:"\f185"}.fa-moon:before{content:"\f186"}.fa-tools:before{content:"\f7d9"}
