@@ -129,6 +129,22 @@ func (h *AdminHandlers) ConfirmDeletePage(c *gin.Context) {
 // DeletePage removes a page
 func (h *AdminHandlers) DeletePage(c *gin.Context) {
 	id := c.Param("id")
+
+	// Check for menu item references
+	var menuItemCount int64
+	if err := h.db.Model(&db.MenuItem{}).Where("page_id = ?", id).Count(&menuItemCount).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		return
+	}
+
+	if menuItemCount > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Cannot delete page: it is referenced by one or more menu items. Please remove the menu items first.",
+		})
+		return
+	}
+
+	// If no references exist, proceed with deletion
 	if err := h.db.Delete(&db.Page{}, id).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
 		return

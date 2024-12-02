@@ -12,7 +12,7 @@
     {{end}}
 
     <div class="editor-container">
-        <form method="POST" action="/admin/menus/{{.item.ID}}" class="form" id="menuItemForm">
+        <form method="POST" action="/admin/menus/{{.menuItem.ID}}" class="form" id="menuItemForm">
             <div class="form-group">
                 <label for="label">Label</label>
                 <input type="text" 
@@ -20,7 +20,7 @@
                     name="label" 
                     class="form-control" 
                     required 
-                    value="{{.item.Label}}"
+                    value="{{.menuItem.Label}}"
                     placeholder="Enter menu item label">
                 <small class="help-text">The text that will appear in the menu</small>
             </div>
@@ -31,7 +31,7 @@
                     id="url" 
                     name="url" 
                     class="form-control" 
-                    {{if .item.URL}}value="{{.item.URL}}"{{end}}
+                    {{if .menuItem.URL}}value="{{.menuItem.URL}}"{{end}}
                     placeholder="Enter custom URL">
                 <small class="help-text">Enter a custom URL or select a page below</small>
             </div>
@@ -41,7 +41,7 @@
                 <select id="page_id" name="page_id" class="form-control">
                     <option value="">Select a page...</option>
                     {{range .pages}}
-                    <option value="{{.ID}}" data-slug="{{.Slug}}" {{if and $.item.PageID (eq (printf "%d" .ID) (printf "%d" $.item.PageID))}}selected{{end}}>{{.Title}}</option>
+                    <option value="{{.ID}}" data-slug="{{.Slug}}" {{if and $.menuItem.PageID (eq (printf "%d" .ID) (printf "%d" $.menuItem.PageID))}}selected{{end}}>{{.Title}}</option>
                     {{end}}
                 </select>
                 <small class="help-text">Optional: Select a page to automatically set its URL</small>

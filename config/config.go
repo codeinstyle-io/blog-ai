@@ -62,8 +62,13 @@ func InitConfig() (*Config, error) {
 		return nil, err
 	}
 
-	fmt.Printf("Loaded config from %s\n", viper.ConfigFileUsed())
-	fmt.Printf("Unmarshaled config:\n%+v\n", cfg)
+	configFile := viper.ConfigFileUsed()
+
+	if configFile != "" {
+		fmt.Printf("Loaded config from %s\n", configFile)
+	} else {
+		fmt.Println("Using default config")
+	}
 
 	return &cfg, nil
 }
