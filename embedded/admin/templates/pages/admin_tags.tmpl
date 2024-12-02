@@ -6,7 +6,7 @@
     </div>
     
     {{if .error}}
-    <div class="alert alert-error">{{.error}}</div>
+    <div class="error-message">{{.error}}</div>
     {{end}}
 
     <div class="table-container">
@@ -26,7 +26,7 @@
                     <td>{{.PostCount}}</td>
                     <td class="actions">
                         <a href="/admin/tags/{{.ID}}/posts" class="btn btn-view">View Posts</a>
-                        <button onclick="deleteTag({{.ID}})" class="btn btn-delete">Delete</button>
+                        <a href="/admin/tags/{{.ID}}/delete" class="btn btn-delete">Delete</a>
                     </td>
                 </tr>
                 {{end}}
@@ -41,19 +41,4 @@
     </div>
 </div>
 
-<script>
-function deleteTag(id) {
-    if (confirm('Are you sure you want to delete this tag?')) {
-        fetch(`/admin/tags/${id}`, {
-            method: 'DELETE',
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('Failed to delete tag');
-            }
-        });
-    }
-}
-</script>
 {{ template "admin_footer.tmpl" . }}

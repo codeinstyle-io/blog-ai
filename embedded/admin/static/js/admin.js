@@ -1,43 +1,41 @@
 function deleteTag(id) {
-    if (confirm('Are you sure you want to delete this tag?')) {
-        fetch(`/admin/tags/${id}`, {
-            method: 'DELETE',
-        }).then(() => {
-            window.location.reload();
-        });
-    }
+    fetch(`/admin/tags/${id}`, {
+        method: 'DELETE',
+    }).then((response) => {
+        if (response.ok) {
+            window.location.href = '/admin/tags';
+        }
+    });
 }
 
 function deletePost(id) {
     fetch(`/admin/posts/${id}`, {
         method: 'DELETE',
-    }).then(() => {
-        window.location.href = '/admin/posts';
+    }).then((response) => {
+        if (response.ok) {
+            window.location.href = '/admin/posts';
+        }
     });
 }
 
 function deletePage(id) {
-    if (confirm('Are you sure you want to delete this page?')) {
-        fetch(`/admin/pages/${id}/delete`, {
-            method: 'DELETE',
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
-    }
+    fetch(`/admin/pages/${id}`, {
+        method: 'DELETE',
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = '/admin/pages';
+        }
+    });
 }
 
 function deleteMenuItem(id) {
-    if (confirm('Are you sure you want to delete this menu item?')) {
-        fetch(`/admin/menus/${id}/delete`, {
-            method: 'DELETE',
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload();
-            }
-        });
-    }
+    fetch(`/admin/menus/${id}`, {
+        method: 'DELETE',
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = '/admin/menus';
+        }
+    });
 }
 
 function moveItem(id, direction) {

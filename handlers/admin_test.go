@@ -73,10 +73,11 @@ func TestListPostsByTag(t *testing.T) {
 
 	// Make request
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/admin/tags/%d/posts", tag.ID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/admin/tags/%d/posts", tag.ID), nil)
 	router.ServeHTTP(w, req)
 
 	// Assert
+	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "Test Post")
 }
