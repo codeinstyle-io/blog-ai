@@ -9,7 +9,7 @@ Captain is an experimental blog engine entirely written by AI models. This proje
 Captain is written in Go and uses:
 - Sqlite for data storage
 - Gin framework for HTTP routing
-- Templ for HTML templates
+- [html/template](https://pkg.go.dev/html/template) for HTML templates
 
 ## Available Make Commands
 
@@ -62,7 +62,7 @@ Here are the available options:
 | `site.theme`            | Theme name to use                   | `""`            |
 | `site.title`            | Site title                         | `Captain`       |
 | `site.subtitle`         | Site subtitle                      | `A simple blog engine` |
-
+| `site.posts_per_page`   | Number of posts per page           | `3`             |
 
 ### Environment variables
 
@@ -76,9 +76,10 @@ You can also use these environement variables:
 | `CAPTAIN_DB_LOG_LEVEL`        | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
 | `CAPTAIN_SITE_CHROMA_STYLE`   | Syntax highlighting theme        | `paraiso-dark`  | [Any Chroma style](https://xyproto.github.io/splash/docs/)                             |
 | `CAPTAIN_SITE_TIMEZONE`       | Default timezone for dates       | `UTC`           | [Any TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)   |
-| `CAPTAIN_SITE_THEME`          | Theme name to use                | `""`            | Empty string for default theme, or any theme name in themes directory                   |
+| `CAPTAIN_SITE_THEME`          | Theme name to use                | `""`            | Empty string for default theme, or any theme name in themes directory                  |
 | `CAPTAIN_SITE_TITLE`          | Site title                       | `Captain`       | Any string                                                                             |
 | `CAPTAIN_SITE_SUBTITLE`       | Site subtitle                    | `A simple blog engine` | Any string                                                                      |
+| `CAPTAIN_SITE_POSTS_PER_PAGE` | Number of posts per page         | `3`             | Any positive integer                                                                   |
 
 ### Themes
 

@@ -96,8 +96,15 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 }
 
 func (h *PublicHandlers) ListPosts(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	perPage := 3 // Posts per page
+	// Get page number from query params
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	// Get posts per page from config
+	perPage := h.config.Site.PostsPerPage
+
 	now := time.Now()
 
 	var total int64
@@ -132,8 +139,15 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	tagName := c.Param("tag")
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	perPage := 3 // Posts per page
+	// Get page number from query params
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	// Get posts per page from config
+	perPage := h.config.Site.PostsPerPage
+
 	now := time.Now()
 
 	var total int64
