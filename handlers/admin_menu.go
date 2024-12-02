@@ -36,13 +36,14 @@ func (h *AdminHandlers) ShowCreateMenuItem(c *gin.Context) {
 
 // CreateMenuItem handles menu item creation
 func (h *AdminHandlers) CreateMenuItem(c *gin.Context) {
-	label := c.PostForm("title")
+	label := c.PostForm("label")
 	urlStr := c.PostForm("url")
 	pageID := c.PostForm("page_id")
 
 	if label == "" || (urlStr == "" && pageID == "") {
 		c.HTML(http.StatusBadRequest, "admin_create_menu_item.tmpl", gin.H{
 			"error": "Label and either URL or Page are required",
+			"pages": []db.Page{},
 		})
 		return
 	}
@@ -61,14 +62,17 @@ func (h *AdminHandlers) CreateMenuItem(c *gin.Context) {
 	}
 
 	if err := h.db.Create(&menuItem).Error; err != nil {
+		var pages []db.Page
+		h.db.Find(&pages)
 		c.HTML(http.StatusInternalServerError, "admin_create_menu_item.tmpl", gin.H{
 			"error": "Failed to create menu item",
 			"item":  menuItem,
+			"pages": pages,
 		})
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/admin/menu")
+	c.Redirect(http.StatusFound, "/admin/menus")
 }
 
 // MoveMenuItem handles menu item reordering

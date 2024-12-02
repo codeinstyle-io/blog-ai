@@ -22,7 +22,13 @@
                 <tr>
                     <td>{{.Label}}</td>
                     <td>{{if .PageID}}Page{{else}}URL{{end}}</td>
-                    <td>{{if .PageID}}{{.Page.Title}}{{else}}{{.URL}}{{end}}</td>
+                    <td>
+                        {{if .PageID}}
+                            <a href="/admin/pages/{{.Page.ID}}/edit">{{.Page.Title}}</a>
+                        {{else}}
+                            {{.URL}}
+                        {{end}}
+                    </td>
                     <td>
                     </td>
                     <td class="actions">
