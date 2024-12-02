@@ -1,0 +1,13 @@
+{{ template "admin_header.tmpl" . }}
+<div class="admin-page">
+    <h1>Confirm Delete Tag</h1>
+    <div class="confirm-delete">
+        <p>Are you sure you want to delete the tag "{{.tag.Name}}"?</p>
+        <p>This action cannot be undone.</p>
+        <div class="actions">
+            <button onclick="deleteTag({{.tag.ID}})" class="btn btn-delete">Delete</button>
+            <a href="/admin/tags" class="btn">Cancel</a>
+        </div>
+    </div>
+</div>
+{{ template "admin_footer.tmpl" . }}

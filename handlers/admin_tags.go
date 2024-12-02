@@ -44,7 +44,22 @@ func (h *AdminHandlers) DeleteTag(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete tag"})
 		return
 	}
-	c.Redirect(http.StatusFound, "/admin/tags")
+	c.JSON(http.StatusOK, gin.H{"message": "Tag deleted successfully"})
+}
+
+// ConfirmDeleteTag shows deletion confirmation page for a tag
+func (h *AdminHandlers) ConfirmDeleteTag(c *gin.Context) {
+	id := c.Param("id")
+	var tag db.Tag
+	if err := h.db.First(&tag, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_confirm_delete_tag.tmpl", gin.H{
+		"title": "Confirm Delete Tag",
+		"tag":   tag,
+	})
 }
 
 // ShowCreateTag displays the tag creation form
