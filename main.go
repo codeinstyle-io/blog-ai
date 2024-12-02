@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"codeinstyle.io/captain/cli"
+	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/server"
@@ -49,13 +49,13 @@ func main() {
 	var userCreateCmd = &cobra.Command{
 		Use:   "create",
 		Short: "Create a new user",
-		Run:   cli.CreateUser,
+		Run:   cmd.CreateUser,
 	}
 
 	var userUpdatePasswordCmd = &cobra.Command{
 		Use:   "update-password",
 		Short: "Update user password",
-		Run:   cli.UpdateUserPassword,
+		Run:   cmd.UpdateUserPassword,
 	}
 
 	userCmd.AddCommand(userCreateCmd, userUpdatePasswordCmd)
