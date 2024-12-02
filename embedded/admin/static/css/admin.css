@@ -110,10 +110,18 @@ code, pre {
 }
 
 .admin-nav .logo {
-    color: #ffffff; /* Always white text for better contrast on both themes */
+    color: #ffffff;
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-nav .logo i {
+    font-size: 1.1em;
+    color: var(--admin-accent);
 }
 
 .admin-nav ul {
@@ -127,28 +135,70 @@ code, pre {
 }
 
 .admin-nav a {
-    color: #ffffff; /* Always white text for better contrast on both themes */
+    color: #ffffff;
     text-decoration: none;
     font-weight: 500;
     padding: 0.75rem 1rem;
     border-radius: 6px;
-    display: block;
-    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.admin-nav a i {
+    font-size: 1.1em;
+    width: 1.5em;
+    text-align: center;
+    color: var(--admin-accent);
+    transition: transform 0.2s ease-in-out;
 }
 
 .admin-nav a:hover {
     background-color: var(--admin-nav-hover);
     color: var(--admin-accent);
+    transform: translateX(4px);
+}
+
+.admin-nav a:hover i {
+    transform: scale(1.1);
+}
+
+.admin-nav a.logout {
+    margin-top: 2rem;
+    color: var(--admin-danger);
+}
+
+.admin-nav a.logout i {
+    color: var(--admin-danger);
 }
 
 /* Theme Toggle Button */
 .theme-toggle {
     background: none;
     border: none;
-    color: var(--admin-text);
+    color: #ffffff;
     cursor: pointer;
-    padding: 0.5rem;
-    font-size: 1.2rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.theme-toggle:hover {
+    background-color: var(--admin-nav-hover);
+}
+
+.theme-toggle i {
+    font-size: 1.1em;
+    width: 1.5em;
+    text-align: center;
+    color: var(--admin-accent);
 }
 
 .theme-toggle .dark-icon {
