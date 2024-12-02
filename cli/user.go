@@ -9,7 +9,6 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
@@ -60,21 +59,7 @@ func getValidPassword(prompt string) string {
 
 func readPassword(prompt string) ([]byte, error) {
 	fmt.Fprint(os.Stderr, prompt)
-	var fd int
-	if term.IsTerminal(syscall.Stdin) {
-		fd = syscall.Stdin
-	} else {
-		tty, err := os.Open("/dev/tty")
-		if err != nil {
-			return nil, errors.Wrap(err, "error allocating terminal")
-		}
-		defer tty.Close()
-		fd = int(tty.Fd())
-	}
-
-	pass, err := term.ReadPassword(fd)
-	fmt.Fprintln(os.Stderr)
-	return pass, err
+	return term.ReadPassword(int(syscall.Stdin))
 }
 
 func CreateUser(cmd *cobra.Command, args []string) {
