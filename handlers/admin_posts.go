@@ -192,10 +192,18 @@ func (h *AdminHandlers) DeletePost(c *gin.Context) {
 	// Start transaction
 	tx := h.db.Begin()
 
+	// First, find the post
+	var post db.Post
+	if err := tx.First(&post, id).Error; err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
+		return
+	}
+
 	fmt.Println("Deleting post with ID:", id)
 
 	// Clear associations first
-	if err := tx.Model(&db.Post{}).Where("id = ?", id).Association("Tags").Clear(); err != nil {
+	if err := tx.Model(&post).Association("Tags").Clear(); err != nil {
 		fmt.Println("Error clearing associations:", err)
 		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
@@ -203,7 +211,7 @@ func (h *AdminHandlers) DeletePost(c *gin.Context) {
 	}
 
 	// Then delete the post
-	if err := tx.Delete(&db.Post{}, id).Error; err != nil {
+	if err := tx.Delete(&post).Error; err != nil {
 		fmt.Println("Error deleting post:", err)
 		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
