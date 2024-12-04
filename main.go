@@ -10,6 +10,7 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/server"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
 
@@ -75,18 +76,25 @@ func runServer(cmd *cobra.Command, args []string) {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
+	// Set Gin mode based on debug flag
+	if cfg.Debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// Initialize database
 	database := db.InitDB(cfg)
 
-	// Create and start server
-	srv := server.New(database, cfg, embeddedFS)
-
 	// Initialize development database if requested
 	if initDevDB {
-		if err := srv.InitDevDB(); err != nil {
+		if err := db.InsertTestData(database); err != nil {
 			log.Fatalf("Failed to insert test data: %v", err)
 		}
 	}
+
+	// Create and start server
+	srv := server.New(database, cfg, embeddedFS)
 
 	// Run the server
 	if err := srv.Run(); err != nil {

@@ -26,6 +26,7 @@ type Config struct {
 		Theme        string `mapstructure:"theme"`
 		PostsPerPage int    `mapstructure:"posts_per_page"`
 	}
+	Debug bool `mapstructure:"debug"`
 }
 
 func InitConfig() (*Config, error) {
@@ -39,6 +40,7 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("site.subtitle", "A simple blog engine")
 	viper.SetDefault("site.theme", "")
 	viper.SetDefault("site.posts_per_page", 3)
+	viper.SetDefault("debug", false)
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -75,6 +77,10 @@ func InitConfig() (*Config, error) {
 
 // GetGormLogLevel returns the gorm logger level based on the config
 func (c *Config) GetGormLogLevel() logger.LogLevel {
+	if c.Debug {
+		return logger.Info
+	}
+
 	switch strings.ToLower(c.DB.LogLevel) {
 	case "silent":
 		return logger.Silent

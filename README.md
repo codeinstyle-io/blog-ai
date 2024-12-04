@@ -49,8 +49,6 @@ Captain is written in Go and uses:
    ```
 
 
-```
-
 ## Getting Started
 
 When you first run Captain, if no user exists, you'll be guided through a setup wizard to create your first admin user. This ensures you can immediately access the admin interface to start writing.
@@ -89,9 +87,58 @@ Then open http://localhost:8080 in your browser
 - `make create-user` - Creates a new user interactively
 - `make update-password` - Updates user password
 
+## Development
+
+### Running in Development Mode
+
+For development, you can use the `run_dev` command which enables debug mode:
+
+```bash
+make run_dev
+```
+
+This will:
+- Enable Gin's debug mode with detailed request logging
+- Set GORM's log level to info for detailed SQL logging
+- Display more detailed error messages
+
+You can also initialize the database with test data using the `-i` flag:
+
+```bash
+make run_dev
+./dist/bin/captain-darwin-amd64 run -i
+```
+
+For production use, use the standard `make run` command which disables debug mode.
+
 ## Configuration
 
-Captain can be configured using either a YAML config file or environment variables.
+Captain can be configured through environment variables or a YAML configuration file. Environment variables take precedence over the configuration file.
+
+### Environment Variables
+
+| Variable                      | Description                      | Default         | Valid Values                                                                           |
+|------------------------------|----------------------------------|-----------------|----------------------------------------------------------------------------------------|
+| `CAPTAIN_DEBUG`              | Enable debug mode                | `false`         | `true`, `false`                                                                        |
+| `CAPTAIN_SERVER_HOST`        | Host address to bind to          | `localhost`     | Any valid IP or hostname                                                               |
+| `CAPTAIN_SERVER_PORT`        | Port number for the server       | `8080`          | 1-65535                                                                                |
+| `CAPTAIN_DB_PATH`            | SQLite database file location    | `blog.db`       | Any valid file path                                                                    |
+| `CAPTAIN_DB_LOG_LEVEL`       | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
+| `CAPTAIN_SITE_CHROMA_STYLE`  | Syntax highlighting theme        | `paraiso-dark`  | [Any Chroma style](https://xyproto.github.io/splash/docs/)                            |
+| `CAPTAIN_SITE_TIMEZONE`      | Default timezone for dates       | `UTC`           | [Any TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)  |
+| `CAPTAIN_SITE_TITLE`         | Site title                       | `Captain`       | Any string                                                                             |
+| `CAPTAIN_SITE_SUBTITLE`      | Site subtitle                    | `A simple blog` | Any string                                                                             |
+| `CAPTAIN_SITE_THEME`         | Theme name                       | `default`       | Any installed theme name                                                               |
+| `CAPTAIN_SITE_POSTS_PER_PAGE`| Posts per page                  | `3`             | Any positive integer                                                                   |
+
+### Debug Mode
+
+When `CAPTAIN_DEBUG` is set to `true`:
+- Gin framework runs in debug mode with detailed logging
+- GORM database logging is set to info level
+- More detailed error messages are displayed
+
+For production use, keep debug mode disabled.
 
 ### Config File (config.yaml)
 
@@ -117,23 +164,6 @@ Here are the available options:
 | `site.title`            | Site title                         | `Captain`       |
 | `site.subtitle`         | Site subtitle                      | `A simple blog engine` |
 | `site.posts_per_page`   | Number of posts per page           | `3`             |
-
-### Environment variables
-
-You can also use these environement variables:
-
-| Environment Variable          | Description                      | Default Value   | Allowed Values                                                                         |
-|-------------------------------|----------------------------------|-----------------|----------------------------------------------------------------------------------------|
-| `CAPTAIN_SERVER_HOST`         | Host address to bind the server  | `localhost`     | Any valid hostname or IP                                                               |
-| `CAPTAIN_SERVER_PORT`         | Port number for the server       | `8080`          | 1-65535                                                                                |
-| `CAPTAIN_DB_PATH`             | SQLite database file location    | `blog.db`       | Any valid file path                                                                    |
-| `CAPTAIN_DB_LOG_LEVEL`        | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
-| `CAPTAIN_SITE_CHROMA_STYLE`   | Syntax highlighting theme        | `paraiso-dark`  | [Any Chroma style](https://xyproto.github.io/splash/docs/)                             |
-| `CAPTAIN_SITE_TIMEZONE`       | Default timezone for dates       | `UTC`           | [Any TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)   |
-| `CAPTAIN_SITE_THEME`          | Theme name to use                | `""`            | Empty string for default theme, or any theme name in themes directory                  |
-| `CAPTAIN_SITE_TITLE`          | Site title                       | `Captain`       | Any string                                                                             |
-| `CAPTAIN_SITE_SUBTITLE`       | Site subtitle                    | `A simple blog engine` | Any string                                                                      |
-| `CAPTAIN_SITE_POSTS_PER_PAGE` | Number of posts per page         | `3`             | Any positive integer                                                                   |
 
 ### Themes
 
