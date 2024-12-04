@@ -23,6 +23,9 @@ clean:
 run: build
 	./$(BINARY_NAME) run
 
+run_dev: build
+	CAPTAIN_DEBUG=true ./$(BINARY_NAME) run
+
 dev:
 	go run $(MAIN_FILE) run
 
