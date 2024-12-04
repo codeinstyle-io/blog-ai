@@ -55,8 +55,27 @@ When you first run Captain, if no user exists, you'll be guided through a setup 
 
 1. Run Captain:
    ```sh
-   captain
+   captain run
    ```
+
+   Available flags:
+   - `-b, --bind`: Address to bind to (overrides config)
+   - `-p, --port`: Server port (overrides config)
+   - `-i, --init-dev-db`: Initialize development database with test data
+   - `-c, --config`: Config file path
+
+   Examples:
+   ```sh
+   # Run with default settings
+   captain run
+
+   # Bind to all interfaces on port 3000
+   captain run -b 0.0.0.0 -p 3000
+
+   # Use custom config and initialize test data
+   captain run -c /path/to/config.yaml -i
+   ```
+
 2. Follow the setup wizard prompts to create your admin account
 3. Access the admin interface at http://localhost:8080/admin
 4. Start writing!
@@ -102,11 +121,22 @@ This will:
 - Set GORM's log level to info for detailed SQL logging
 - Display more detailed error messages
 
-You can also initialize the database with test data using the `-i` flag:
+You can also:
+- Initialize the database with test data using `-i`
+- Change the bind address with `-b`
+- Change the port with `-p`
 
+Examples:
 ```bash
+# Run in dev mode with test data
 make run_dev
 ./dist/bin/captain-darwin-amd64 run -i
+
+# Run on a different port
+./dist/bin/captain-darwin-amd64 run -p 3000
+
+# Bind to all interfaces
+./dist/bin/captain-darwin-amd64 run -b 0.0.0.0
 ```
 
 For production use, use the standard `make run` command which disables debug mode.
