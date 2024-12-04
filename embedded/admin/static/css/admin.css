@@ -146,6 +146,10 @@ code, pre {
     transition: all 0.2s ease-in-out;
 }
 
+.fas {
+    font-style: normal;
+}
+
 .admin-nav a i {
     font-size: 1.1em;
     width: 1.5em;
