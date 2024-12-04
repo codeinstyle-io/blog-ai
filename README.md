@@ -193,6 +193,25 @@ To use a custom theme:
 
 Custom themes can override any of the default templates and provide their own static assets.
 
+## Version Management
+
+Captain uses semantic versioning. You can check the current version by running:
+
+```bash
+captain version
+```
+
+To bump the version, use one of the following make commands:
+
+- `make bump-major` - Bump major version (x.0.0)
+- `make bump-minor` - Bump minor version (0.x.0)
+- `make bump-patch` - Bump patch version (0.0.x)
+
+Each version bump will:
+1. Update the version in version.go
+2. Create a git commit with the version change
+3. Create a git tag for the new version
+
 # Contributing
 
 This project is an AI-first experiment. While all contributions are welcome, we encourage:

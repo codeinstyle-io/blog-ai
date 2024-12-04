@@ -10,6 +10,7 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/server"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,16 @@ func main() {
 	var rootCmd = &cobra.Command{Use: "captain"}
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", "", "config file path")
+
+	var versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print version information",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("Captain v%s\n", system.Version)
+			fmt.Printf("Commit: %s\n", system.Commit)
+			fmt.Printf("Built: %s\n", system.Date)
+		},
+	}
 
 	var runCmd = &cobra.Command{
 		Use:   "run",
@@ -61,7 +72,7 @@ func main() {
 	}
 
 	userCmd.AddCommand(userCreateCmd, userUpdatePasswordCmd)
-	rootCmd.AddCommand(runCmd, userCmd)
+	rootCmd.AddCommand(runCmd, userCmd, versionCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
