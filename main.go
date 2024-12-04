@@ -29,6 +29,8 @@ var embeddedFS embed.FS
 var (
 	initDevDB  bool
 	configFile string
+	serverHost string
+	serverPort int
 )
 
 func main() {
@@ -53,6 +55,8 @@ func main() {
 	}
 
 	runCmd.Flags().BoolVarP(&initDevDB, "init-dev-db", "i", false, "Initialize the development database with test data")
+	runCmd.Flags().StringVarP(&serverHost, "bind", "b", "", "Address to bind to (overrides config)")
+	runCmd.Flags().IntVarP(&serverPort, "port", "p", 0, "Server port (overrides config)")
 
 	var userCmd = &cobra.Command{
 		Use:   "user",
@@ -85,6 +89,14 @@ func runServer(cmd *cobra.Command, args []string) {
 	cfg, err := config.InitConfig()
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
+	}
+
+	// Override config with command line flags if provided
+	if serverHost != "" {
+		cfg.Server.Host = serverHost
+	}
+	if serverPort != 0 {
+		cfg.Server.Port = serverPort
 	}
 
 	// Set Gin mode based on debug flag
