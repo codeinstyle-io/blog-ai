@@ -1,6 +1,11 @@
 {{ define "footer.tmpl" }}
-        <div class="footer-admin-link">
-            <a href="/admin" class="subtle-link">Admin</a>
+        <div class="footer-links">
+            <div class="footer-admin-link">
+                <a href="/admin" class="subtle-link">Admin</a>
+            </div>
+            <div class="footer-powered-by">
+                <span>Powered by <a href="https://github.com/shinuza/captain" class="subtle-link">Captain</a> v{{ .version }}</span>
+            </div>
         </div>
         <script src="/static/js/main.js"></script>
     </body>

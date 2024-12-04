@@ -21,6 +21,7 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -219,6 +220,9 @@ func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
 		"SiteTitle":    h.config.Site.Title,
 		"SiteSubtitle": h.config.Site.Subtitle,
 	}
+
+	// Add version information
+	data["version"] = system.Version
 
 	return data
 }
