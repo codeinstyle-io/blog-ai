@@ -8,6 +8,7 @@
     --text: #ffffff;
     --hover: #ff3366;
     --lighter-text: #ccc;
+    --border: #333;
 }
 
 /* Reset Styles */
@@ -540,4 +541,37 @@ a:hover {
     border-bottom-style: solid;
     color: var(--hover);
     border-bottom-color: var(--hover);
+}
+
+/* Footer */
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+}
+
+.footer-admin-link,
+.footer-powered-by {
+    padding: 0.5rem 0;
+}
+
+.footer-powered-by {
+    color: var(--text-muted);
+}
+
+.footer-powered-by a,
+.footer-admin-link a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.footer-powered-by a:hover,
+.footer-admin-link a:hover {
+    text-decoration: underline;
 }
