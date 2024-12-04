@@ -63,11 +63,12 @@ jobs:
 
       - name: Package release assets
         run: |
+          VERSION=${GITHUB_REF_NAME}
           cd dist
           for dir in */; do
             if [ -d "$dir" ]; then
               platform=${dir%/}
-              zip -r "../captain-${platform}.zip" "$platform"
+              zip -r "../captain-${VERSION}-${platform##captain-}.zip" "$platform"
             fi
           done
           cd ..
