@@ -273,6 +273,25 @@ code, pre {
     min-width: 180px;
 }
 
+/* Title column wrapping */
+.admin-table td:first-child {
+    max-width: 300px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.admin-table td.tags {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Actions column */
+.admin-table td.actions {
+    white-space: nowrap;
+    text-align: right;
+    min-width: 200px;
+}
+
 .btn {
     display: inline-block;
     padding: 0.5rem 1rem;
@@ -360,10 +379,6 @@ code, pre {
 .recent-activity {
     background: var(--admin-card-bg);
     padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px var(--admin-shadow);
-    border: 1px solid var(--admin-border);
-    width: 100%;
 }
 
 .recent-activity h2 {
