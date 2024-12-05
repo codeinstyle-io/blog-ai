@@ -1,0 +1,19 @@
+{{ template "header.tmpl" . }}
+<article>
+    <h1 class="title">{{.post.Title}}</h1>
+    <div class="meta">
+        Posted on {{.post.PublishedAt.Format "January 2, 2006"}}
+        by {{.post.Author.FirstName}} {{.post.Author.LastName}}
+    </div>
+    <div class="content">
+        {{.post.Content | raw}}
+    </div>
+    {{if .post.Tags}}
+    <div class="tags">
+        {{range .post.Tags}}
+        <a href="/tags/{{.Name}}" class="tag">{{.Name}}</a>
+        {{end}}
+    </div>
+    {{end}}
+</article>
+{{ template "footer.tmpl" . }}

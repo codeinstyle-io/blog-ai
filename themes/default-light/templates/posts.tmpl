@@ -1,0 +1,37 @@
+{{ template "header.tmpl" . }}
+    {{range .posts}}
+    <article>
+        <h1 class="title"><a href="/posts/{{.Slug}}">{{.Title}}</a></h1>
+        <div class="meta">
+            Posted on {{.PublishedAt.Format "January 2, 2006"}}
+            {{if .Author}}by {{.Author.FirstName}} {{.Author.LastName}}{{end}}
+        </div>
+        <div class="content">
+            {{.Excerpt | raw}}
+        </div>
+        {{if .Tags}}
+        <div class="tags">
+            {{range .Tags}}
+            <a href="/tags/{{.Name}}" class="tag">{{.Name}}</a>
+            {{end}}
+        </div>
+        {{end}}
+        <div class="read-more">
+            <a href="/posts/{{.Slug}}" class="btn">Read More →</a>
+        </div>
+    </article>
+    {{end}}
+    {{ if gt .totalPages 1 }}
+    <div class="pagination">
+        {{ if gt .currentPage 1 }}
+            <a href="?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+        {{ end }}
+        
+        <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+        
+        {{ if lt .currentPage .totalPages }}
+            <a href="?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+        {{ end }}
+    </div>
+    {{ end }}
+{{ template "footer.tmpl" . }}

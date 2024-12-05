@@ -1,0 +1,23 @@
+# Captain Blog Configuration
+
+# Server Configuration
+server:
+  host: "localhost"  # Listen address
+  port: 8080        # Listen port
+
+# Database Configuration
+db:
+  path: "blog.db"   # SQLite database file path
+  log_level: "warn" # Database log level (silent, error, warn, info)
+
+# Site Configuration
+site:
+  title: "My Captain Blog"
+  subtitle: "A simple and elegant blog powered by Captain"
+  theme: "default-light"  # Use the new light theme
+  timezone: "UTC"
+  chroma_style: "paraiso-dark"  # Syntax highlighting theme
+  posts_per_page: 2
+
+# Debug mode
+debug: false

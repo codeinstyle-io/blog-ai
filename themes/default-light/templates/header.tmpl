@@ -1,0 +1,25 @@
+{{define "header.tmpl"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .title}}{{.title}} - {{end}}{{.config.SiteTitle}}</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/generated/css/chroma.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">{{.config.SiteTitle}}</a></h1>
+            <p class="subtitle">{{.config.SiteSubtitle}}</p>
+            <nav>
+                <a href="/">Home</a>
+                {{range .menuItems}}
+                    <a href="{{if .PageID}}/pages/{{.Page.Slug}}{{else}}{{.URL}}{{end}}">{{.Label}}</a>
+                {{end}}
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+{{end}}
