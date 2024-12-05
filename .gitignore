@@ -3,3 +3,4 @@ dist
 blog.db
 coverage.html
 coverage.out
+config.yaml
