@@ -1,17 +1,17 @@
 {{ template "header.tmpl" . }}
 <article>
-    <h2>{{.post.Title}}</h2>
+    <h1 class="title">{{.post.Title}}</h1>
     <div class="meta">
         Posted on {{.post.PublishedAt.Format "January 2, 2006"}}
         by {{.post.Author.FirstName}} {{.post.Author.LastName}}
     </div>
     <div class="content">
-        {{.post.Content}}
+        {{.post.Content | raw}}
     </div>
     {{if .post.Tags}}
     <div class="tags">
         {{range .post.Tags}}
-        <a href="/tags/{{.Slug}}" class="tag">{{.Name}}</a>
+        <a href="/tags/{{.Name}}" class="tag">{{.Name}}</a>
         {{end}}
     </div>
     {{end}}

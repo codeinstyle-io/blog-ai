@@ -17,7 +17,7 @@ site:
   theme: "default-light"  # Use the new light theme
   timezone: "UTC"
   chroma_style: "paraiso-dark"  # Syntax highlighting theme
-  posts_per_page: 3
+  posts_per_page: 2
 
 # Debug mode
 debug: false

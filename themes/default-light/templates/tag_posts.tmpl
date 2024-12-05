@@ -1,0 +1,41 @@
+{{ template "header.tmpl" . }}
+<div class="tag-posts">
+    <h1>Posts tagged with #{{.tag}}</h1>
+    {{if .posts}}
+        {{range .posts}}
+        <article>
+            <h1 class="title"><a href="/posts/{{.Slug}}">{{.Title}}</a></h1>
+            <div class="meta">
+                Posted on {{.PublishedAt.Format "January 2, 2006"}}
+                by {{.Author.FirstName}} {{.Author.LastName}}
+            </div>
+            {{if .Tags}}
+            <div class="tags">
+                {{range .Tags}}
+                <a href="/tags/{{.Name}}" class="tag">{{.Name}}</a>
+                {{end}}
+            </div>
+            {{end}}
+            <div class="content">
+                {{.Excerpt | raw}}
+            </div>
+        </article>
+        {{end}}
+        {{ if gt .totalPages 1 }}
+        <div class="pagination">
+            {{ if gt .currentPage 1 }}
+                <a href="?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+            {{ end }}
+            
+            <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+            
+            {{ if lt .currentPage .totalPages }}
+                <a href="?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+            {{ end }}
+        </div>
+        {{ end }}
+    {{else}}
+        <p>No posts found for this tag.</p>
+    {{end}}
+</div>
+{{ template "footer.tmpl" . }}

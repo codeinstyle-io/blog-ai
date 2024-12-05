@@ -1,8 +1,8 @@
 {{ template "header.tmpl" . }}
 <article>
-    <h2>{{.page.Title}}</h2>
+    <h1 class="title">{{.page.Title}}</h1>
     <div class="content">
-        {{.page.Content}}
+        {{.page.Content | raw}}
     </div>
 </article>
 {{ template "footer.tmpl" . }}
