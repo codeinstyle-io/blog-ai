@@ -22,6 +22,7 @@ import (
 //go:embed embedded/public/templates/errors/*
 //go:embed embedded/public/templates/*
 //go:embed embedded/themes/default/static/css/*
+//go:embed embedded/themes/default/static/img/*
 //go:embed embedded/themes/default/static/js/*
 //go:embed embedded/themes/default/templates/*
 var embeddedFS embed.FS
