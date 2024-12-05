@@ -25,7 +25,7 @@
                     <td>{{.Author.FirstName}} {{.Author.LastName}}</td>
                     <td>{{.PublishedAt.Format "2006-01-02 15:04"}}</td>
                     <td>{{if .Visible}}Yes{{else}}No{{end}}</td>
-                    <td>
+                    <td class="tags">
                         {{range .Tags}}
                         <span class="tag">{{.Name}}</span>
                         {{end}}
