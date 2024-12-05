@@ -24,6 +24,7 @@
 
     <div class="recent-activity">
         <h2>Recent Posts</h2>
+        {{if .recentPosts}}
         <div class="table-container">
             <table class="admin-table">
                 <thead>
@@ -46,6 +47,12 @@
                 </tbody>
             </table>
         </div>
+        {{else}}
+        <div class="empty-state">
+            <p>You haven't created any posts yet. Start your blogging journey by creating your first post!</p>
+            <a href="/admin/posts/create" class="btn btn-primary">Create Your First Post</a>
+        </div>
+        {{end}}
     </div>
 </div>
 {{ template "admin_footer.tmpl" . }}
