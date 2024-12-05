@@ -1,0 +1,145 @@
+/* Light theme */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --link-color: #2563eb;
+    --link-hover-color: #1d4ed8;
+    --border-color: #e5e7eb;
+    --code-bg: #f3f4f6;
+    --code-color: #1f2937;
+    --header-bg: #f8fafc;
+    --footer-bg: #f8fafc;
+    --tag-bg: #e5e7eb;
+    --tag-color: #4b5563;
+    --meta-color: #6b7280;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: var(--bg-color);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Header */
+header {
+    background: var(--header-bg);
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+}
+
+header nav {
+    margin-top: 1rem;
+}
+
+header nav a {
+    margin-right: 1rem;
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+header nav a:hover {
+    color: var(--link-hover-color);
+}
+
+/* Posts */
+article {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+article:last-child {
+    border-bottom: none;
+}
+
+article h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+}
+
+article h2 a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+article h2 a:hover {
+    color: var(--link-color);
+}
+
+.meta {
+    color: var(--meta-color);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.tags {
+    margin-top: 1rem;
+}
+
+.tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--tag-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    text-decoration: none;
+}
+
+/* Code blocks */
+pre {
+    background: var(--code-bg);
+    color: var(--code-color);
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+}
+
+/* Footer */
+footer {
+    background: var(--footer-bg);
+    padding: 2rem 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 3rem;
+    color: var(--meta-color);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+footer a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+    
+    header h1 {
+        font-size: 1.5rem;
+    }
+}
