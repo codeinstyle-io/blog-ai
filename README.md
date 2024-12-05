@@ -1,7 +1,8 @@
 # Captain [![CI](https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg)](https://github.com/shinuza/captain/actions/workflows/ci.yml) [![](https://img.shields.io/github/v/release/shinuza/captain)](https://github.com/shinuza/captain/releases) [![](https://img.shields.io/badge/license-MIT-green)](https://github.com/shinuza/captain/blob/master/LICENSE)
 
-![Captain Logo](https://raw.githubusercontent.com/shinuza/captain/main/logo.png)
-
+<p align="center">
+   <img src="https://raw.githubusercontent.com/shinuza/captain/main/logo.png" alt="Captain Logo">
+</p>
 
 Captain is a no-installation AI written blog engine. Just run the binary and you are ready to start writing. No database setup, no dependencies to install. Just pure blogging.
 
