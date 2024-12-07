@@ -14,7 +14,10 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
             </p>
-            <button type="submit">Sign In</button>
+            <p>
+                <button type="submit">Sign In</button>
+                <input type="hidden" name="next" value="{{ .next }}">
+            </p>
         </form>
     </section>
 </main>

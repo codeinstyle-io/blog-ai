@@ -13,8 +13,8 @@ func AuthRequired(database *gorm.DB) gin.HandlerFunc {
 		token, err := c.Cookie("session")
 		if err != nil || token == "" {
 			// Store requested URL and redirect to login
-			returnTo := c.Request.URL.String()
-			c.Redirect(http.StatusFound, "/login?returnTo="+returnTo)
+			next := c.Request.URL.String()
+			c.Redirect(http.StatusFound, "/login?next="+next)
 			c.Abort()
 			return
 		}
@@ -23,8 +23,8 @@ func AuthRequired(database *gorm.DB) gin.HandlerFunc {
 		if err != nil || user.SessionToken == nil {
 			c.SetCookie("session", "", -1, "/", "", false, true)
 			// Store requested URL and redirect to login
-			returnTo := c.Request.URL.String()
-			c.Redirect(http.StatusFound, "/login?returnTo="+returnTo)
+			next := c.Request.URL.String()
+			c.Redirect(http.StatusFound, "/login?next="+next)
 			c.Abort()
 			return
 		}
