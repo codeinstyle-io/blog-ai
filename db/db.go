@@ -25,9 +25,25 @@ func InitDB(cfg *config.Config) *gorm.DB {
 	}
 
 	// Run migrations
-	err = db.AutoMigrate(&Post{}, &Tag{}, &User{}, &Page{}, &MenuItem{})
+	err = db.AutoMigrate(&Post{}, &Tag{}, &User{}, &Page{}, &MenuItem{}, &Settings{})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Initialize settings if they don't exist
+	var settings Settings
+	if err := db.First(&settings).Error; err == gorm.ErrRecordNotFound {
+		settings = Settings{
+			Title:         cfg.Site.Title,
+			Subtitle:      cfg.Site.Subtitle,
+			Timezone:      cfg.Site.Timezone,
+			ChromaStyle:   cfg.Site.ChromaStyle,
+			PostsPerPage:  cfg.Site.PostsPerPage,
+			LastUpdatedAt: time.Now(),
+		}
+		if err := db.Create(&settings).Error; err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return db
@@ -212,4 +228,31 @@ func HasUsers(db *gorm.DB) bool {
 	var count int64
 	db.Model(&User{}).Count(&count)
 	return count > 0
+}
+
+// GetSettings retrieves the site settings
+func GetSettings(db *gorm.DB) (*Settings, error) {
+	var settings Settings
+	if err := db.First(&settings).Error; err != nil {
+		return nil, err
+	}
+	return &settings, nil
+}
+
+// UpdateSettings updates the site settings
+func UpdateSettings(db *gorm.DB, settings *Settings) error {
+	var current Settings
+	if err := db.First(&current).Error; err != nil {
+		return err
+	}
+
+	// Update all fields
+	current.Title = settings.Title
+	current.Subtitle = settings.Subtitle
+	current.Timezone = settings.Timezone
+	current.ChromaStyle = settings.ChromaStyle
+	current.PostsPerPage = settings.PostsPerPage
+	current.LastUpdatedAt = time.Now()
+
+	return db.Save(&current).Error
 }

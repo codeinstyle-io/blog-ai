@@ -9,6 +9,58 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+var (
+	// Available timezones
+	timezones = []string{
+		"UTC",
+		"Europe/London",
+		"Europe/Paris",
+		"America/New_York",
+		"America/Los_Angeles",
+		"Asia/Tokyo",
+		"Australia/Sydney",
+	}
+
+	// Available Chroma styles
+	chromaStyles = []string{
+		"abap",
+		"algol",
+		"arduino",
+		"autumn",
+		"borland",
+		"bw",
+		"colorful",
+		"dracula",
+		"emacs",
+		"friendly",
+		"fruity",
+		"github",
+		"igor",
+		"lovelace",
+		"manni",
+		"monokai",
+		"monokailight",
+		"murphy",
+		"native",
+		"paraiso-dark",
+		"paraiso-light",
+		"pastie",
+		"perldoc",
+		"pygments",
+		"rainbow_dash",
+		"rrt",
+		"solarized-dark",
+		"solarized-dark256",
+		"solarized-light",
+		"swapoff",
+		"tango",
+		"trac",
+		"vim",
+		"vs",
+		"xcode",
+	}
+)
+
 type Config struct {
 	Server struct {
 		Host string `mapstructure:"host"`
@@ -102,4 +154,14 @@ func (c *Config) GetLocation() *time.Location {
 		return time.UTC
 	}
 	return loc
+}
+
+// GetTimezones returns the list of available timezones
+func (c *Config) GetTimezones() []string {
+	return timezones
+}
+
+// GetChromaStyles returns the list of available syntax highlighting themes
+func (c *Config) GetChromaStyles() []string {
+	return chromaStyles
 }

@@ -55,3 +55,13 @@ type MenuItem struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type Settings struct {
+	ID            uint      `gorm:"primaryKey"`
+	Title         string    `gorm:"not null"`
+	Subtitle      string    `gorm:"not null"`
+	Timezone      string    `gorm:"not null"`
+	ChromaStyle   string    `gorm:"not null"`
+	PostsPerPage  int       `gorm:"not null"`
+	LastUpdatedAt time.Time `gorm:"not null"`
+}

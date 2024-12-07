@@ -46,6 +46,10 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	// Add logout route
 	admin.GET("/logout", authHandlers.Logout)
 
+	// Settings routes
+	admin.GET("/settings", adminHandlers.ShowSettings)
+	admin.POST("/settings", adminHandlers.UpdateSettings)
+
 	// Tag routes
 	admin.GET("/tags", adminHandlers.ListTags)
 	admin.GET("/tags/create", adminHandlers.ShowCreateTag)
