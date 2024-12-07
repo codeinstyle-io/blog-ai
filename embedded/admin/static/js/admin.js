@@ -277,71 +277,6 @@ function initializeSlugHandling() {
     });
 }
 
-function initializeTheme() {
-    const html = document.documentElement;
-    const theme = getCookie('admin_theme') || 'light';
-    html.setAttribute('data-theme', theme);
-    updateToggleIcon(theme);
-}
-
-function updateToggleIcon(theme) {
-    const toggle = document.getElementById('theme-toggle');
-    if (!toggle) return;
-
-    if (theme === 'dark') {
-        toggle.querySelector('.light-icon').style.display = 'none';
-        toggle.querySelector('.dark-icon').style.display = 'inline';
-    } else {
-        toggle.querySelector('.light-icon').style.display = 'inline';
-        toggle.querySelector('.dark-icon').style.display = 'none';
-    }
-}
-
-function toggleTheme() {
-    const html = document.documentElement;
-    let currentTheme = html.getAttribute('data-theme');
-    let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    updateToggleIcon(newTheme);
-    setCookie('admin_theme', newTheme, 365);
-    
-    // Optionally, notify the server about the theme change
-    fetch('/admin/preferences', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ theme: newTheme }),
-    });
-}
-
-function toggleMenu() {
-    const menu = document.querySelector('.admin-nav');
-    menu.classList.toggle('active');
-}
-
-// Cookie Helpers
-function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + days*24*60*60*1000);
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-}
-
-function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for(let i=0;i < ca.length;i++) {
-        let c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-    }
-    return null;
-}
-
 function initializePublishDateToggle() {
     const publishType = document.getElementById('publishType');
     const publishDateGroup = document.getElementById('publishDateGroup');
@@ -485,18 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEditor();
     initializeTags();
     initializeSlugHandling();
-    initializeTheme();
+    initializePublishDateToggle();
     initializeMenuItemForm();
     initializeMenuItems();
-    initializePublishDateToggle();
-
-    const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-    }
-
-    const menuToggle = document.getElementById('menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', toggleMenu);
-    }
 });

@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
@@ -15,6 +14,13 @@ type AdminHandlers struct {
 	db     *gorm.DB
 	config *config.Config
 }
+
+const (
+	DefaultTimezone    = "UTC"
+	DefaultChromaStyle = "paraiso-dark"
+	DefaultPostPerPage = 10
+	DefaultTheme       = "light"
+)
 
 func NewAdminHandlers(database *gorm.DB, config *config.Config) *AdminHandlers {
 	return &AdminHandlers{
@@ -82,12 +88,6 @@ func (h *AdminHandlers) ShowSettings(c *gin.Context) {
 	c.HTML(http.StatusOK, "admin_settings.tmpl", data)
 }
 
-const (
-	DefaultTimezone     = "UTC"
-	DefaultChromaStyle  = "paraiso-dark"
-	DefaultPostPerPage  = 10
-)
-
 func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 	var form db.Settings
 	var errors []string
@@ -97,6 +97,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 	form.Subtitle = c.PostForm("subtitle")
 	form.Timezone = c.PostForm("timezone")
 	form.ChromaStyle = c.PostForm("chroma_style")
+	form.Theme = c.PostForm("theme")
 	postsPerPage := c.PostForm("posts_per_page")
 
 	// Validate required fields
@@ -135,6 +136,11 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 		}
 	}
 
+	// Validate theme
+	if form.Theme != "" && form.Theme != "light" && form.Theme != "dark" {
+		errors = append(errors, "Invalid theme selected")
+	}
+
 	// Parse and validate posts per page
 	if postsPerPage != "" {
 		if pp, err := strconv.Atoi(postsPerPage); err != nil {
@@ -164,11 +170,12 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 	if form.ChromaStyle == "" {
 		form.ChromaStyle = DefaultChromaStyle
 	}
+	if form.Theme == "" {
+		form.Theme = DefaultTheme
+	}
 	if form.PostsPerPage == 0 {
 		form.PostsPerPage = DefaultPostPerPage
 	}
-
-	form.LastUpdatedAt = time.Now()
 
 	if err := db.UpdateSettings(h.db, &form); err != nil {
 		errors = append(errors, "Failed to update settings")

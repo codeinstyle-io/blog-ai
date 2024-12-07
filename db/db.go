@@ -34,12 +34,11 @@ func InitDB(cfg *config.Config) *gorm.DB {
 	var settings Settings
 	if err := db.First(&settings).Error; err == gorm.ErrRecordNotFound {
 		settings = Settings{
-			Title:         cfg.Site.Title,
-			Subtitle:      cfg.Site.Subtitle,
-			Timezone:      cfg.Site.Timezone,
-			ChromaStyle:   cfg.Site.ChromaStyle,
-			PostsPerPage:  cfg.Site.PostsPerPage,
-			LastUpdatedAt: time.Now(),
+			Title:        cfg.Site.Title,
+			Subtitle:     cfg.Site.Subtitle,
+			Timezone:     cfg.Site.Timezone,
+			ChromaStyle:  cfg.Site.ChromaStyle,
+			PostsPerPage: cfg.Site.PostsPerPage,
 		}
 		if err := db.Create(&settings).Error; err != nil {
 			log.Fatal(err)
@@ -252,7 +251,6 @@ func UpdateSettings(db *gorm.DB, settings *Settings) error {
 	current.Timezone = settings.Timezone
 	current.ChromaStyle = settings.ChromaStyle
 	current.PostsPerPage = settings.PostsPerPage
-	current.LastUpdatedAt = time.Now()
 
 	return db.Save(&current).Error
 }
