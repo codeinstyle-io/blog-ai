@@ -22,25 +22,25 @@ func NewAuthHandlers(database *gorm.DB, config *config.Config) *AuthHandlers {
 
 func (h *AuthHandlers) Login(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.tmpl", h.addCommonData(gin.H{
-		"title":    "Login",
-		"returnTo": c.Query("returnTo"),
+		"title": "Login",
+		"next":  c.Query("next"),
 	}))
 }
 
 func (h *AuthHandlers) PostLogin(c *gin.Context) {
 	email := c.PostForm("email")
 	password := c.PostForm("password")
-	returnTo := c.Query("returnTo")
-	if returnTo == "" {
-		returnTo = "/admin"
+	next := c.PostForm("next")
+	if next == "" {
+		next = "/admin"
 	}
 
 	user, err := db.GetUserByEmail(h.db, email)
 	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
 		c.HTML(http.StatusUnauthorized, "login.tmpl", h.addCommonData(gin.H{
-			"title":    "Login",
-			"error":    "Invalid credentials",
-			"returnTo": returnTo,
+			"title": "Login",
+			"error": "Invalid credentials",
+			"next":  next,
 		}))
 		return
 	}
@@ -65,7 +65,7 @@ func (h *AuthHandlers) PostLogin(c *gin.Context) {
 
 	// Set session cookie
 	c.SetCookie("session", token, 86400, "/", "", false, true)
-	c.Redirect(http.StatusFound, returnTo)
+	c.Redirect(http.StatusFound, next)
 }
 
 func (h *AuthHandlers) addCommonData(data gin.H) gin.H {

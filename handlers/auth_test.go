@@ -68,7 +68,7 @@ func TestAuthHandlers_Login(t *testing.T) {
 		name          string
 		email         string
 		password      string
-		returnTo      string
+		next          string
 		expectedCode  int
 		expectedPath  string
 		sessionCookie bool
@@ -101,7 +101,7 @@ func TestAuthHandlers_Login(t *testing.T) {
 			name:          "Custom return path",
 			email:         "test@example.com",
 			password:      "Test1234!",
-			returnTo:      "/admin/posts",
+			next:          "/admin/posts",
 			expectedCode:  http.StatusFound,
 			expectedPath:  "/admin/posts",
 			sessionCookie: true,
@@ -114,14 +114,14 @@ func TestAuthHandlers_Login(t *testing.T) {
 			form.Add("email", tt.email)
 			form.Add("password", tt.password)
 
+			// Add return path if specified
+			if tt.next != "" {
+				form.Add("next", tt.next)
+			}
+
 			// Create request
 			req, err := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
 			assert.NoError(t, err)
-
-			// Add return path if specified
-			if tt.returnTo != "" {
-				req.URL.RawQuery = url.Values{"returnTo": {tt.returnTo}}.Encode()
-			}
 
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
