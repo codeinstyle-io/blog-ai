@@ -27,14 +27,14 @@ func (h *AdminHandlers) ListTags(c *gin.Context) {
 		Find(&tags)
 
 	if result.Error != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin_tags.tmpl", gin.H{
+	c.HTML(http.StatusOK, "admin_tags.tmpl", h.addCommonData(c, gin.H{
 		"title": "Tags",
 		"tags":  tags,
-	})
+	}))
 }
 
 // DeleteTag removes a tag without affecting posts
@@ -52,30 +52,30 @@ func (h *AdminHandlers) ConfirmDeleteTag(c *gin.Context) {
 	id := c.Param("id")
 	var tag db.Tag
 	if err := h.db.First(&tag, id).Error; err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin_confirm_delete_tag.tmpl", gin.H{
+	c.HTML(http.StatusOK, "admin_confirm_delete_tag.tmpl", h.addCommonData(c, gin.H{
 		"title": "Confirm Delete Tag",
 		"tag":   tag,
-	})
+	}))
 }
 
 // ShowCreateTag displays the tag creation form
 func (h *AdminHandlers) ShowCreateTag(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin_create_tag.tmpl", gin.H{
+	c.HTML(http.StatusOK, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
 		"title": "Create Tag",
-	})
+	}))
 }
 
 // CreateTag handles tag creation
 func (h *AdminHandlers) CreateTag(c *gin.Context) {
 	name := c.PostForm("name")
 	if name == "" {
-		c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", gin.H{
+		c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
 			"error": "Tag name is required",
-		})
+		}))
 		return
 	}
 
@@ -85,15 +85,15 @@ func (h *AdminHandlers) CreateTag(c *gin.Context) {
 
 	if err := h.db.Create(&tag).Error; err != nil {
 		if err.Error() == "UNIQUE constraint failed: tags.name" {
-			c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", gin.H{
+			c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
 				"error": "Tag name already exists",
-			})
+			}))
 			return
 		}
 
-		c.HTML(http.StatusInternalServerError, "admin_create_tag.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to create tag",
-		})
+		}))
 		return
 	}
 

@@ -810,3 +810,25 @@ a:hover {
         opacity: 1;
     }
 }
+
+/* Settings Form Styles */
+.settings-form {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: var(--admin-card-bg);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--admin-shadow);
+}
+
+.form-help {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--admin-text);
+    opacity: 0.7;
+}
+
+.form-actions {
+    margin-top: 2rem;
+    text-align: right;
+}

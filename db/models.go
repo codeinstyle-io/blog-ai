@@ -55,3 +55,14 @@ type MenuItem struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+// Settings represents the site configuration
+type Settings struct {
+	gorm.Model
+	Title        string
+	Subtitle     string
+	Timezone     string
+	ChromaStyle  string
+	Theme        string // Add theme field
+	PostsPerPage int
+}

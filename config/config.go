@@ -3,10 +3,61 @@ package config
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/spf13/viper"
 	"gorm.io/gorm/logger"
+)
+
+var (
+	// Available timezones
+	timezones = []string{
+		"UTC",
+		"Europe/London",
+		"Europe/Paris",
+		"America/New_York",
+		"America/Los_Angeles",
+		"Asia/Tokyo",
+		"Australia/Sydney",
+	}
+
+	// Available Chroma styles
+	chromaStyles = []string{
+		"abap",
+		"algol",
+		"arduino",
+		"autumn",
+		"borland",
+		"bw",
+		"colorful",
+		"dracula",
+		"emacs",
+		"friendly",
+		"fruity",
+		"github",
+		"igor",
+		"lovelace",
+		"manni",
+		"monokai",
+		"monokailight",
+		"murphy",
+		"native",
+		"paraiso-dark",
+		"paraiso-light",
+		"pastie",
+		"perldoc",
+		"pygments",
+		"rainbow_dash",
+		"rrt",
+		"solarized-dark",
+		"solarized-dark256",
+		"solarized-light",
+		"swapoff",
+		"tango",
+		"trac",
+		"vim",
+		"vs",
+		"xcode",
+	}
 )
 
 type Config struct {
@@ -34,12 +85,7 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("server.port", 8080)
 	viper.SetDefault("db.path", "blog.db")
 	viper.SetDefault("db.log_level", "warn")
-	viper.SetDefault("site.chroma_style", "paraiso-dark")
-	viper.SetDefault("site.timezone", "UTC")
-	viper.SetDefault("site.title", "Captain")
-	viper.SetDefault("site.subtitle", "A simple blog engine")
 	viper.SetDefault("site.theme", "")
-	viper.SetDefault("site.posts_per_page", 3)
 	viper.SetDefault("debug", false)
 
 	viper.SetConfigName("config")
@@ -95,11 +141,12 @@ func (c *Config) GetGormLogLevel() logger.LogLevel {
 	}
 }
 
-// GetLocation returns the configured timezone location
-func (c *Config) GetLocation() *time.Location {
-	loc, err := time.LoadLocation(c.Site.Timezone)
-	if err != nil {
-		return time.UTC
-	}
-	return loc
+// GetTimezones returns the list of available timezones
+func (c *Config) GetTimezones() []string {
+	return timezones
+}
+
+// GetChromaStyles returns the list of available syntax highlighting themes
+func (c *Config) GetChromaStyles() []string {
+	return chromaStyles
 }

@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/md5"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/alecthomas/chroma/formatters/html"
@@ -27,40 +27,55 @@ import (
 )
 
 var (
-	chromaCSS  string
-	chromaOnce sync.Once
+	chromaCSS string
 )
 
 type PublicHandlers struct {
-	db     *gorm.DB
-	config *config.Config
+	db       *gorm.DB
+	config   *config.Config
+	settings *db.Settings
 }
 
 func NewPublicHandlers(database *gorm.DB, cfg *config.Config) *PublicHandlers {
+	var settings db.Settings
+	database.First(&settings)
+
 	return &PublicHandlers{
-		db:     database,
-		config: cfg,
+		db:       database,
+		config:   cfg,
+		settings: &settings,
 	}
 }
 
 func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
-	chromaOnce.Do(func() {
-		style := styles.Get(h.config.Site.ChromaStyle)
-		if style == nil {
-			style = styles.Fallback
-		}
-		formatter := html.New(html.WithClasses(true))
-		buf := new(bytes.Buffer)
-		if err := formatter.WriteCSS(buf, style); err != nil {
-			// If there's an error, use empty CSS
-			chromaCSS = ""
+	// Generate ETag based on the chroma style name
+	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(h.settings.ChromaStyle)))
+
+	// Check If-None-Match header first
+	if match := c.GetHeader("If-None-Match"); match != "" {
+		if match == etag {
+			c.Status(http.StatusNotModified)
 			return
 		}
-		chromaCSS = buf.String()
-	})
+	}
 
+	// Generate CSS
+	style := styles.Get(h.settings.ChromaStyle)
+	if style == nil {
+		style = styles.Fallback
+	}
+	formatter := html.New(html.WithClasses(true))
+	buf := new(bytes.Buffer)
+	if err := formatter.WriteCSS(buf, style); err != nil {
+		// If there's an error, use empty CSS
+		chromaCSS = ""
+		return
+	}
+	chromaCSS = buf.String()
+
+	// Set headers
+	c.Header("ETag", etag)
 	c.Header("Content-Type", "text/css")
-	c.Header("Cache-Control", "public, max-age=86400") // Cache for 24 hours
 	c.String(http.StatusOK, chromaCSS)
 }
 
@@ -88,7 +103,11 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	post.Content = renderMarkdown(post.Content)
 
 	// Convert UTC time to configured timezone for display
-	post.PublishedAt = post.PublishedAt.In(h.config.GetLocation())
+	loc, err := time.LoadLocation(h.settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	post.PublishedAt = post.PublishedAt.In(loc)
 
 	c.HTML(http.StatusOK, "post.tmpl", h.addCommonData(gin.H{
 		"title": post.Title,
@@ -103,8 +122,8 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 		page = 1
 	}
 
-	// Get posts per page from config
-	perPage := h.config.Site.PostsPerPage
+	// Get posts per page from settings
+	perPage := h.settings.PostsPerPage
 
 	now := time.Now()
 
@@ -146,8 +165,8 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 		page = 1
 	}
 
-	// Get posts per page from config
-	perPage := h.config.Site.PostsPerPage
+	// Get posts per page from settings
+	perPage := h.settings.PostsPerPage
 
 	now := time.Now()
 
@@ -212,13 +231,18 @@ func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
 	var menuItems []db.MenuItem
 	h.db.Preload("Page").Order("position").Find(&menuItems)
 
+	var settings db.Settings
+	h.db.First(&settings)
+	h.settings = &settings
+
 	// Add menu items to the data
 	data["menuItems"] = menuItems
 
-	// Add site config
+	// Add site config from settings
 	data["config"] = gin.H{
-		"SiteTitle":    h.config.Site.Title,
-		"SiteSubtitle": h.config.Site.Subtitle,
+		"SiteTitle":    h.settings.Title,
+		"SiteSubtitle": h.settings.Subtitle,
+		"Theme":        h.settings.Theme,
 	}
 
 	// Add version information

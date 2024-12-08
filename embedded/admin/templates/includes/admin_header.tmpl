@@ -1,10 +1,10 @@
 {{define "admin_header.tmpl"}}
 <!DOCTYPE html>
-<html lang="en" data-theme="{{.theme}}">
+<html lang="en" data-theme="{{.AdminTheme}}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - {{.title}}</title>
+    <title>Admin - {{.SiteTitle}}</title>
     <link rel="stylesheet" href="/admin/static/css/fontawesome.min.css">
     <link rel="stylesheet" href="/admin/static/css/admin.css">
 </head>
@@ -54,16 +54,16 @@
                     </a>
                 </li>
                 <li>
+                    <a href="/admin/settings">
+                        <i class="fas fa-tools"></i>
+                        Settings
+                    </a>
+                </li>
+                <li>
                     <a href="/admin/logout" class="logout">
                         <i class="fas fa-right-from-bracket"></i>
                         Logout
                     </a>
-                </li>
-                <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Theme">
-                        <span class="light-icon"><i class="fas fa-sun"></i></span>
-                        <span class="dark-icon"><i class="fas fa-moon"></i></span>
-                    </button>
                 </li>
             </ul>
         </nav>

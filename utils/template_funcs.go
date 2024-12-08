@@ -3,11 +3,22 @@ package utils
 import (
 	"encoding/json"
 	"html/template"
+	"strings"
+	"time"
 )
 
-// GetTemplateFuncs returns the common template functions used across the application
+// GetTemplateFuncs returns the map of template functions used in templates
 func GetTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
+		"formatDate": func(t time.Time) string {
+			return t.Format("January 2, 2006")
+		},
+		"formatDateTime": func(t time.Time) string {
+			return t.Format("January 2, 2006 15:04")
+		},
+		"lower": strings.ToLower,
+		"upper": strings.ToUpper,
+		"trim":  strings.TrimSpace,
 		"add": func(a, b int) int {
 			return a + b
 		},
@@ -20,7 +31,7 @@ func GetTemplateFuncs() template.FuncMap {
 		"json": func(v interface{}) string {
 			b, err := json.Marshal(v)
 			if err != nil {
-				return "[]"
+				return ""
 			}
 			return string(b)
 		},
