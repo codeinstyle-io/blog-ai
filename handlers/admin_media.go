@@ -121,7 +121,7 @@ func (h *AdminHandlers) DeleteMedia(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/admin/media")
+	c.JSON(http.StatusOK, gin.H{"message": "Media deleted successfully"})
 }
 
 // GetMediaList returns a JSON list of media for AJAX requests
@@ -155,5 +155,5 @@ func (h *AdminHandlers) ConfirmDeleteMedia(c *gin.Context) {
 		"media": media,
 	}
 	data = h.addCommonData(c, data)
-	c.HTML(http.StatusOK, "admin_media_delete.tmpl", data)
+	c.HTML(http.StatusOK, "admin_confirm_delete_media.tmpl", data)
 }

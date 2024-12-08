@@ -74,6 +74,25 @@ function deleteMenuItem(id) {
     });
 }
 
+function deleteMedia(id) {
+    fetch(`/admin/media/${id}`, {
+        method: 'DELETE',
+    }).then((response) => {
+        if (response.ok) {
+            window.location.href = '/admin/media';
+        } else {
+            response.json().then(data => {
+                showError(data.error || 'Failed to delete media');
+            }).catch(() => {
+                showError('Failed to delete media');
+            });
+        }
+    }).catch(error => {
+        showError('Failed to delete media');
+        console.error('Error:', error);
+    });
+}
+
 function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'alert alert-error';
