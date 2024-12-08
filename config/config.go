@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/spf13/viper"
 	"gorm.io/gorm/logger"
@@ -86,12 +85,7 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("server.port", 8080)
 	viper.SetDefault("db.path", "blog.db")
 	viper.SetDefault("db.log_level", "warn")
-	viper.SetDefault("site.chroma_style", "paraiso-dark")
-	viper.SetDefault("site.timezone", "UTC")
-	viper.SetDefault("site.title", "Captain")
-	viper.SetDefault("site.subtitle", "A simple blog engine")
 	viper.SetDefault("site.theme", "")
-	viper.SetDefault("site.posts_per_page", 3)
 	viper.SetDefault("debug", false)
 
 	viper.SetConfigName("config")
@@ -145,15 +139,6 @@ func (c *Config) GetGormLogLevel() logger.LogLevel {
 	default:
 		return logger.Warn
 	}
-}
-
-// GetLocation returns the configured timezone location
-func (c *Config) GetLocation() *time.Location {
-	loc, err := time.LoadLocation(c.Site.Timezone)
-	if err != nil {
-		return time.UTC
-	}
-	return loc
 }
 
 // GetTimezones returns the list of available timezones

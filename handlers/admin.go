@@ -54,22 +54,6 @@ func (h *AdminHandlers) Index(c *gin.Context) {
 	c.HTML(http.StatusOK, "admin_index.tmpl", data)
 }
 
-// handlers/admin.go
-func (h *AdminHandlers) SavePreferences(c *gin.Context) {
-	var prefs struct {
-		Theme string `json:"theme"`
-	}
-
-	if err := c.BindJSON(&prefs); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid preferences"})
-		return
-	}
-
-	// Save theme preference in cookie
-	c.SetCookie("admin_theme", prefs.Theme, 3600*24*365, "/", "", false, false)
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
-}
-
 func (h *AdminHandlers) ShowSettings(c *gin.Context) {
 	settings, err := db.GetSettings(h.db)
 	if err != nil {

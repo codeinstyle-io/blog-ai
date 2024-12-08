@@ -89,9 +89,6 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.GET("/menus/:id/delete", adminHandlers.ConfirmDeleteMenuItem)
 	admin.DELETE("/menus/:id", adminHandlers.DeleteMenuItem)
 
-	// Preferences route
-	admin.POST("/preferences", adminHandlers.SavePreferences)
-
 	// API routes
 	admin.GET("/api/tags", adminHandlers.GetTags)
 }

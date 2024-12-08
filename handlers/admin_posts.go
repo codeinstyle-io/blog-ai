@@ -58,12 +58,27 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	publishedAt := c.PostForm("publishedAt")
 	var parsedTime time.Time
 
+	// Get settings for timezone
+	settings, err := db.GetSettings(h.db)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", gin.H{
+			"error": "Failed to get settings",
+		})
+		return
+	}
+
+	// Load timezone from settings
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
 	if publishedAt == "" {
 		// If no date provided, use current time
-		parsedTime = time.Now().In(h.config.GetLocation())
+		parsedTime = time.Now().In(loc)
 	} else {
 		var err error
-		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.GetLocation())
+		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
 		if err != nil {
 			c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", gin.H{
 				"error": "Invalid date format",
@@ -268,12 +283,28 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		return
 	}
 
+	// Get settings for timezone
+	settings, err := db.GetSettings(h.db)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", gin.H{
+			"error": "Failed to get settings",
+			"post":  post,
+		})
+		return
+	}
+
+	// Load timezone from settings
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
 	var parsedTime time.Time
 	if publishedAt == "" {
-		parsedTime = time.Now().In(h.config.GetLocation())
+		parsedTime = time.Now().In(loc)
 	} else {
 		var err error
-		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, h.config.GetLocation())
+		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
 		if err != nil {
 			c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", gin.H{
 				"error": "Invalid date format",
