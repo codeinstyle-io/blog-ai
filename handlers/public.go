@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/alecthomas/chroma/formatters/html"
@@ -28,8 +27,7 @@ import (
 )
 
 var (
-	chromaCSS  string
-	chromaOnce sync.Once
+	chromaCSS string
 )
 
 type PublicHandlers struct {
@@ -50,6 +48,18 @@ func NewPublicHandlers(database *gorm.DB, cfg *config.Config) *PublicHandlers {
 }
 
 func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
+	// Generate ETag based on the chroma style name
+	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(h.settings.ChromaStyle)))
+
+	// Check If-None-Match header first
+	if match := c.GetHeader("If-None-Match"); match != "" {
+		if match == etag {
+			c.Status(http.StatusNotModified)
+			return
+		}
+	}
+
+	// Generate CSS
 	style := styles.Get(h.settings.ChromaStyle)
 	if style == nil {
 		style = styles.Fallback
@@ -63,10 +73,7 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	}
 	chromaCSS = buf.String()
 
-	fmt.Println(h.settings.ChromaStyle)
-
-	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(h.settings.ChromaStyle)))
-
+	// Set headers
 	c.Header("ETag", etag)
 	c.Header("Content-Type", "text/css")
 	c.String(http.StatusOK, chromaCSS)
