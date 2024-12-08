@@ -250,6 +250,7 @@ func UpdateSettings(db *gorm.DB, settings *Settings) error {
 	current.Subtitle = settings.Subtitle
 	current.Timezone = settings.Timezone
 	current.ChromaStyle = settings.ChromaStyle
+	current.Theme = settings.Theme
 	current.PostsPerPage = settings.PostsPerPage
 
 	return db.Save(&current).Error

@@ -28,11 +28,11 @@ func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
 		data = gin.H{}
 	}
 
-	theme, _ := c.Cookie("admin_theme")
-	if theme == "" {
-		theme = "light"
-	}
+	// Get settings for title and theme
+	var settings db.Settings
+	h.db.First(&settings)
 
-	data["theme"] = theme
+	data["AdminTheme"] = settings.Theme
+	data["SiteTitle"] = settings.Title
 	return data
 }

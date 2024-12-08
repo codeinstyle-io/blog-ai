@@ -141,6 +141,8 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
+			"theme":        form.Theme,
+			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
 		c.HTML(http.StatusBadRequest, "admin_settings.tmpl", data)
@@ -167,6 +169,8 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
+			"theme":        form.Theme,
+			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
 		c.HTML(http.StatusInternalServerError, "admin_settings.tmpl", data)
