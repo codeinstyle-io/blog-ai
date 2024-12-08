@@ -36,9 +36,12 @@ func setupPublicRouter() *gin.Engine {
 		{{ range .posts }}
 			<article>
 				<h2>{{ .Title }}</h2>
-				<div>{{ .Content }}</div>
+				<div>{{ .Excerpt }}</div>
 			</article>
 		{{ end }}
+		<div class="pagination">
+			Page {{ .currentPage }} of {{ .totalPages }}
+		</div>
 		</div>
 	`))
 
@@ -108,6 +111,20 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
+
+	// Create default settings first
+	settings := &db.Settings{
+		PostsPerPage: 2, // Set a small number to test pagination
+		Title:        "Test Blog",
+		Subtitle:     "Test Subtitle",
+		Theme:        "default",
+		ChromaStyle:  "monokai",
+		Timezone:     "UTC",
+	}
+	if err := database.Create(settings).Error; err != nil {
+		t.Fatalf("Failed to create settings: %v", err)
+	}
+
 	handlers := NewPublicHandlers(database, cfg)
 
 	// Setup router with test templates
@@ -117,25 +134,29 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	router.GET("/posts", handlers.ListPosts)
 
 	// Create test posts
+	now := time.Now()
 	posts := []db.Post{
 		{
 			Title:       "Test Post 1",
 			Slug:        "test-post-1",
-			Content:     "Test Content 1",
-			PublishedAt: time.Now(),
+			Content:     "# Test Content 1",
+			PublishedAt: now,
 			Visible:     true,
 		},
 		{
 			Title:       "Test Post 2",
 			Slug:        "test-post-2",
-			Content:     "Test Content 2",
-			PublishedAt: time.Now(),
+			Content:     "# Test Content 2",
+			PublishedAt: now,
 			Visible:     true,
 		},
 	}
 
+	// Create posts in database and check for errors
 	for _, post := range posts {
-		database.Create(&post)
+		if err := database.Create(&post).Error; err != nil {
+			t.Fatalf("Failed to create post: %v", err)
+		}
 	}
 
 	// Test listing posts
@@ -144,6 +165,12 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "Test Post 1")
-	assert.Contains(t, w.Body.String(), "Test Post 2")
+
+	// Check that both posts are present
+	body := w.Body.String()
+	assert.Contains(t, body, "Test Post 1")
+	assert.Contains(t, body, "Test Post 2")
+
+	// Check pagination data
+	assert.Contains(t, body, "Page 1 of 1")
 }
