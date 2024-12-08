@@ -25,6 +25,7 @@ func RegisterPublicRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) 
 	r.GET("/pages/:slug", publicHandlers.GetPageBySlug)
 	r.GET("/tags/:tag", publicHandlers.ListPostsByTag)
 	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
+	r.GET("/media/*path", ServeMedia(database, cfg))
 
 	// Auth routes (private)
 	r.GET("/logout", authHandlers.Logout)
@@ -89,6 +90,14 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 	admin.GET("/menus/:id/delete", adminHandlers.ConfirmDeleteMenuItem)
 	admin.DELETE("/menus/:id", adminHandlers.DeleteMenuItem)
 
+	// Media routes
+	admin.GET("/media", adminHandlers.ListMedia)
+	admin.GET("/media/upload", adminHandlers.ShowUploadMedia)
+	admin.POST("/media/upload", adminHandlers.UploadMedia)
+	admin.GET("/media/:id/delete", adminHandlers.ConfirmDeleteMedia)
+	admin.DELETE("/media/:id", adminHandlers.DeleteMedia)
+
 	// API routes
 	admin.GET("/api/tags", adminHandlers.GetTags)
+	admin.GET("/api/media", adminHandlers.GetMediaList)
 }
