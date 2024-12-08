@@ -149,19 +149,14 @@ Captain can be configured through environment variables or a YAML configuration 
 
 ### Environment Variables
 
-| Variable                      | Description                      | Default         | Valid Values                                                                           |
-|------------------------------|----------------------------------|-----------------|----------------------------------------------------------------------------------------|
-| `CAPTAIN_DEBUG`              | Enable debug mode                | `false`         | `true`, `false`                                                                        |
-| `CAPTAIN_SERVER_HOST`        | Host address to bind to          | `localhost`     | Any valid IP or hostname                                                               |
-| `CAPTAIN_SERVER_PORT`        | Port number for the server       | `8080`          | 1-65535                                                                                |
-| `CAPTAIN_DB_PATH`            | SQLite database file location    | `blog.db`       | Any valid file path                                                                    |
-| `CAPTAIN_DB_LOG_LEVEL`       | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
-| `CAPTAIN_SITE_CHROMA_STYLE`  | Syntax highlighting theme        | `paraiso-dark`  | [Any Chroma style](https://xyproto.github.io/splash/docs/)                            |
-| `CAPTAIN_SITE_TIMEZONE`      | Default timezone for dates       | `UTC`           | [Any TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)  |
-| `CAPTAIN_SITE_TITLE`         | Site title                       | `Captain`       | Any string                                                                             |
-| `CAPTAIN_SITE_SUBTITLE`      | Site subtitle                    | `A simple blog` | Any string                                                                             |
-| `CAPTAIN_SITE_THEME`         | Theme name                       | `default`       | Any installed theme name                                                               |
-| `CAPTAIN_SITE_POSTS_PER_PAGE`| Posts per page                  | `3`             | Any positive integer                                                                   |
+| Variable                    | Description                      | Default         | Valid Values                                                                           |
+|----------------------------|----------------------------------|-----------------|----------------------------------------------------------------------------------------|
+| `CAPTAIN_DEBUG`            | Enable debug mode                | `false`         | `true`, `false`                                                                        |
+| `CAPTAIN_SERVER_HOST`      | Host address to bind to          | `localhost`     | Any valid IP or hostname                                                               |
+| `CAPTAIN_SERVER_PORT`      | Port number for the server       | `8080`          | 1-65535                                                                                |
+| `CAPTAIN_DB_PATH`          | SQLite database file location    | `blog.db`       | Any valid file path                                                                    |
+| `CAPTAIN_DB_LOG_LEVEL`     | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
+| `CAPTAIN_SITE_THEME`       | Website theme name               | `""`            | Any installed theme name                                                               |
 
 ### Debug Mode
 
@@ -185,21 +180,19 @@ If the -c flag is not provided, Captain will look for a config file named config
 Here are the available options:
 
 | Configuration Key       | Description                         | Default Value   |
-|-------------------------|-------------------------------------|-----------------|
-| `server.host`           | Host address to bind the server     | `localhost`     |
-| `server.port`           | Port number for the server          | `8080`          |
-| `db.path`               | SQLite database file location       | `blog.db`       |
-| `db.log_level`          | Database logging verbosity          | `warn`          |
-| `site.chroma_style`     | Syntax highlighting theme           | `paraiso-dark`  |
-| `site.timezone`         | Default timezone for dates          | `UTC`           |
-| `site.theme`            | Theme name to use                   | `""`            |
-| `site.title`            | Site title                         | `Captain`       |
-| `site.subtitle`         | Site subtitle                      | `A simple blog engine` |
-| `site.posts_per_page`   | Number of posts per page           | `3`             |
+|------------------------|-------------------------------------|-----------------|
+| `server.host`          | Host address to bind the server     | `localhost`     |
+| `server.port`          | Port number for the server          | `8080`          |
+| `db.path`              | SQLite database file location       | `blog.db`       |
+| `db.log_level`         | Database logging verbosity          | `warn`          |
+| `debug`                | Enable debug mode                   | `false`         |
+| `site.theme`           | Website theme name                  | `""`            |
+
+Note: Site settings such as title, subtitle, timezone, and admin theme can be configured through the admin panel under Settings.
 
 ### Themes
 
-Captain supports customizable themes for the public site. The admin interface maintains a consistent look regardless of the theme selected.
+Captain supports customizable themes for the public site. The admin interface maintains a consistent look regardless of the website theme selected.
 
 #### Default Theme
 When `site.theme` is empty (`""`), Captain uses its embedded default theme.
