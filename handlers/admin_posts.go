@@ -55,6 +55,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	title := c.PostForm("title")
 	slug := c.PostForm("slug")
 	content := c.PostForm("content")
+	excerpt := c.PostForm("excerpt")
 	publishedAt := c.PostForm("publishedAt")
 	var parsedTime time.Time
 
@@ -91,12 +92,12 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	// Basic validation
 	if title == "" || slug == "" || content == "" {
 		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "All fields are required",
+			"error": "Title, slug and content are required",
 		}))
 		return
 	}
 
-	// Create post object
+	// Create post
 	post = db.Post{
 		Title:       title,
 		Slug:        slug,
@@ -104,6 +105,11 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		PublishedAt: parsedTime.UTC(),
 		Visible:     visible,
 		AuthorID:    user.ID,
+	}
+
+	// Only set excerpt if it's not empty
+	if excerpt != "" {
+		post.Excerpt = &excerpt
 	}
 
 	// Handle tags
@@ -260,9 +266,12 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdatePost(c *gin.Context) {
-	id := c.Param("id")
+	// Get the post ID from the URL
+	postID := c.Param("id")
+
+	// Find the existing post
 	var post db.Post
-	if err := h.db.First(&post, id).Error; err != nil {
+	if err := h.db.First(&post, postID).Error; err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -271,6 +280,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	title := c.PostForm("title")
 	slug := c.PostForm("slug")
 	content := c.PostForm("content")
+	excerpt := c.PostForm("excerpt")
 	publishedAt := c.PostForm("publishedAt")
 	visible := c.PostForm("visible") == "on"
 
@@ -320,6 +330,13 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	post.Content = content
 	post.PublishedAt = parsedTime.UTC()
 	post.Visible = visible
+
+	// Update excerpt - set to nil if empty, otherwise update the value
+	if excerpt == "" {
+		post.Excerpt = nil
+	} else {
+		post.Excerpt = &excerpt
+	}
 
 	// Handle tags
 	var tagNames []string
