@@ -224,7 +224,7 @@ function initializeTags() {
                     <span class="remove-tag" data-tag="${tag}">&times;</span>
                 </span>
             `).join('');
-        tagsHidden.value = JSON.stringify(selectedTagsList);
+        tagsHidden.value = selectedTagsList.join(',');  
     }
 
     selectedTags.addEventListener('click', (e) => {

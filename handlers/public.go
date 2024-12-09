@@ -158,52 +158,58 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 }
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
-	tagName := c.Param("tag")
-	// Get page number from query params
+	tagSlug := c.Param("slug")
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	// Get posts per page from settings
-	perPage := h.settings.PostsPerPage
-
-	now := time.Now()
-
-	var total int64
-	h.db.Model(&db.Post{}).
-		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Joins("JOIN tags ON post_tags.tag_id = tags.id").
-		Where("tags.name = ? AND posts.visible = ? AND posts.published_at <= ?", tagName, true, now).
-		Count(&total)
-
-	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
-	offset := (page - 1) * perPage
-
-	var posts []db.Post
-	result := h.db.Preload("Tags").Preload("Author").
-		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Joins("JOIN tags ON post_tags.tag_id = tags.id").
-		Where("tags.name = ? AND posts.visible = ? AND posts.published_at <= ?", tagName, true, now).
-		Order("published_at desc").
-		Offset(offset).
-		Limit(perPage).
-		Find(&posts)
-
-	if result.Error != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+	var tag db.Tag
+	if err := h.db.Where("slug = ?", tagSlug).First(&tag).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
+			"title": "Error",
+		}))
 		return
 	}
 
-	processPostsContent(posts)
+	var posts []db.Post
+	offset := (page - 1) * h.settings.PostsPerPage
+	now := time.Now()
+
+	if err := h.db.
+		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+		Where("post_tags.tag_id = ? AND posts.visible = ? AND posts.published_at <= ?", tag.ID, true, now).
+		Preload("Tags").
+		Preload("Author").
+		Order("published_at desc").
+		Offset(offset).
+		Limit(h.settings.PostsPerPage).
+		Find(&posts).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
+			"title": "Error",
+		}))
+		return
+	}
+
+	// Process posts
 	processPostsPublishedAt(posts)
+	processPostsContent(posts)
+
+	// Get total count for pagination
+	var total int64
+	h.db.Model(&db.Post{}).
+		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+		Where("post_tags.tag_id = ? AND posts.visible = ? AND posts.published_at <= ?", tag.ID, true, now).
+		Count(&total)
+
+	totalPages := int(math.Ceil(float64(total) / float64(h.settings.PostsPerPage)))
 
 	c.HTML(http.StatusOK, "tag_posts.tmpl", h.addCommonData(gin.H{
-		"title":       fmt.Sprintf("Posts tagged with #%s", tagName),
-		"tag":         tagName,
-		"posts":       posts,
-		"currentPage": page,
-		"totalPages":  totalPages,
+		"title":      fmt.Sprintf("Posts tagged with %s", tag.Name),
+		"posts":      posts,
+		"tag":        tag,
+		"page":       page,
+		"totalPages": totalPages,
 	}))
 }
 

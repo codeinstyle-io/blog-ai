@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"codeinstyle.io/captain/db"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ListPosts shows all posts for admin
@@ -113,33 +115,48 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	}
 
 	// Handle tags
-	var tagNames []string
-	tagsJSON := c.PostForm("tags")
-	if tagsJSON != "" {
-		if err := json.Unmarshal([]byte(tagsJSON), &tagNames); err != nil {
-			c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Invalid tags format",
-				"post":  post,
-			}))
-			return
-		}
+	var tags []string
+	if err := c.Request.ParseForm(); err != nil {
+		c.HTML(http.StatusBadRequest, "admin_error.tmpl", gin.H{
+			"error": "Invalid form data",
+		})
+		return
 	}
 
-	// Create/get tags and associate
-	var tags []db.Tag
-	for _, name := range tagNames {
-		var tag db.Tag
-		result := h.db.Where(db.Tag{Name: name}).FirstOrCreate(&tag)
-		if result.Error != nil {
-			c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Failed to create tag",
-				"post":  post,
-			}))
-			return
-		}
-		tags = append(tags, tag)
+	tags = strings.Split(c.PostForm("tags"), ",")
+	for i := range tags {
+		tags[i] = strings.TrimSpace(tags[i])
 	}
-	post.Tags = tags
+
+	// Create or get existing tags
+	var postTags []db.Tag
+	for _, tagName := range tags {
+		if tagName == "" {
+			continue
+		}
+
+		var tag db.Tag
+		// Try to find existing tag
+		err := h.db.Where("name = ?", tagName).First(&tag).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create new tag if it doesn't exist
+				tag = db.Tag{Name: tagName}
+				if err := h.db.Create(&tag).Error; err != nil {
+					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
+						"error": fmt.Sprintf("Error creating tag: %v", err),
+					})
+					return
+				}
+			} else {
+				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
+					"error": fmt.Sprintf("Database error: %v", err),
+				})
+				return
+			}
+		}
+		postTags = append(postTags, tag)
+	}
 
 	// Create post with transaction to ensure atomic operation
 	tx := h.db.Begin()
@@ -152,7 +169,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&post).Association("Tags").Replace(tags); err != nil {
+	if err := tx.Model(&post).Association("Tags").Replace(postTags); err != nil {
 		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to associate tags",
@@ -339,31 +356,47 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	}
 
 	// Handle tags
-	var tagNames []string
-	tagsJSON := c.PostForm("tags")
-	if tagsJSON != "" {
-		if err := json.Unmarshal([]byte(tagsJSON), &tagNames); err != nil {
-			c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Invalid tags format",
-				"post":  post,
-			}))
-			return
-		}
+	var tags []string
+	if err := c.Request.ParseForm(); err != nil {
+		c.HTML(http.StatusBadRequest, "admin_error.tmpl", gin.H{
+			"error": "Invalid form data",
+		})
+		return
 	}
 
-	// Create/get tags
-	var tags []db.Tag
-	for _, name := range tagNames {
-		var tag db.Tag
-		result := h.db.Where(db.Tag{Name: name}).FirstOrCreate(&tag)
-		if result.Error != nil {
-			c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Failed to create tag",
-				"post":  post,
-			}))
-			return
+	tags = strings.Split(c.PostForm("tags"), ",")
+	for i := range tags {
+		tags[i] = strings.TrimSpace(tags[i])
+	}
+
+	// Create or get existing tags
+	var postTags []db.Tag
+	for _, tagName := range tags {
+		if tagName == "" {
+			continue
 		}
-		tags = append(tags, tag)
+
+		var tag db.Tag
+		// Try to find existing tag
+		err := h.db.Where("name = ?", tagName).First(&tag).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Create new tag if it doesn't exist
+				tag = db.Tag{Name: tagName}
+				if err := h.db.Create(&tag).Error; err != nil {
+					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
+						"error": fmt.Sprintf("Error creating tag: %v", err),
+					})
+					return
+				}
+			} else {
+				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
+					"error": fmt.Sprintf("Database error: %v", err),
+				})
+				return
+			}
+		}
+		postTags = append(postTags, tag)
 	}
 
 	// Start transaction for update
@@ -378,7 +411,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&post).Association("Tags").Replace(tags); err != nil {
+	if err := tx.Model(&post).Association("Tags").Replace(postTags); err != nil {
 		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update tags",

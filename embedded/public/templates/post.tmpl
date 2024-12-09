@@ -4,7 +4,7 @@
         <h1>{{ .post.Title }}</h1>
         <div class="post-tags">
             {{ range .post.Tags }}
-                <a href="/tags/{{ .Name }}" class="post-tag">#{{ .Name }}</a>
+                <a href="/tag/{{ .Slug }}" class="post-tag">#{{ .Name }}</a>
             {{ end }}
         </div>
         <div class="post-meta">

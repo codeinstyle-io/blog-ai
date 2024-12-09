@@ -15,6 +15,7 @@
             <thead>
                 <tr>
                     <th>Tag Name</th>
+                    <th>Slug</th>
                     <th>Posts Count</th>
                     <th>Actions</th>
                 </tr>
@@ -23,9 +24,11 @@
                 {{range .tags}}
                 <tr>
                     <td>{{.Name}}</td>
+                    <td>{{.Slug}}</td>
                     <td>{{.PostCount}}</td>
                     <td class="actions">
                         <a href="/admin/tags/{{.ID}}/posts" class="btn btn-view">View Posts</a>
+                        <a href="/admin/tags/{{.ID}}/edit" class="btn btn-primary">Edit</a>
                         <a href="/admin/tags/{{.ID}}/delete" class="btn btn-delete">Delete</a>
                     </td>
                 </tr>
