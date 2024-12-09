@@ -42,7 +42,7 @@
     --admin-bg: #1a1a1a;
     --admin-text: #e0e0e0;
     --admin-primary: #1a2634;
-    --admin-secondary: #2c3e50;
+    --admin-secondary: #70787f;  /* Lightened for better contrast */
     --admin-accent: #3498db;
     --admin-danger: #e74c3c;
     --admin-success: #2ecc71;
