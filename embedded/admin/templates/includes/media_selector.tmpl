@@ -70,7 +70,19 @@ function loadMediaItems() {
 function insertMedia(media) {
     const editor = document.getElementById(currentEditor);
     const format = document.querySelector('input[name="format"]:checked').value;
-    const tag = format === 'markdown' ? media.GetMarkdownTag : media.GetHTMLTag;
+    let tag;
+    
+    if (media.MimeType.startsWith('image/')) {
+        // For images
+        tag = format === 'markdown' 
+            ? `![${media.Name}](/media/${media.Path})`
+            : `<img src="/media/${media.Path}" alt="${media.Name}">`;
+    } else {
+        // For other files
+        tag = format === 'markdown'
+            ? `[${media.Name}](/media/${media.Path})`
+            : `<a href="/media/${media.Path}">${media.Name}</a>`;
+    }
     
     // Get cursor position
     const start = editor.selectionStart;

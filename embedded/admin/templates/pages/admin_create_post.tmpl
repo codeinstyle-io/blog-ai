@@ -1,4 +1,5 @@
 {{ template "admin_header.tmpl" . }}
+{{ template "media_selector" . }}
 <div class="admin-page">
     <div class="page-header">
         <h1>Create New Post</h1>
@@ -23,9 +24,18 @@
             <div class="form-group editor-wrapper">
                 <div class="editor-toolbar">
                     <label for="content">Content:</label>
-                    <div class="preview-toggle">
-                        <button type="button" id="edit-mode" class="active">Edit</button>
-                        <button type="button" id="preview-mode">Preview</button>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn-toolbar" onclick="openMediaModal('content')">
+                            <i class="fas fa-image"></i> Add Media
+                        </button>
+                        <div class="format-selector">
+                            <label><input type="radio" name="format" value="markdown" checked> Markdown</label>
+                            <label><input type="radio" name="format" value="html"> HTML</label>
+                        </div>
+                        <div class="preview-toggle">
+                            <button type="button" id="edit-mode" class="active">Edit</button>
+                            <button type="button" id="preview-mode">Preview</button>
+                        </div>
                     </div>
                 </div>
                 <div id="editor-area">
