@@ -25,6 +25,11 @@
                 <small class="help-text">The URL-friendly version of the title</small>
             </div>
             <div class="form-group">
+                <label for="excerpt">Excerpt:</label>
+                <textarea id="excerpt" name="excerpt" class="form-control" rows="3">{{if .post.Excerpt}}{{.post.Excerpt}}{{end}}</textarea>
+                <small class="help-text">A brief summary of the post. If left empty, an excerpt will be generated from the content.</small>
+            </div>
+            <div class="form-group">
                 <label for="tags">Tags</label>
                 <div class="tag-input-container">
                     <input type="text" id="tag-input" class="form-control" placeholder="Add tags...">
