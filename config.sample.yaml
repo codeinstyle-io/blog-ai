@@ -14,5 +14,19 @@ db:
 site:
   theme: "default-light"  # Use the new light theme
 
+# Storage Configuration
+storage:
+  provider: "s3"     # Storage provider: "local" or "s3"
+  local_path: "./media" # Path for local file storage
+
+  # S3 Configuration (only required when provider is "s3")
+  s3:
+    bucket: ""         # S3 bucket name
+    region: ""         # AWS region (e.g., "us-east-1")
+    endpoint: ""       # S3 endpoint (e.g., "http://localhost:9000")
+    access_key: ""     # S3 access key
+    secret_key: ""     # S3 secret key
+
+
 # Debug mode
 debug: false

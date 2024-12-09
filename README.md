@@ -108,6 +108,47 @@ Then open http://localhost:8080 in your browser
 - `make create-user` - Creates a new user interactively
 - `make update-password` - Updates user password
 
+## Storage Configuration
+
+Captain supports both local filesystem and S3-compatible storage for media files. You can configure the storage provider in your `config.yaml` file.
+
+### Local Storage (Default)
+
+Local storage is the default option. Files are stored in the local filesystem.
+
+```yaml
+storage:
+  provider: "local"
+  local_path: "./uploads"  # Path where files will be stored
+```
+
+### S3 Storage
+
+To use S3 or an S3-compatible storage service (like MinIO, DigitalOcean Spaces, etc.):
+
+1. Configure your S3 credentials in `config.yaml`:
+```yaml
+storage:
+  provider: "s3"
+  s3:
+    bucket: "your-bucket-name"
+    region: "your-region"        # e.g., us-east-1
+    endpoint: ""                 # Optional: Custom endpoint for S3-compatible services
+    access_key: "your-key"      # AWS access key
+    secret_key: "your-secret"   # AWS secret key
+```
+
+2. Make sure your S3 bucket has the appropriate permissions:
+   - The provided AWS credentials should have permissions for:
+     - `s3:PutObject` - For uploading files
+     - `s3:GetObject` - For retrieving files
+     - `s3:DeleteObject` - For deleting files
+   - If using public access, configure the bucket policy to allow public read access
+
+3. For S3-compatible services:
+   - Set the `endpoint` field to your service's endpoint URL
+   - Make sure the `region` matches your service's configuration
+
 ## Development
 
 ### Running in Development Mode
@@ -147,15 +188,84 @@ For production use, use the standard `make run` command which disables debug mod
 
 Captain can be configured through environment variables or a YAML configuration file. Environment variables take precedence over the configuration file.
 
+### Config File (config.yaml)
+
+The config file can be specified using the `-c` flag:
+
+```sh
+captain run -c /path/to/config.yaml
+```
+
+If the `-c` flag is not provided, Captain will look for a config file named `config.yaml` in the current directory or in `/etc/captain/`.
+
+Here's a complete configuration file with all available options:
+
+```yaml
+# Server Configuration
+server:
+  host: "localhost"  # Listen address
+  port: 8080        # Listen port
+
+# Database Configuration
+db:
+  path: "blog.db"   # SQLite database file path
+  log_level: "warn" # Database log level (silent, error, warn, info)
+
+# Site Configuration
+site:
+  theme: "default-light"  # Theme name
+
+# Storage Configuration
+storage:
+  provider: "local"     # Storage provider: "local" or "s3"
+  local_path: "./media" # Path for local file storage (only for local provider)
+
+  # S3 Configuration (only required when provider is "s3")
+  s3:
+    bucket: ""         # S3 bucket name
+    region: ""         # AWS region (e.g., "us-east-1")
+    endpoint: ""       # Optional: Custom endpoint for S3-compatible services
+    access_key: ""     # S3 access key
+    secret_key: ""     # S3 secret key
+
+# Debug mode
+debug: false
+```
+
+| Configuration Key          | Description                         | Default Value   | Valid Values                          |
+|---------------------------|-------------------------------------|-----------------|---------------------------------------|
+| `server.host`             | Server listen address               | `localhost`     | Any valid IP or hostname              |
+| `server.port`             | Server listen port                  | `8080`         | 1-65535                              |
+| `db.path`                 | SQLite database file path           | `blog.db`      | Any valid file path                   |
+| `db.log_level`            | Database logging verbosity          | `warn`         | `silent`, `error`, `warn`, `info`     |
+| `site.theme`              | Website theme                       | `""`            | Any installed theme name              |
+| `storage.provider`        | Storage provider type               | `local`        | `local`, `s3`                        |
+| `storage.local_path`      | Local storage path                  | `./media`      | Any valid directory path              |
+| `storage.s3.bucket`       | S3 bucket name                      | `""`           | Valid S3 bucket name                  |
+| `storage.s3.region`       | S3 region                          | `""`           | Valid AWS region (e.g., us-east-1)    |
+| `storage.s3.endpoint`     | S3 endpoint URL                     | `""`           | Valid URL for S3-compatible services  |
+| `storage.s3.access_key`   | S3 access key                      | `""`           | Valid AWS access key                  |
+| `storage.s3.secret_key`   | S3 secret key                      | `""`           | Valid AWS secret key                  |
+| `debug`                   | Enable debug mode                   | `false`        | `true`, `false`                      |
+
+Note: Site settings such as title, subtitle, timezone, and admin theme can be configured through the admin panel under Settings.
+
 ### Environment Variables
 
-| Variable                    | Description                      | Default         | Valid Values                                                                           |
-|----------------------------|----------------------------------|-----------------|----------------------------------------------------------------------------------------|
+| Variable                    | Description                     | Default         | Valid Values                                                                           |
+|----------------------------|---------------------------------|-----------------|----------------------------------------------------------------------------------------|
 | `CAPTAIN_DEBUG`            | Enable debug mode                | `false`         | `true`, `false`                                                                        |
 | `CAPTAIN_SERVER_HOST`      | Host address to bind to          | `localhost`     | Any valid IP or hostname                                                               |
 | `CAPTAIN_SERVER_PORT`      | Port number for the server       | `8080`          | 1-65535                                                                                |
 | `CAPTAIN_DB_PATH`          | SQLite database file location    | `blog.db`       | Any valid file path                                                                    |
 | `CAPTAIN_DB_LOG_LEVEL`     | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
+| `CAPTAIN_STORAGE_PROVIDER` | Storage provider type            | `local`         | `local`, `s3`                                                                          |
+| `CAPTAIN_STORAGE_PATH`     | Local storage path              | `./uploads`     | Any valid directory path                                                               |
+| `CAPTAIN_S3_BUCKET`        | S3 bucket name                  | `""`            | Valid S3 bucket name                                                                   |
+| `CAPTAIN_S3_REGION`        | S3 region                       | `""`            | Valid AWS region (e.g., us-east-1)                                                     |
+| `CAPTAIN_S3_ENDPOINT`      | S3 endpoint URL                 | `""`            | Valid URL for S3-compatible services                                                   |
+| `CAPTAIN_S3_ACCESS_KEY`    | S3 access key                   | `""`            | Valid AWS access key                                                                   |
+| `CAPTAIN_S3_SECRET_KEY`    | S3 secret key                   | `""`            | Valid AWS secret key                                                                   |
 | `CAPTAIN_SITE_THEME`       | Website theme name               | `""`            | Any installed theme name                                                               |
 
 ### Debug Mode
@@ -166,29 +276,6 @@ When `CAPTAIN_DEBUG` is set to `true`:
 - More detailed error messages are displayed
 
 For production use, keep debug mode disabled.
-
-### Config File (config.yaml)
-
-The config file can be specified using the -c flag:
-
-```sh
-captain run -c /path/to/config.yaml
-```
-
-If the -c flag is not provided, Captain will look for a config file named config.yaml in the current directory or in /etc/captain/
-
-Here are the available options:
-
-| Configuration Key       | Description                         | Default Value   |
-|------------------------|-------------------------------------|-----------------|
-| `server.host`          | Host address to bind the server     | `localhost`     |
-| `server.port`          | Port number for the server          | `8080`          |
-| `db.path`              | SQLite database file location       | `blog.db`       |
-| `db.log_level`         | Database logging verbosity          | `warn`          |
-| `debug`                | Enable debug mode                   | `false`         |
-| `site.theme`           | Website theme name                  | `""`            |
-
-Note: Site settings such as title, subtitle, timezone, and admin theme can be configured through the admin panel under Settings.
 
 ### Themes
 

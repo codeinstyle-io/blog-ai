@@ -12,8 +12,9 @@ import (
 )
 
 type AuthHandlers struct {
-	db     *gorm.DB
-	config *config.Config
+	db       *gorm.DB
+	config   *config.Config
+	settings *db.Settings
 }
 
 func NewAuthHandlers(database *gorm.DB, config *config.Config) *AuthHandlers {
@@ -73,13 +74,18 @@ func (h *AuthHandlers) addCommonData(data gin.H) gin.H {
 	var menuItems []db.MenuItem
 	h.db.Preload("Page").Order("position").Find(&menuItems)
 
+	var settings db.Settings
+	h.db.First(&settings)
+	h.settings = &settings
+
 	// Add menu items to the data
 	data["menuItems"] = menuItems
 
-	// Add site config
+	// Add site config from settings
 	data["config"] = gin.H{
-		"SiteTitle":    h.config.Site.Title,
-		"SiteSubtitle": h.config.Site.Subtitle,
+		"SiteTitle":    h.settings.Title,
+		"SiteSubtitle": h.settings.Subtitle,
+		"Theme":        h.settings.Theme,
 	}
 
 	return data
