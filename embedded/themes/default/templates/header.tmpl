@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{.config.SiteTitle}}</title>
+        <title>{{if .title}}{{.title}} - {{end}}{{.config.SiteTitle}}</title>
         <link rel="stylesheet" href="/static/css/main.css">
         <link rel="stylesheet" href="/generated/css/chroma.css">
         <link rel="icon" href="/static/img/favicon.png" sizes="32x32">
