@@ -1,19 +1,16 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
-
-type AdminHandlers struct {
-	db     *gorm.DB
-	config *config.Config
-}
 
 const (
 	DefaultTimezone    = "UTC"
@@ -22,10 +19,31 @@ const (
 	DefaultTheme       = "light"
 )
 
-func NewAdminHandlers(database *gorm.DB, config *config.Config) *AdminHandlers {
+type AdminHandlers struct {
+	db      *gorm.DB
+	config  *config.Config
+	storage storage.Provider
+}
+
+func NewAdminHandlers(database *gorm.DB, cfg *config.Config) *AdminHandlers {
+	var provider storage.Provider
+	var err error
+
+	switch cfg.Storage.Provider {
+	case "s3":
+		provider, err = storage.NewS3Provider(cfg.Storage.S3.Bucket, cfg.Storage.S3.Region, cfg.Storage.S3.Endpoint, cfg.Storage.S3.AccessKey, cfg.Storage.S3.SecretKey)
+	default: // "local"
+		provider, err = storage.NewLocalProvider(cfg.Storage.LocalPath)
+	}
+
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
+	}
+
 	return &AdminHandlers{
-		db:     database,
-		config: config,
+		db:      database,
+		config:  cfg,
+		storage: provider,
 	}
 }
 
@@ -57,7 +75,7 @@ func (h *AdminHandlers) Index(c *gin.Context) {
 func (h *AdminHandlers) ShowSettings(c *gin.Context) {
 	settings, err := db.GetSettings(h.db)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
@@ -145,7 +163,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
-		c.HTML(http.StatusBadRequest, "admin_settings.tmpl", data)
+		c.HTML(http.StatusBadRequest, "admin_settings.tmpl", h.addCommonData(c, data))
 		return
 	}
 
@@ -173,7 +191,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
-		c.HTML(http.StatusInternalServerError, "admin_settings.tmpl", data)
+		c.HTML(http.StatusInternalServerError, "admin_settings.tmpl", h.addCommonData(c, data))
 		return
 	}
 

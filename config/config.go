@@ -101,12 +101,18 @@ type Config struct {
 		LogLevel string `mapstructure:"log_level"`
 	}
 	Site struct {
-		ChromaStyle  string `mapstructure:"chroma_style"`
-		Timezone     string `mapstructure:"timezone"`
-		Title        string `mapstructure:"title"`
-		Subtitle     string `mapstructure:"subtitle"`
-		Theme        string `mapstructure:"theme"`
-		PostsPerPage int    `mapstructure:"posts_per_page"`
+		Theme string `mapstructure:"theme"`
+	}
+	Storage struct {
+		Provider string `mapstructure:"provider"` // "local" or "s3"
+		S3       struct {
+			Bucket    string `mapstructure:"bucket"`
+			Region    string `mapstructure:"region"`
+			Endpoint  string `mapstructure:"endpoint"`
+			AccessKey string `mapstructure:"access_key"`
+			SecretKey string `mapstructure:"secret_key"`
+		}
+		LocalPath string `mapstructure:"local_path"` // Path for local storage
 	}
 	Debug bool `mapstructure:"debug"`
 }
@@ -117,8 +123,22 @@ func InitConfig() (*Config, error) {
 	viper.SetDefault("db.path", "blog.db")
 	viper.SetDefault("db.log_level", "warn")
 	viper.SetDefault("site.theme", "")
+
+	// Storage
+	viper.SetDefault("storage.provider", "local")
+	viper.SetDefault("storage.local_path", "./storage")
+
+	// S3
+	viper.SetDefault("storage.s3.bucket", "")
+	viper.SetDefault("storage.s3.region", "")
+	viper.SetDefault("storage.s3.endpoint", "")
+	viper.SetDefault("storage.s3.access_key", "")
+	viper.SetDefault("storage.s3.secret_key", "")
+
+	// Debug
 	viper.SetDefault("debug", false)
 
+	// Read config
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")

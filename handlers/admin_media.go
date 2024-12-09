@@ -3,11 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
-	"time"
 
 	"codeinstyle.io/captain/db"
 	"github.com/gin-gonic/gin"
@@ -18,7 +14,7 @@ func (h *AdminHandlers) ListMedia(c *gin.Context) {
 	var media []db.Media
 	result := h.db.Order("created_at desc").Find(&media)
 	if result.Error != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
@@ -43,33 +39,20 @@ func (h *AdminHandlers) ShowUploadMedia(c *gin.Context) {
 func (h *AdminHandlers) UploadMedia(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "admin_media_upload.tmpl", gin.H{
+		c.HTML(http.StatusBadRequest, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
 			"error": "No file uploaded",
-		})
+		}))
 		return
 	}
 
 	description := c.PostForm("description")
 
-	// Create media directory if it doesn't exist
-	mediaDir := "./media"
-	if err := os.MkdirAll(mediaDir, 0755); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", gin.H{
-			"error": fmt.Sprintf("Failed to create media directory: %v", err),
-		})
-		return
-	}
-
-	// Generate unique filename
-	ext := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("%d-%s%s", time.Now().Unix(), strings.TrimSuffix(file.Filename, ext), ext)
-	filepath := filepath.Join(mediaDir, filename)
-
-	// Save file
-	if err := c.SaveUploadedFile(file, filepath); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", gin.H{
+	// Save file using storage provider
+	filename, err := h.storage.Save(file)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
 			"error": fmt.Sprintf("Failed to save file: %v", err),
-		})
+		}))
 		return
 	}
 
@@ -83,10 +66,16 @@ func (h *AdminHandlers) UploadMedia(c *gin.Context) {
 
 	if result := h.db.Create(&media); result.Error != nil {
 		// Clean up file if database insert fails
-		os.Remove(filepath)
-		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", gin.H{
+		if err := h.storage.Delete(filename); err != nil {
+			c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
+				"error": fmt.Sprintf("Failed to delete file: %v", err),
+			}))
+			return
+		}
+
+		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
 			"error": fmt.Sprintf("Failed to save media record: %v", result.Error),
-		})
+		}))
 		return
 	}
 
@@ -98,26 +87,25 @@ func (h *AdminHandlers) DeleteMedia(c *gin.Context) {
 	id := c.Param("id")
 	mediaID, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", gin.H{})
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	var media db.Media
 	if err := h.db.First(&media, mediaID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	// Delete file
-	filepath := filepath.Join("./media", media.Path)
-	if err := os.Remove(filepath); err != nil && !os.IsNotExist(err) {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+	// Delete file using storage provider
+	if err := h.storage.Delete(media.Path); err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	// Delete record
 	if err := h.db.Delete(&media).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
@@ -140,13 +128,13 @@ func (h *AdminHandlers) ConfirmDeleteMedia(c *gin.Context) {
 	id := c.Param("id")
 	mediaID, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", gin.H{})
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	var media db.Media
 	if err := h.db.First(&media, mediaID).Error; err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", gin.H{})
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
