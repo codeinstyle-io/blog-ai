@@ -67,7 +67,11 @@ func CreateUser(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	database := db.InitDB(cfg)
+	database, err := db.InitDB(cfg)
+
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
 	firstName := getValidInput("First Name: ", ValidateFirstName)
 	lastName := getValidInput("Last Name: ", ValidateLastName)
@@ -100,7 +104,10 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	database := db.InitDB(cfg)
+	database, err := db.InitDB(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
 	email := getValidInput("Email: ", ValidateEmail)
 

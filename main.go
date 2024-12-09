@@ -108,7 +108,10 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Initialize database
-	database := db.InitDB(cfg)
+	database, err := db.InitDB(cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
 
 	// Initialize development database if requested
 	if initDevDB {

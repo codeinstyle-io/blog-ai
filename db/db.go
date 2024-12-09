@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	mathrand "math/rand/v2"
 	"os"
 	"time"
@@ -16,36 +15,45 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func InitDB(cfg *config.Config) *gorm.DB {
+func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open(cfg.DB.Path), &gorm.Config{
 		Logger: logger.Default.LogMode(cfg.GetGormLogLevel()),
 	})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	// Run migrations
-	err = db.AutoMigrate(&Post{}, &Tag{}, &User{}, &Page{}, &MenuItem{}, &Settings{}, &Media{})
+	// Migrate the schema
+	err = db.AutoMigrate(
+		&Post{},
+		&Tag{},
+		&User{},
+		&Page{},
+		&MenuItem{},
+		&Settings{},
+		&Media{},
+	)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	// Initialize settings if they don't exist
+	// Initialize default settings if they don't exist
 	var settings Settings
 	if err := db.First(&settings).Error; err == gorm.ErrRecordNotFound {
 		settings = Settings{
-			Title:        cfg.Site.Title,
-			Subtitle:     cfg.Site.Subtitle,
-			Timezone:     cfg.Site.Timezone,
-			ChromaStyle:  cfg.Site.ChromaStyle,
-			PostsPerPage: cfg.Site.PostsPerPage,
+			Title:        "Captain",
+			Subtitle:     "An AI authored blog engine",
+			Timezone:     "UTC",
+			ChromaStyle:  "solarized-dark",
+			Theme:        "default",
+			PostsPerPage: 10,
 		}
 		if err := db.Create(&settings).Error; err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("failed to create default settings: %v", err)
 		}
 	}
 
-	return db
+	return db, nil
 }
 
 func GetPosts(db *gorm.DB, limit int) ([]Post, error) {
