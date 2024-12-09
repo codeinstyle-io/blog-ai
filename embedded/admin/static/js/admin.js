@@ -256,8 +256,6 @@ function initializeSlugHandling() {
     const isEditForm = form.id === 'edit-post-form' || form.id === 'edit-page-form';
     const originalSlug = slugInput.value;
 
-    console.log(isEditForm);
-
     // Auto-generate slug from title only in create forms
     if (!isEditForm) {
         titleInput.addEventListener('input', () => {
