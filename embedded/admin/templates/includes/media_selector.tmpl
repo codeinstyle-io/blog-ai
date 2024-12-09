@@ -1,0 +1,106 @@
+{{ define "media_selector" }}
+<div class="modal" id="mediaModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Media Library</h3>
+            <button onclick="closeMediaModal()" class="close-button">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="media-grid" id="mediaGrid">
+            <!-- Media items will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+let mediaItems = [];
+let currentEditor = null;
+
+function openMediaModal(editorId) {
+    currentEditor = editorId;
+    document.getElementById('mediaModal').style.display = 'block';
+    loadMediaItems();
+}
+
+function closeMediaModal() {
+    document.getElementById('mediaModal').style.display = 'none';
+}
+
+function loadMediaItems() {
+    fetch('/admin/api/media')
+        .then(response => response.json())
+        .then(items => {
+            mediaItems = items;
+            const grid = document.getElementById('mediaGrid');
+            grid.innerHTML = '';
+            
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'media-item';
+                
+                if (item.MimeType.startsWith('image/')) {
+                    div.innerHTML = `
+                        <div class="media-preview">
+                            <img src="/media/${item.Path}" alt="${item.Name}">
+                        </div>
+                        <div class="media-info">
+                            <h3>${item.Name}</h3>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="media-preview file">
+                            <i class="fas fa-file"></i>
+                        </div>
+                        <div class="media-info">
+                            <h3>${item.Name}</h3>
+                        </div>
+                    `;
+                }
+                
+                div.onclick = () => insertMedia(item);
+                grid.appendChild(div);
+            });
+        })
+        .catch(error => console.error('Error loading media:', error));
+}
+
+function insertMedia(media) {
+    const editor = document.getElementById(currentEditor);
+    const format = document.querySelector('input[name="format"]:checked').value;
+    let tag;
+    
+    if (media.MimeType.startsWith('image/')) {
+        // For images
+        tag = format === 'markdown' 
+            ? `![${media.Name}](/media/${media.Path})`
+            : `<img src="/media/${media.Path}" alt="${media.Name}">`;
+    } else {
+        // For other files
+        tag = format === 'markdown'
+            ? `[${media.Name}](/media/${media.Path})`
+            : `<a href="/media/${media.Path}">${media.Name}</a>`;
+    }
+    
+    // Get cursor position
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    
+    // Insert the tag at cursor position
+    editor.value = editor.value.substring(0, start) + tag + editor.value.substring(end);
+    
+    // Close the modal
+    closeMediaModal();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('mediaModal');
+    if (event.target == modal) {
+        closeMediaModal();
+    }
+}
+</script>
+{{ end }}

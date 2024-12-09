@@ -66,3 +66,13 @@ type Settings struct {
 	Theme        string // Add theme field
 	PostsPerPage int
 }
+
+// Media represents a media file in the system
+type Media struct {
+	gorm.Model
+	Name        string `gorm:"not null"`
+	Path        string `gorm:"not null;unique"`
+	MimeType    string `gorm:"not null"`
+	Size        int64  `gorm:"not null"`
+	Description string
+}
