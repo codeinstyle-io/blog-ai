@@ -7,7 +7,7 @@ import (
 )
 
 type Post struct {
-	ID          uint      `gorm:"primaryKey"`
+	gorm.Model
 	Title       string    `gorm:"not null"`
 	Slug        string    `gorm:"uniqueIndex;not null"`
 	Content     string    `gorm:"not null"`
@@ -20,7 +20,7 @@ type Post struct {
 }
 
 type Tag struct {
-	ID   uint   `gorm:"primaryKey"`
+	gorm.Model
 	Name string `gorm:"uniqueIndex;not null"`
 }
 
@@ -35,25 +35,21 @@ type User struct {
 }
 
 type Page struct {
-	ID          uint   `gorm:"primaryKey"`
+	gorm.Model
 	Title       string `gorm:"not null"`
 	Slug        string `gorm:"uniqueIndex;not null"`
 	Content     string `gorm:"not null"`
 	ContentType string `gorm:"not null;default:'markdown'"` // 'markdown' or 'html'
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
 	Visible     bool
 }
 
 type MenuItem struct {
-	ID        uint    `gorm:"primaryKey"`
-	Label     string  `gorm:"not null"`
-	URL       *string `gorm:"null"` // External or internal URL
-	PageID    *uint   `gorm:"null"` // Reference to Page
-	Page      *Page   `gorm:"foreignKey:PageID"`
-	Position  int     `gorm:"not null;default:0"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	gorm.Model
+	Label    string  `gorm:"not null"`
+	URL      *string `gorm:"null"` // External or internal URL
+	PageID   *uint   `gorm:"null"` // Reference to Page
+	Page     *Page   `gorm:"foreignKey:PageID"`
+	Position int     `gorm:"not null;default:0"`
 }
 
 // Settings represents the site configuration
