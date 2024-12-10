@@ -8,6 +8,14 @@
         </div>
     </div>
 
+    {{ if not .media }}
+        <div class="empty-state">
+            <i class="fas fa-images"></i>
+            <h2>No Media Files Yet</h2>
+            <p>Upload your first media file to get started.</p>
+            <a href="/admin/media/upload" class="btn btn-primary">Upload Media</a>
+        </div>
+    {{ else }}
     <div class="media-grid">
         {{ range .media }}
         <div class="media-item">
@@ -36,6 +44,7 @@
         </div>
         {{ end }}
     </div>
+    {{ end }}
 </div>
 
 <script>

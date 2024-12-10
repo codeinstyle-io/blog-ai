@@ -590,21 +590,26 @@ input:checked + .toggle-slider:before {
 /* Empty State Styles */
 .empty-state {
     text-align: center;
-    padding: 3rem 2rem;
-    background: var(--admin-card-bg);
+    padding: 4rem 2rem;
+    background: var(--admin-input-bg);
     border-radius: 8px;
-    border: 1px solid var(--admin-border);
+    margin: 2rem 0;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--admin-secondary);
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    margin: 1rem 0;
+    color: var(--admin-text);
 }
 
 .empty-state p {
-    color: var(--admin-text);
-    font-size: 1.1rem;
+    color: var(--admin-secondary);
     margin-bottom: 1.5rem;
-}
-
-.empty-state .btn {
-    font-size: 1.1rem;
-    padding: 0.75rem 1.5rem;
 }
 
 /* Tag Input and Suggestions Styles */
