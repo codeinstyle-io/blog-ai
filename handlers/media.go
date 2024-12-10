@@ -52,6 +52,17 @@ func ServeMedia(database *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
+		// Generate ETag based on last modified time and size
+		etag := fmt.Sprintf(`"%x-%x"`, media.UpdatedAt.Unix(), media.Size)
+
+		// Check If-None-Match header
+		if match := c.GetHeader("If-None-Match"); match != "" {
+			if match == etag {
+				c.Status(http.StatusNotModified)
+				return
+			}
+		}
+
 		// Get file from storage provider
 		file, err := provider.Get(path)
 		if err != nil {
@@ -63,6 +74,11 @@ func ServeMedia(database *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 		// Set content type header
 		c.Header("Content-Type", media.MimeType)
 		c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", path))
+		c.Header("ETag", etag)
+		c.Header("Last-Modified", media.UpdatedAt.Format(http.TimeFormat))
+		c.Header("Content-Length", fmt.Sprintf("%d", media.Size))
+		c.Header("Accept-Ranges", "bytes")
+		c.Header("Cache-Control", "public, max-age=31536000")
 
 		// Stream the file to the response
 		if _, err := io.Copy(c.Writer, file); err != nil {
