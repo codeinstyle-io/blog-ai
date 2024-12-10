@@ -96,12 +96,14 @@ type Config struct {
 		Host string `mapstructure:"host"`
 		Port int    `mapstructure:"port"`
 	}
+	Site struct {
+		SecureCookie bool   `mapstructure:"secure_cookie"`
+		Domain       string `mapstructure:"domain"`
+		Theme        string `mapstructure:"theme"`
+	} `mapstructure:"site"`
 	DB struct {
 		Path     string `mapstructure:"path"`
 		LogLevel string `mapstructure:"log_level"`
-	}
-	Site struct {
-		Theme string `mapstructure:"theme"`
 	}
 	Storage struct {
 		Provider string `mapstructure:"provider"` // "local" or "s3"
@@ -120,11 +122,11 @@ type Config struct {
 func InitConfig() (*Config, error) {
 	viper.SetDefault("server.host", "localhost")
 	viper.SetDefault("server.port", 8080)
+	viper.SetDefault("site.secure_cookie", false)
+	viper.SetDefault("site.domain", "")
+	viper.SetDefault("site.theme", "")
 	viper.SetDefault("db.path", "blog.db")
 	viper.SetDefault("db.log_level", "warn")
-	viper.SetDefault("site.theme", "")
-
-	// Storage
 	viper.SetDefault("storage.provider", "local")
 	viper.SetDefault("storage.local_path", "./storage")
 
