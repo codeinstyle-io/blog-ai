@@ -64,8 +64,8 @@ func (h *AuthHandlers) PostLogin(c *gin.Context) {
 		return
 	}
 
-	// Set session cookie
-	c.SetCookie("session", token, 86400, "/", "", false, true)
+	// Set session cookie with config parameters
+	c.SetCookie("session", token, 86400, "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
 	c.Redirect(http.StatusFound, next)
 }
 
@@ -95,14 +95,6 @@ func (h *AuthHandlers) Logout(c *gin.Context) {
 	// Clear session cookie
 	c.SetCookie("session", "", -1, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/login")
-
-	// Save theme preference before logout
-	theme, _ := c.Cookie("admin_theme")
-
-	// Restore theme after redirect is set
-	if theme != "" {
-		c.SetCookie("admin_theme", theme, 3600*24*365, "/", "", false, false)
-	}
 }
 
 // HandleSetup handles both GET and POST requests for the setup page

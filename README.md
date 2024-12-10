@@ -214,6 +214,8 @@ db:
 # Site Configuration
 site:
   theme: "default-light"  # Theme name
+  secure_cookie: false    # Use secure cookies (set to true when serving over HTTPS)
+  domain: ""              # Cookie domain (e.g., "example.com") or empty for current domain
 
 # Storage Configuration
 storage:
@@ -239,6 +241,8 @@ debug: false
 | `db.path`                 | SQLite database file path           | `blog.db`      | Any valid file path                   |
 | `db.log_level`            | Database logging verbosity          | `warn`         | `silent`, `error`, `warn`, `info`     |
 | `site.theme`              | Website theme                       | `""`            | Any installed theme name              |
+| `site.secure_cookie`      | Use secure cookies                  | `false`        | `true`, `false` (set to true when serving over HTTPS) |
+| `site.domain`             | Cookie domain                       | `""`            | Domain name (e.g., "example.com") or empty for current domain |
 | `storage.provider`        | Storage provider type               | `local`        | `local`, `s3`                        |
 | `storage.local_path`      | Local storage path                  | `./media`      | Any valid directory path              |
 | `storage.s3.bucket`       | S3 bucket name                      | `""`           | Valid S3 bucket name                  |
@@ -261,6 +265,8 @@ Note: Site settings such as title, subtitle, timezone, and admin theme can be co
 | `CAPTAIN_DB_LOG_LEVEL`     | Database logging verbosity       | `warn`          | `silent`, `error`, `warn`, `info`                                                      |
 | `CAPTAIN_STORAGE_PROVIDER` | Storage provider type            | `local`         | `local`, `s3`                                                                          |
 | `CAPTAIN_STORAGE_PATH`     | Local storage path              | `./uploads`     | Any valid directory path                                                               |
+| `CAPTAIN_SITE_SECURE_COOKIE`| Use secure cookies             | `false`         | `true`, `false` (set to true when serving over HTTPS)                                  |
+| `CAPTAIN_SITE_DOMAIN`      | Cookie domain                   | `""`            | Domain name (e.g., "example.com") or empty for current domain                          |
 | `CAPTAIN_S3_BUCKET`        | S3 bucket name                  | `""`            | Valid S3 bucket name                                                                   |
 | `CAPTAIN_S3_REGION`        | S3 region                       | `""`            | Valid AWS region (e.g., us-east-1)                                                     |
 | `CAPTAIN_S3_ENDPOINT`      | S3 endpoint URL                 | `""`            | Valid URL for S3-compatible services                                                   |

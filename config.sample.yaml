@@ -13,6 +13,8 @@ db:
 # Site Configuration
 site:
   theme: "default-light"  # Use the new light theme
+  secure_cookie: false    # Set to true if serving over HTTPS
+  domain: ""             # Cookie domain (e.g., "example.com")
 
 # Storage Configuration
 storage:
