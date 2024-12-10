@@ -124,9 +124,10 @@ func (s *Server) setupRouter(theme *Theme) error {
 	// Serve theme static files
 	s.router.StaticFS("/static", http.FS(theme.StaticFS))
 
-	// Register routes with config
+	// Register routes
 	handlers.RegisterPublicRoutes(s.router, s.db, s.config)
 	handlers.RegisterAdminRoutes(s.router, s.db, s.config)
+	handlers.RegisterAuthRoutes(s.router, s.db, s.config)
 
 	// Add middleware to load menu items
 	s.router.Use(middleware.LoadMenuItems(s.db))
