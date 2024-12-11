@@ -1,6 +1,3 @@
-/* Import Google Fonts for better readability */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
-
 /* Variables */
 :root {
     --primary: #2a2a2a;
@@ -27,9 +24,9 @@ html {
 body {
     background-color: var(--primary);
     color: #e0e0e0; /* Slightly lighter text color */
-    font-family: 'Playfair Display', serif; /* Update to a modern serif font */
+    font-family: 'Arvo', serif; /* Update to a modern serif font */
     line-height: 1.6;
-    font-size: 20px;
+    font-size: 1rem;
 }
 
 /* Base elements */
@@ -55,6 +52,13 @@ h3 {
     font-size: 2rem;
     margin-bottom: 1rem;
     color: var(--lighter-text);
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--lighter-text), transparent);
+    margin: 3rem 0;
 }
 
 ul {
@@ -283,13 +287,6 @@ blockquote {
 
 .post-tag:hover {
     opacity: 0.8;
-}
-
-.post-separator {
-    border: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--lighter-text), transparent);
-    margin: 3rem 0;
 }
 
 .tag-title {
