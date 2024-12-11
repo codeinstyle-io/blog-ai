@@ -54,6 +54,24 @@ h3 {
     color: var(--lighter-text);
 }
 
+h4 {
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h5 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h6 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
 hr {
     border: 0;
     height: 1px;

@@ -2,8 +2,8 @@
 <article>
     <h1 class="title">{{.post.Title}}</h1>
     <div class="meta">
-        Posted on {{.post.PublishedAt.Format "January 2, 2006"}}
-        by {{.post.Author.FirstName}} {{.post.Author.LastName}}
+        Posted on <span class="dark-text">{{.post.PublishedAt.Format "January 2, 2006"}}</span>
+        by <span class="dark-text">{{.post.Author.FirstName}} {{.post.Author.LastName}}</span>
     </div>
     <div class="content">
         {{.post.Content | raw}}
