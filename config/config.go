@@ -203,3 +203,31 @@ func (c *Config) GetTimezones() []string {
 func (c *Config) GetChromaStyles() []string {
 	return chromaStyles
 }
+
+// ValidateS3Config validates S3 configuration if S3 provider is selected
+func (c *Config) ValidateS3Config() error {
+	if c.Storage.Provider != "s3" {
+		return nil
+	}
+
+	var missingFields []string
+
+	if c.Storage.S3.Bucket == "" {
+		missingFields = append(missingFields, "storage.s3.bucket")
+	}
+	if c.Storage.S3.Region == "" {
+		missingFields = append(missingFields, "storage.s3.region")
+	}
+	if c.Storage.S3.AccessKey == "" {
+		missingFields = append(missingFields, "storage.s3.access_key")
+	}
+	if c.Storage.S3.SecretKey == "" {
+		missingFields = append(missingFields, "storage.s3.secret_key")
+	}
+
+	if len(missingFields) > 0 {
+		return fmt.Errorf("missing required S3 configuration fields: %v", missingFields)
+	}
+
+	return nil
+}
