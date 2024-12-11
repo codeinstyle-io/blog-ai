@@ -8,8 +8,14 @@
             {{ end }}
         </div>
         <div class="post-meta">
-            <p>Published on: {{ .post.PublishedAt.Format "January 2, 2006" }}</p>
-            <p>Written by: {{ .post.Author.FirstName }} {{ .post.Author.LastName }}</p>
+            <p>
+                <span class="lighter-text">Published on: </span>
+                {{ .post.PublishedAt.Format "January 2, 2006" }}
+            </p>
+            <p>
+                <span class="lighter-text">Written by: </span>
+                {{ .post.Author.FirstName }}{{ .post.Author.LastName }}
+            </p>
         </div>
         <div class="content">
             {{ raw .post.Content }}

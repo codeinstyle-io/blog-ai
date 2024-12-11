@@ -12,9 +12,14 @@
     --tag-bg: #e5e7eb;
     --tag-color: #4b5563;
     --meta-color: #6b7280;
+    --lighter-text: #8d9198;
+    --dark-black: #000000;
+    --accent: #9bbcd0;
 }
 
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -27,10 +32,76 @@ body {
     padding: 0;
 }
 
-.container {
-    max-width: 768px;
-    margin: 0 auto;
-    padding: 0 1rem;
+p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h3 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h4 {
+    font-size: 1.7rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h5 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+h6 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--lighter-text);
+}
+
+/* Code blocks */
+pre {
+    background: var(--code-bg);
+    color: var(--code-color);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+}
+
+blockquote {
+    border-left: 4px solid var(--accent);
+    font-family: monospace;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: underline;
+}
+
+a:hover {
+    text-decoration: none;
 }
 
 /* Header */
@@ -101,6 +172,17 @@ article h1.title a:hover {
     color: var(--link-color);
 }
 
+
+.dark-text {
+    color: var(--dark-black);
+}
+
+.container {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
 .meta {
     color: var(--meta-color);
     font-size: 0.875rem;
@@ -120,20 +202,6 @@ article h1.title a:hover {
     font-size: 0.875rem;
     margin-right: 0.5rem;
     text-decoration: none;
-}
-
-/* Code blocks */
-pre {
-    background: var(--code-bg);
-    color: var(--code-color);
-    padding: 1rem;
-    border-radius: 4px;
-    overflow-x: auto;
-}
-
-code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.875rem;
 }
 
 /* Read More Button */
