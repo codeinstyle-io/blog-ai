@@ -120,6 +120,11 @@ func runServer(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// Validate S3 configuration if S3 provider is selected
+	if err := cfg.ValidateS3Config(); err != nil {
+		log.Fatalf("S3 configuration error: %v", err)
+	}
+
 	// Create and start server
 	srv := server.New(database, cfg, embeddedFS)
 
