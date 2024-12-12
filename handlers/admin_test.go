@@ -26,7 +26,7 @@ func setupTestRouter() *gin.Engine {
 		<h1>Posts for tag {{ .tag.Name }}</h1>
 		<ul>
 		{{ range .posts }}
-			<li>{{ .Title }}</li>
+			<li>{{ .Title }} - By: {{if .Author}}{{.Author.FirstName}} {{.Author.LastName}}{{else}}<em>Deleted User</em>{{end}}</li>
 		{{ end }}
 		</ul>
 	`))
@@ -60,16 +60,28 @@ func TestListPostsByTag(t *testing.T) {
 	}
 	database.Create(&author)
 
-	post := db.Post{
-		Title:       "Test Post",
-		Slug:        "test-post",
+	// Create post with author
+	postWithAuthor := db.Post{
+		Title:       "Test Post With Author",
+		Slug:        "test-post-with-author",
 		Content:     "Test content",
 		PublishedAt: time.Now(),
 		Visible:     true,
 		Tags:        []db.Tag{tag},
 		AuthorID:    author.ID,
 	}
-	database.Create(&post)
+	database.Create(&postWithAuthor)
+
+	// Create post without author
+	postWithoutAuthor := db.Post{
+		Title:       "Test Post Without Author",
+		Slug:        "test-post-without-author",
+		Content:     "Test content",
+		PublishedAt: time.Now(),
+		Visible:     true,
+		Tags:        []db.Tag{tag},
+	}
+	database.Create(&postWithoutAuthor)
 
 	// Make request
 	w := httptest.NewRecorder()
@@ -79,5 +91,9 @@ func TestListPostsByTag(t *testing.T) {
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "Test Post")
+	body := w.Body.String()
+	assert.Contains(t, body, "Test Post With Author")
+	assert.Contains(t, body, "Test Author")
+	assert.Contains(t, body, "Test Post Without Author")
+	assert.Contains(t, body, "Deleted User")
 }

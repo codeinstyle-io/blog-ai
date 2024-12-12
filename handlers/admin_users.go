@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
+	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/utils"
-	"codeinstyle.io/captain/cmd"
 	"github.com/gin-gonic/gin"
 )
 
