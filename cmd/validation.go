@@ -14,8 +14,8 @@ func ValidateFirstName(name string) error {
 	}
 
 	for _, r := range name {
-		if !unicode.IsLetter(r) {
-			return fmt.Errorf("first name can only contain letters")
+		if !unicode.IsLetter(r) && r != '-' && r != '\'' {
+			return fmt.Errorf("first name can only contain letters, hyphens (-), and simple quotes (')")
 		}
 	}
 	return nil
@@ -27,8 +27,8 @@ func ValidateLastName(name string) error {
 	}
 
 	for _, r := range name {
-		if !unicode.IsLetter(r) {
-			return fmt.Errorf("last name can only contain letters")
+		if !unicode.IsLetter(r) && r != '-' && r != '\'' {
+			return fmt.Errorf("last name can only contain letters, hyphens (-), and simple quotes (')")
 		}
 	}
 	return nil
