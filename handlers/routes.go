@@ -62,6 +62,12 @@ func RegisterAdminRoutes(r *gin.Engine, database *gorm.DB, cfg *config.Config) {
 
 	// User routes
 	admin.GET("/users", adminHandlers.ListUsers)
+	admin.GET("/users/create", adminHandlers.ShowCreateUser)
+	admin.POST("/users/create", adminHandlers.CreateUser)
+	admin.GET("/users/:id/edit", adminHandlers.ShowEditUser)
+	admin.POST("/users/:id/edit", adminHandlers.UpdateUser)
+	admin.GET("/users/:id/delete", adminHandlers.ShowDeleteUser)
+	admin.DELETE("/users/:id", adminHandlers.DeleteUser)
 
 	// Post routes
 	admin.GET("/posts", adminHandlers.ListPosts)

@@ -14,8 +14,8 @@ func ValidateFirstName(name string) error {
 	}
 
 	for _, r := range name {
-		if !unicode.IsLetter(r) {
-			return fmt.Errorf("first name can only contain letters")
+		if !unicode.IsLetter(r) && r != '-' && r != '\'' {
+			return fmt.Errorf("first name can only contain letters, hyphens (-), and simple quotes (')")
 		}
 	}
 	return nil
@@ -27,8 +27,8 @@ func ValidateLastName(name string) error {
 	}
 
 	for _, r := range name {
-		if !unicode.IsLetter(r) {
-			return fmt.Errorf("last name can only contain letters")
+		if !unicode.IsLetter(r) && r != '-' && r != '\'' {
+			return fmt.Errorf("last name can only contain letters, hyphens (-), and simple quotes (')")
 		}
 	}
 	return nil
@@ -65,19 +65,13 @@ func ValidateEmail(email string) error {
 
 func ValidatePassword(password string) error {
 	if len(password) < 8 {
-		return fmt.Errorf("password must be at least 8 characters")
-	}
-	if len(password) > 72 {
-		return fmt.Errorf("password must be less than 72 characters")
+		return fmt.Errorf("password must be at least 8 characters long")
 	}
 
 	var hasUpper, hasLower, hasNumber, hasSpecial bool
 	for _, r := range password {
 		if unicode.IsSpace(r) {
 			return fmt.Errorf("password cannot contain spaces")
-		}
-		if r > unicode.MaxASCII {
-			return fmt.Errorf("password can only contain ASCII characters")
 		}
 		switch {
 		case unicode.IsUpper(r):

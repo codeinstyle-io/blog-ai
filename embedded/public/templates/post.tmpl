@@ -14,7 +14,7 @@
             </p>
             <p>
                 <span class="lighter-text">Written by: </span>
-                {{ .post.Author.FirstName }}{{ .post.Author.LastName }}
+                {{if .post.Author}}{{ .post.Author.FirstName }} {{ .post.Author.LastName }}{{else}}<em>Deleted User</em>{{end}}
             </p>
         </div>
         <div class="content">

@@ -1,6 +1,9 @@
 package cmd
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestValidateFirstName(t *testing.T) {
 	tests := []struct {
@@ -10,11 +13,13 @@ func TestValidateFirstName(t *testing.T) {
 		errMsg  string
 	}{
 		{"Valid name", "John", false, ""},
+		{"Valid name with hyphen", "Jean-Pierre", false, ""},
+		{"Valid name with quote", "O'Connor", false, ""},
 		{"Empty name", "", true, "first name must be between 1 and 255 characters"},
 		{"Too long name", string(make([]byte, 256)), true, "first name must be between 1 and 255 characters"},
-		{"Name with numbers", "John123", true, "first name can only contain letters"},
-		{"Name with special chars", "John!", true, "first name can only contain letters"},
-		{"Name with spaces", "John Doe", true, "first name can only contain letters"},
+		{"Name with numbers", "John123", true, "first name can only contain letters, hyphens (-), and simple quotes (')"},
+		{"Name with special chars", "John!", true, "first name can only contain letters, hyphens (-), and simple quotes (')"},
+		{"Name with spaces", "John Doe", true, "first name can only contain letters, hyphens (-), and simple quotes (')"},
 		{"Unicode letters", "José", false, ""},
 	}
 
@@ -39,11 +44,13 @@ func TestValidateLastName(t *testing.T) {
 		errMsg  string
 	}{
 		{"Valid name", "Smith", false, ""},
+		{"Valid name with hyphen", "Smith-Jones", false, ""},
+		{"Valid name with quote", "O'Brien", false, ""},
 		{"Empty name", "", true, "last name must be between 1 and 255 characters"},
 		{"Too long name", string(make([]byte, 256)), true, "last name must be between 1 and 255 characters"},
-		{"Name with numbers", "Smith123", true, "last name can only contain letters"},
-		{"Name with special chars", "Smith!", true, "last name can only contain letters"},
-		{"Name with spaces", "van Smith", true, "last name can only contain letters"},
+		{"Name with numbers", "Smith123", true, "last name can only contain letters, hyphens (-), and simple quotes (')"},
+		{"Name with special chars", "Smith!", true, "last name can only contain letters, hyphens (-), and simple quotes (')"},
+		{"Name with spaces", "van Smith", true, "last name can only contain letters, hyphens (-), and simple quotes (')"},
 		{"Unicode letters", "González", false, ""},
 	}
 
@@ -99,18 +106,18 @@ func TestValidatePassword(t *testing.T) {
 		wantErr bool
 		errMsg  string
 	}{
-		{"Valid password", "Test1234!", false, ""},
-		{"Too short", "Test1!", true, "password must be at least 8 characters"},
-		{"No uppercase", "test1234!", true, "password must contain at least one uppercase letter"},
-		{"No lowercase", "TEST1234!", true, "password must contain at least one lowercase letter"},
-		{"No number", "TestTest!", true, "password must contain at least one number"},
-		{"No special char", "Test1234", true, "password must contain at least one special character"},
-		{"Exactly 8 chars", "Test1!Px", false, ""},
-		{"With spaces", "Test 1!Px", true, "password cannot contain spaces"},
-		{"Unicode chars", "Test1!のパ", true, "password can only contain ASCII characters"},
-		{"Empty string", "", true, "password must be at least 8 characters"},
+		{"Valid password", "Password123!", false, ""},
+		{"Too short", "Pass1!", true, "password must be at least 8 characters long"},
+		{"No uppercase", "password123!", true, "password must contain at least one uppercase letter"},
+		{"No lowercase", "PASSWORD123!", true, "password must contain at least one lowercase letter"},
+		{"No number", "Password!!!", true, "password must contain at least one number"},
+		{"No special char", "Password123", true, "password must contain at least one special character"},
+		{"Exactly 8 chars", "Pass123!", false, ""},
+		{"With spaces", "Pass 123!", true, "password cannot contain spaces"},
+		{"Unicode chars", "Pässword123!", false, ""},
+		{"Empty string", "", true, "password must be at least 8 characters long"},
 		{"Only special chars", "!@#$%^&*()", true, "password must contain at least one uppercase letter"},
-		{"Maximum length", string(make([]byte, 72)) + "T1!", true, "password must be less than 72 characters"},
+		{"Maximum length", "Password123!" + strings.Repeat("a", 60), false, ""},
 	}
 
 	for _, tt := range tests {
