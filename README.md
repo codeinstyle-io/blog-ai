@@ -337,3 +337,5 @@ This project is an AI-first experiment. While all contributions are welcome, we 
 1. Using AI assistants (like GitHub Copilot) for code generation
 2. Documenting AI-human collaboration in pull requests
 3. Sharing insights about AI-assisted development
+
+For detailed contribution guidelines, including our branch naming convention and pull request process, please see our [CONTRIBUTING.md](CONTRIBUTING.md) file.
