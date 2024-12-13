@@ -1,10 +1,37 @@
-# Captain [![CI](https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg)](https://github.com/shinuza/captain/actions/workflows/ci.yml) [![](https://img.shields.io/github/v/release/shinuza/captain)](https://github.com/shinuza/captain/releases) [![](https://img.shields.io/badge/license-MIT-green)](https://github.com/shinuza/captain/blob/master/LICENSE)
-
 <p align="center">
    <img src="https://raw.githubusercontent.com/shinuza/captain/main/logo.png" alt="Captain Logo">
+   <h1 align="center">Captain</h1>
 </p>
 
-Captain is a no-installation AI written blog engine. Just run the binary and you are ready to start writing. No database setup, no dependencies to install. Just pure blogging.
+<p align="center">
+   Captain is an experimental no-installation blog engine written by AI agents.
+</p>
+
+<p align="center">
+  <a href="https://github.com/shinuza/captain/actions/workflows/release.yml">
+    <img src="https://github.com/shinuza/captain/actions/workflows/release.yml/badge.svg" alt="Release status">
+  </a>
+     <a href="https://github.com/shinuza/captain/actions/workflows/ci.yml">
+    <img src="https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg" alt="CI status">
+  </a>
+  <a href="https://github.com/shinuza/captain/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" title="MIT License" />
+  </a>
+  <a href="https://github.com/shinuza/captain/releases">
+    <img src="https://img.shields.io/github/v/release/shinuza/captain" alt="Releases" title="Releases" />
+  </a>
+</p>
+
+
+---
+
+## Features
+
+* No-installation required, single binary distribution
+* SQLite database for simple deployment
+* Markdown and HTML content support
+* Customizable themes
+* S3-compatible storage support
 
 ## Trivia
 
@@ -14,7 +41,7 @@ Captain is an experimental blog engine entirely written by AI models. This proje
 
 Captain is written in Go and uses:
 - Sqlite for data storage
-- Gin framework for HTTP routing
+- [Gin framework](https://gin-gonic.com) as a web server
 - [html/template](https://pkg.go.dev/html/template) for HTML templates
 
 
