@@ -18,6 +18,42 @@ Captain is written in Go and uses:
 - [html/template](https://pkg.go.dev/html/template) for HTML templates
 
 
+## Quick Start
+
+### Docker
+
+1. Pull the Docker image:
+   ```sh
+   docker pull ghcr.io/shinuza/captain:latest
+   ```
+2. Run the Docker container with default settings:
+   ```sh
+   docker run --name captain -p 8080:8080 ghcr.io/shinuza/captain:latest
+   ```
+3. Access the admin interface at [http://localhost:8080/admin](http://localhost:8080/admin)
+
+### Docker Compose
+
+1. Create a `docker-compose.yml` file with the following content:
+   ```yaml
+   version: '3.8'
+
+   services:
+     captain:
+       image: ghcr.io/shinuza/captain:latest
+       ports:
+         - "8080:8080"
+       volumes:
+         - ./data:/data
+   ```
+2. Run the Docker Compose setup:
+   ```sh
+   docker-compose up -d
+   ```
+3. Access the admin interface at [http://localhost:8080/admin](http://localhost:8080/admin)
+
+For more details, refer to the [Docker documentation](docs/docker.md).
+
 ## Installation
 
 ### From Binary Releases
