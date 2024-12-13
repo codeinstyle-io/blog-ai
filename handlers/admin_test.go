@@ -23,12 +23,33 @@ func setupTestRouter() *gin.Engine {
 
 	// Create a minimal template for testing
 	tmpl := template.Must(template.New("admin_tag_posts.tmpl").Parse(`
+		{{if .error}}
+		<div class="error">{{.error}}</div>
+		{{end}}
 		<h1>Posts for tag {{ .tag.Name }}</h1>
 		<ul>
 		{{ range .posts }}
 			<li>{{ .Title }} - By: {{if .Author}}{{.Author.FirstName}} {{.Author.LastName}}{{else}}<em>Deleted User</em>{{end}}</li>
 		{{ end }}
 		</ul>
+	`))
+
+	// Add the 500 error template
+	template.Must(tmpl.New("500.tmpl").Parse(`
+		<h1>Internal Server Error</h1>
+		<p>Something went wrong.</p>
+	`))
+
+	// Add the 404 error template
+	template.Must(tmpl.New("404.tmpl").Parse(`
+		<h1>Not Found</h1>
+		<p>The requested resource was not found.</p>
+	`))
+
+	// Add the common data template
+	template.Must(tmpl.New("common_data.tmpl").Parse(`
+		{{define "common_data"}}
+		{{end}}
 	`))
 
 	router.SetHTMLTemplate(tmpl)
@@ -60,6 +81,12 @@ func TestListPostsByTag(t *testing.T) {
 	}
 	database.Create(&author)
 
+	// Create settings with timezone
+	settings := db.Settings{
+		Timezone: "UTC",
+	}
+	database.Create(&settings)
+
 	// Create post with author
 	postWithAuthor := db.Post{
 		Title:       "Test Post With Author",
@@ -67,10 +94,14 @@ func TestListPostsByTag(t *testing.T) {
 		Content:     "Test content",
 		PublishedAt: time.Now(),
 		Visible:     true,
-		Tags:        []db.Tag{tag},
 		AuthorID:    author.ID,
 	}
 	database.Create(&postWithAuthor)
+
+	// Associate post with tag
+	if err := database.Model(&postWithAuthor).Association("Tags").Append(&tag); err != nil {
+		t.Fatalf("Failed to associate tag with post: %v", err)
+	}
 
 	// Create post without author
 	postWithoutAuthor := db.Post{
@@ -79,17 +110,23 @@ func TestListPostsByTag(t *testing.T) {
 		Content:     "Test content",
 		PublishedAt: time.Now(),
 		Visible:     true,
-		Tags:        []db.Tag{tag},
 	}
 	database.Create(&postWithoutAuthor)
+
+	// Associate post with tag
+	if err := database.Model(&postWithoutAuthor).Association("Tags").Append(&tag); err != nil {
+		t.Fatalf("Failed to associate tag with post: %v", err)
+	}
 
 	// Make request
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", fmt.Sprintf("/admin/tags/%d/posts", tag.ID), nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
 	router.ServeHTTP(w, req)
 
 	// Assert
-	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, w.Code)
 	body := w.Body.String()
 	assert.Contains(t, body, "Test Post With Author")

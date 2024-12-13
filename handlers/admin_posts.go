@@ -20,6 +20,24 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 		return
 	}
 
+	// Get settings for timezone
+	settings, err := db.GetSettings(h.db)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	// Load timezone from settings
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
+	// Convert post times to user timezone
+	for i := range posts {
+		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
+	}
+
 	c.HTML(http.StatusOK, "admin_posts.tmpl", h.addCommonData(c, gin.H{
 		"title": "Posts",
 		"posts": posts,
@@ -202,8 +220,26 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 		return
 	}
 
+	// Get settings for timezone
+	settings, err := db.GetSettings(h.db)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	// Load timezone from settings
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
+	// Convert post times to user timezone
+	for i := range posts {
+		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
+	}
+
 	c.HTML(http.StatusOK, "admin_tag_posts.tmpl", h.addCommonData(c, gin.H{
-		"title": "Posts",
+		"title": fmt.Sprintf("Posts tagged with '%s'", tag.Name),
 		"posts": posts,
 		"tag":   tag,
 	}))
@@ -273,6 +309,22 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
+
+	// Get settings for timezone
+	settings, err := db.GetSettings(h.db)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	// Load timezone from settings
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
+	// Convert post time to user timezone
+	post.PublishedAt = post.PublishedAt.In(loc)
 
 	c.HTML(http.StatusOK, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 		"title":    "Edit Post",
