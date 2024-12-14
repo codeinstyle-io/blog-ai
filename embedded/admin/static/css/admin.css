@@ -104,7 +104,6 @@ code, pre {
     display: none;
     font-size: 1.5rem;
     color: var(--admin-text);
-    background: var(--admin-primary);
     border: none;
     padding: 0.5rem 0.75rem;
     cursor: pointer;
@@ -1006,7 +1005,7 @@ a:hover {
         top: 1rem;
         right: 1rem;  
         z-index: 1000;
-        background-color: var(--admin-primary);
+        background: var(--admin-input-bg);
         border-radius: 4px;
         padding: 0.5rem 0.75rem;
     }
@@ -1036,17 +1035,6 @@ a:hover {
     .admin-table th,
     .admin-table td {
         padding: 0.75rem;
-    }
-
-    .menu-toggle {
-        display: block;
-        position: fixed;
-        top: 1rem;
-        right: 1rem;  
-        z-index: 1000;
-        background-color: var(--admin-primary);
-        border-radius: 4px;
-        padding: 0.5rem 0.75rem;
     }
 
     .admin-nav {
