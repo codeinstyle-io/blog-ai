@@ -432,6 +432,32 @@ function moveItem(id, direction) {
     });
 }
 
+function initializeMenuToggle() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const adminNav = document.querySelector('.admin-nav');
+    
+    if (menuToggle && adminNav) {
+        menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        
+        menuToggle.addEventListener('click', () => {
+            adminNav.classList.toggle('active');
+            // Update aria-expanded for accessibility
+            const isExpanded = adminNav.classList.contains('active');
+            menuToggle.setAttribute('aria-expanded', isExpanded);
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!adminNav.contains(event.target) && 
+                !menuToggle.contains(event.target) && 
+                adminNav.classList.contains('active')) {
+                adminNav.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+}
+
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeEditor();
@@ -440,4 +466,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePublishDateToggle();
     initializeMenuItemForm();
     initializeMenuItems();
+    initializeMenuToggle();
 });
