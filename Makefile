@@ -5,7 +5,8 @@
         release release-darwin-arm64 release-darwin-amd64 \
         release-linux-arm64 release-linux-amd64 \
         release-windows-arm64 release-windows-amd64 \
-        bump-major bump-minor bump-patch
+        bump-major bump-minor bump-patch \
+        docker-build
 
 # Variables
 BINARY_NAME=dist/bin/captain-darwin-amd64
@@ -105,6 +106,10 @@ release: test \
 	release-linux \
 	release-windows
 	@echo "Release build complete. Binaries in dist/bin/ and archives in dist/zip/"
+
+# Docker commands
+docker-build:
+	docker build -t captain:$(VERSION) -t captain:latest .
 
 # User management commands
 create-user: build

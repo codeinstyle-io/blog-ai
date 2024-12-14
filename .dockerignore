@@ -1,0 +1,42 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Build artifacts
+dist/
+coverage.out
+coverage.html
+
+# Development and environment files
+.DS_Store
+*.db
+data/
+media/
+config.yaml
+config.sample.yaml
+docker-compose.yml
+
+# Documentation
+docs/
+CONTRIBUTING.md
+README.md
+logo.png
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test data and temporary files
+*_test.go
+testdata/
+tmp/
+
+# Local configuration and sensitive data
+*.env
+*.pem
+*.key
+*.crt
+
