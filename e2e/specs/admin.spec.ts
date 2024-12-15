@@ -177,17 +177,18 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.goto(rootURL);
 
             // Verify tags are listed
-            await expect(page.locator('text=test')).toBeVisible();
-            await expect(page.locator('text=e2e')).toBeVisible();
+            await expect(page.locator('.post-tag:has-text("test")').first()).toBeVisible();
+            await expect(page.locator('.post-tag:has-text("another")').first()).toBeVisible();
+            await expect(page.locator('.post-tag:has-text("e2e")').first()).toBeVisible();
             
             // Click tag and verify posts
-            await page.click('text=test');
+            await page.click('.post-tag:has-text("test")');
             await expect(page.locator('text=New title')).toBeVisible();
             await expect(page.locator(`text=${randomTitle}`)).toBeVisible();
             
             // Check public tag page
-            await page.goto(rootURL + '/tags/e2e');
-            await expect(page.locator('text=Test Post')).toBeVisible();
+            await page.goto(rootURL + '/tag/e2e');
+            await expect(page.locator('text=New title')).toBeVisible();
         });
 
         // Settings Management
