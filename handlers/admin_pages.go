@@ -49,7 +49,7 @@ func (h *AdminHandlers) CreatePage(c *gin.Context) {
 		Visible: visible,
 	}
 
-	if err := h.pageRepo.Create(&page).Error; err != nil {
+	if err := h.pageRepo.Create(&page); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_page.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to create page",
 		}))
@@ -115,7 +115,7 @@ func (h *AdminHandlers) UpdatePage(c *gin.Context) {
 	page.Content = content
 	page.Visible = visible
 
-	if err := h.pageRepo.Update(page).Error; err != nil {
+	if err := h.pageRepo.Update(page); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update page",
 			"page":  page,
@@ -182,7 +182,7 @@ func (h *AdminHandlers) DeletePage(c *gin.Context) {
 	}
 
 	// If no references exist, proceed with deletion
-	if err := h.pageRepo.Delete(page).Error; err != nil {
+	if err := h.pageRepo.Delete(page); err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}

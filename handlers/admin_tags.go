@@ -96,8 +96,8 @@ func (h *AdminHandlers) CreateTag(c *gin.Context) {
 		Name: name,
 	}
 
-	if err := h.tagRepo.Create(&tag).Error; err != nil {
-		if err() == "UNIQUE constraint failed: tags.name" {
+	if err := h.tagRepo.Create(&tag); err != nil {
+		if err.Error() == "UNIQUE constraint failed: tags.name" {
 			c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
 				"error": "Tag name already exists",
 			}))

@@ -106,7 +106,7 @@ func (h *AdminHandlers) CreateUser(c *gin.Context) {
 		Password:  hashedPassword,
 	}
 
-	if err := h.userRepo.Create(user).Error; err != nil {
+	if err := h.userRepo.Create(user); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
 			"title": "Create User",
 			"error": "Failed to create user",
@@ -235,7 +235,7 @@ func (h *AdminHandlers) UpdateUser(c *gin.Context) {
 		user.Password = hashedPassword
 	}
 
-	if err := h.userRepo.Update(user).Error; err != nil {
+	if err := h.userRepo.Update(user); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
 			"title": "Edit User",
 			"user":  user,
@@ -297,7 +297,7 @@ func (h *AdminHandlers) DeleteUser(c *gin.Context) {
 	}
 
 	// Delete user (posts will remain with the author info)
-	if err := h.userRepo.Delete(user).Error; err != nil {
+	if err := h.userRepo.Delete(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}

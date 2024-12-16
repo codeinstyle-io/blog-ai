@@ -58,8 +58,7 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	formatter := html.New(html.WithClasses(true))
 	buf := new(bytes.Buffer)
 	if err := formatter.WriteCSS(buf, style); err != nil {
-		// If there's an error, use empty CSS
-		chromaCSS = ""
+		c.String(http.StatusInternalServerError, "")
 		return
 	}
 	chromaCSS = buf.String()

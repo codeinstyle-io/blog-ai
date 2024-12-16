@@ -9,7 +9,7 @@ type User struct {
 	gorm.Model
 	FirstName    string
 	LastName     string
-	Email        string  `gorm:"uniqueIndex"`
+	Email        string `gorm:"uniqueIndex"`
 	Password     string
 	SessionToken *string `gorm:"uniqueIndex"`
 }
