@@ -56,7 +56,7 @@ lint:
 fmt:
 	go fmt ./...
 
-quality: fmt lint test
+quality: fmt lint test test-e2e
 
 # Release commands for each platform
 release-darwin-arm64:

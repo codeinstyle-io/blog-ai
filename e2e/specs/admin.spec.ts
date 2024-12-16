@@ -75,6 +75,10 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.fill('input[id="tag-input"]', 'e2e');
             await page.press('input[id="tag-input"]', 'Enter');
 
+            // Set publish type to "scheduled" and set publish date to "1985-10-26T10:00"
+            await page.selectOption('select[id="publishType"]', 'scheduled');
+            await page.fill('input[id="publishedAt"]', '1985-10-26T10:00');
+
             await expect(page.locator('#selected-tags')).toContainText('test');
             await expect(page.locator('#selected-tags')).toContainText('e2e');
     
@@ -104,7 +108,7 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator(`text="New title"`)).toBeVisible();
 
             /**
-             * POST Update
+             * Second Post
              */
 
             // Create second post with random data
@@ -189,38 +193,37 @@ test.describe('Admin Panel E2E Tests', () => {
             // Check public tag page
             await page.goto(rootURL + '/tag/e2e');
             await expect(page.locator('text=New title')).toBeVisible();
+            await page.goto(rootURL + '/tag/another');
+            await expect(page.locator('text=New title')).not.toBeVisible();
         });
 
         // Settings Management
         await test.step('Modify and verify settings', async () => {
             await page.goto(rootURL + '/admin/settings');
-            
+
             // Change timezone
-            await page.selectOption('select[name="timezone"]', 'UTC');
+            await page.fill('input[name="title"]', 'Updated Title');
+            await page.fill('input[name="subtitle"]', 'Updated Subtitle');
+            await page.selectOption('select[name="timezone"]', 'Asia/Tokyo');
+            await page.selectOption('select[name="theme"]', 'dark');
+            await page.fill('input[name="posts_per_page"]', '1');
+        
             await page.click('button:has-text("Save Settings")');
             
             // Verify post time updated
             await page.goto(rootURL + '/admin/posts');
-            await expect(page.locator('text=10:00')).toBeVisible();
-            
-            // Change posts per page
-            await page.goto(rootURL + '/admin/settings');
-            await page.fill('input[name="posts_per_page"]', '1');
-            await page.click('button:has-text("Save Settings")');
-            
-            // Verify pagination
-            await page.goto(rootURL);
-            await expect(page.locator('.pagination')).toBeVisible();
-            await expect(page.locator('a[href="/?page=2"]')).toBeVisible();
-            
-            // Change title and subtitle
-            await page.goto(rootURL + '/admin/settings');
-            await page.fill('input[name="title"]', 'Updated Title');
-            await page.fill('input[name="subtitle"]', 'Updated Subtitle');
-            await page.click('button:has-text("Save Settings")');
-            
+            const firstPost = page.locator('tr').nth(1);
+            const publishedAt = await firstPost.locator('td').nth(2).textContent();
+            expect(publishedAt).toContain('1985-10-26 19:00');
+
             // Verify changes on public site
             await page.goto(rootURL);
+
+            // TODO: Remove this when settings are cached properly
+            await page.reload();
+
+            await expect(page.locator('.pagination')).toBeVisible();
+            await expect(page.locator('a[href="?page=2"]')).toBeVisible();
             await expect(page.locator('text=Updated Title')).toBeVisible();
             await expect(page.locator('text=Updated Subtitle')).toBeVisible();
         });
