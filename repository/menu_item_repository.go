@@ -73,12 +73,12 @@ func (r *menuItemRepository) Move(id uint, direction string) error {
 
 	if err := tx.Model(&currentItem).Update("position", adjacentPos).Error; err != nil {
 		tx.Rollback()
-		return errors.New("Failed to update position")
+		return errors.New("failed to update position")
 	}
 
 	if err := tx.Model(&adjacentItem).Update("position", currentPos).Error; err != nil {
 		tx.Rollback()
-		return errors.New("Failed to update position")
+		return errors.New("failed to update position")
 	}
 
 	tx.Commit()
@@ -88,7 +88,7 @@ func (r *menuItemRepository) Move(id uint, direction string) error {
 
 func (r *menuItemRepository) FindAll() ([]*models.MenuItem, error) {
 	var menuItems []*models.MenuItem
-	err := r.db.Order("position").Find(&menuItems).Error
+	err := r.db.Preload("Page").Order("position").Find(&menuItems).Error
 	return menuItems, err
 }
 

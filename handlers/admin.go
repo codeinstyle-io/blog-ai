@@ -5,16 +5,9 @@ import (
 	"strconv"
 
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	DefaultTimezone    = "UTC"
-	DefaultChromaStyle = "paraiso-dark"
-	DefaultPostPerPage = 10
-	DefaultTheme       = "light"
 )
 
 // AdminHandlers handles all admin routes
@@ -89,7 +82,7 @@ func (h *AdminHandlers) ShowSettings(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
-	var form models.Settings
+	form, _ := h.repos.Settings.Get()
 	var errors []string
 
 	// Get form values
@@ -167,19 +160,19 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 
 	// Set defaults for optional fields if not provided
 	if form.Timezone == "" {
-		form.Timezone = DefaultTimezone
+		form.Timezone = system.DefaultTimezone
 	}
 	if form.ChromaStyle == "" {
-		form.ChromaStyle = DefaultChromaStyle
+		form.ChromaStyle = system.DefaultChromaStyle
 	}
 	if form.Theme == "" {
-		form.Theme = DefaultTheme
+		form.Theme = system.DefaultTheme
 	}
 	if form.PostsPerPage == 0 {
-		form.PostsPerPage = DefaultPostPerPage
+		form.PostsPerPage = system.DefaultPostsPerPage
 	}
 
-	if err := h.repos.Settings.Update(&form); err != nil {
+	if err := h.repos.Settings.Update(form); err != nil {
 		errors = append(errors, "Failed to update settings")
 		data := gin.H{
 			"settings":     form,
@@ -197,15 +190,8 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 }
 
 func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		settings = &models.Settings{
-			Title:    "Captain",
-			Subtitle: "A simple blog engine",
-		}
-	}
+	settings, _ := h.repos.Settings.Get()
 
 	data["settings"] = settings
-	data["user"] = c.MustGet("user").(*models.User)
 	return data
 }

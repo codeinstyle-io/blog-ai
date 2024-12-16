@@ -4,15 +4,35 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/testutils"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthRequired(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+	database := db.SetupTestDB()
+	repos := repository.NewRepositories(database)
+
+	userRepo := repository.NewUserRepository(database)
+	user := &models.User{
+		Email:    "test@example.com",
+		Password: "password",
+	}
+	assert.NoError(t, userRepo.Create(user))
+
+	sessionRepo := repository.NewSessionRepository(database)
+	session := &models.Session{
+		Token:     "valid-token",
+		UserID:    1,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	assert.NoError(t, sessionRepo.Create(session))
 
 	tests := []struct {
 		name           string
@@ -23,7 +43,7 @@ func TestAuthRequired(t *testing.T) {
 		{
 			name: "Valid session",
 			setupAuth: func(c *gin.Context) {
-				c.SetCookie("session", "valid-token", 3600, "/", "", false, true)
+				c.SetCookie(system.CookieName, "valid-token", 3600, "/", "", false, true)
 			},
 			checkResponse: func(w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, w.Code)
@@ -45,10 +65,9 @@ func TestAuthRequired(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			db := testutils.SetupTestDB(t)
-			repos := repository.NewRepositories(db)
 
 			router := gin.New()
+			router.Use(gin.Recovery())
 			router.Use(AuthRequired(repos))
 			router.GET("/test", func(c *gin.Context) {
 				c.Status(http.StatusOK)

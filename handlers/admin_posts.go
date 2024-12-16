@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,7 +9,6 @@ import (
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // ListPosts shows all posts for admin
@@ -142,38 +140,6 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	}
 
 	tags = strings.Split(c.PostForm("tags"), ",")
-	for i := range tags {
-		tags[i] = strings.TrimSpace(tags[i])
-	}
-
-	// Create or get existing tags
-	var postTags []*models.Tag
-	for _, tagName := range tags {
-		if tagName == "" {
-			continue
-		}
-
-		// Try to find existing tag
-		tag, err := h.repos.Tags.FindByName(tagName)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Create new tag if it doesn't exist
-				tag = &models.Tag{Name: tagName}
-				if err := h.repos.Tags.Create(tag); err != nil {
-					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-						"error": fmt.Sprintf("Error creating tag: %v", err),
-					})
-					return
-				}
-			} else {
-				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-					"error": fmt.Sprintf("Database error: %v", err),
-				})
-				return
-			}
-		}
-		postTags = append(postTags, tag)
-	}
 
 	// Create post with transaction to ensure atomic operation
 	if err := h.repos.Posts.Create(post); err != nil {
@@ -184,7 +150,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	if err := h.repos.Posts.AssociateTags(post, postTags); err != nil {
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to associate tags",
 			"post":  post,
@@ -423,39 +389,6 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	}
 
 	tags = strings.Split(c.PostForm("tags"), ",")
-	for i := range tags {
-		tags[i] = strings.TrimSpace(tags[i])
-	}
-
-	// Create or get existing tags
-	var postTags []*models.Tag
-	for _, tagName := range tags {
-		if tagName == "" {
-			continue
-		}
-
-		var tag *models.Tag
-		// Try to find existing tag
-		_, err := h.repos.Tags.FindByName(tagName)
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Create new tag if it doesn't exist
-				tag = &models.Tag{Name: tagName}
-				if err := h.repos.Tags.Create(tag); err != nil {
-					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-						"error": fmt.Sprintf("Error creating tag: %v", err),
-					})
-					return
-				}
-			} else {
-				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-					"error": fmt.Sprintf("Database error: %v", err),
-				})
-				return
-			}
-		}
-		postTags = append(postTags, tag)
-	}
 
 	// Update post with transaction to ensure atomic operation
 	if err := h.repos.Posts.Update(post); err != nil {
@@ -466,7 +399,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	if err := h.repos.Posts.AssociateTags(post, postTags); err != nil {
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update tags",
 			"post":  post,

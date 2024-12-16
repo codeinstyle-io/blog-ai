@@ -183,15 +183,16 @@ func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
 func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
 	// Get menu items
 	menuItems, _ := h.menuRepo.FindAll()
+	settings, _ := h.repos.Settings.Get()
 
 	// Add menu items to the data
 	data["menuItems"] = menuItems
 
 	// Add site config from settings
 	data["config"] = gin.H{
-		"SiteTitle":    h.settings.Title,
-		"SiteSubtitle": h.settings.Subtitle,
-		"Theme":        h.settings.Theme,
+		"SiteTitle":    settings.Title,
+		"SiteSubtitle": settings.Subtitle,
+		"Theme":        settings.Theme,
 	}
 
 	// Add version information

@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"errors"
+
 	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/system"
 	"gorm.io/gorm"
 )
 
@@ -17,19 +20,28 @@ func NewSettingsRepository(db *gorm.DB) models.SettingsRepository {
 func (r *settingsRepository) Get() (*models.Settings, error) {
 	var settings models.Settings
 	err := r.db.First(&settings).Error
-	if err != nil {
-		return nil, err
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		settings = models.Settings{
+			Title:        system.DefaultTitle,
+			Subtitle:     system.DefaultSubtitle,
+			Timezone:     system.DefaultTimezone,
+			ChromaStyle:  system.DefaultChromaStyle,
+			Theme:        system.DefaultTheme,
+			PostsPerPage: system.DefaultPostsPerPage,
+		}
+		if err := r.Create(settings); err != nil {
+			return nil, err
+		}
 	}
+
 	return &settings, nil
 }
 
+func (r *settingsRepository) Create(settings models.Settings) error {
+	return r.db.Create(&settings).Error
+}
+
 func (r *settingsRepository) Update(settings *models.Settings) error {
-	// If no settings exist, create new ones
-	var count int64
-	r.db.Model(&models.Settings{}).Count(&count)
-	if count == 0 {
-		return r.db.Create(settings).Error
-	}
-	// Otherwise update existing settings
-	return r.db.Model(&models.Settings{}).Updates(settings).Error
+	return r.db.Save(settings).Error
 }

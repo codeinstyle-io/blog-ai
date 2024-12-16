@@ -6,9 +6,9 @@ import (
 
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/models"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 

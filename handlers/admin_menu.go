@@ -18,7 +18,7 @@ func (h *AdminHandlers) ListMenuItems(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "admin_menu.tmpl", h.addCommonData(c, gin.H{
+	c.HTML(http.StatusOK, "admin_menu_items.tmpl", h.addCommonData(c, gin.H{
 		"menuItems": menuItems,
 	}))
 }

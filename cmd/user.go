@@ -109,12 +109,12 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	db, err := db.New(cfg)
+	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	repos := repository.NewRepositories(db)
+	repos := repository.NewRepositories(database)
 
 	email := getValidInput("Email: ", ValidateEmail)
 

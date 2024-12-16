@@ -18,7 +18,7 @@ import (
 )
 
 // setupTestRouter creates a test router with embedded templates
-func setupTestRouter() *gin.Engine {
+func setupTestRouter(repositories *repository.Repositories) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.SetFuncMap(utils.GetTemplateFuncs())
@@ -34,6 +34,14 @@ func setupTestRouter() *gin.Engine {
 			<li>{{ .Title }} - By: {{if .Author}}{{.Author.FirstName}} {{.Author.LastName}}{{else}}<em>Deleted User</em>{{end}}</li>
 		{{ end }}
 		</ul>
+	`))
+
+	template.Must(tmpl.New("login.tmpl").Parse(`
+		<form method="post" action="/login">
+			<input type="email" name="email" />
+			<input type="password" name="password" />
+			<button type="submit">Login</button>
+		</form>
 	`))
 
 	// Add the 500 error template
@@ -64,10 +72,13 @@ func TestListPostsByTag(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
-	handlers := NewAdminHandlers(repository.NewRepositories(database), cfg)
+
+	repos := repository.NewRepositories(database)
+	handlers := NewAdminHandlers(repos, cfg)
 
 	// Setup router with test templates
-	router := setupTestRouter()
+	router := setupTestRouter(repos)
+	router.Use(gin.Recovery())
 
 	// Register the handler
 	router.GET("/admin/tags/:id/posts", handlers.ListPostsByTag)

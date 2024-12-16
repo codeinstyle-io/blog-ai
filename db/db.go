@@ -51,5 +51,6 @@ func ExecuteMigrations(db *gorm.DB) error {
 		&models.MenuItem{},
 		&models.Settings{},
 		&models.Media{},
+		&models.Session{},
 	)
 }

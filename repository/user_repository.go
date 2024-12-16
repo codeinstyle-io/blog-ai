@@ -2,6 +2,7 @@ package repository
 
 import (
 	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/system"
 	"gorm.io/gorm"
 )
 
@@ -11,6 +12,11 @@ type userRepository struct {
 
 // NewUserRepository creates a new user repository
 func NewUserRepository(db *gorm.DB) models.UserRepository {
+
+	if db == nil {
+		panic("db is nil")
+	}
+
 	return &userRepository{db: db}
 }
 
@@ -28,16 +34,7 @@ func (r *userRepository) Delete(user *models.User) error {
 
 func (r *userRepository) FindBySessionToken(token string) (*models.User, error) {
 	var user models.User
-	err := r.db.Where("session_token = ?", token).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (r *userRepository) FindByUsername(username string) (*models.User, error) {
-	var user models.User
-	err := r.db.Where("username = ?", username).First(&user).Error
+	err := r.db.Where(system.CookieName+" = ?", token).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

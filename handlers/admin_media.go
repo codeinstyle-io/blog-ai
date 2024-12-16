@@ -166,13 +166,7 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *gin.Context) {
 }
 
 func (h *AdminMediaHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		settings = &models.Settings{
-			Title:    "Captain",
-			Subtitle: "A simple blog engine",
-		}
-	}
+	settings, _ := h.repos.Settings.Get()
 
 	data["settings"] = settings
 	data["user"] = c.MustGet("user").(*models.User)

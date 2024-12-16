@@ -134,6 +134,22 @@ func (r *PostRepository) FindRecent(limit int) ([]*models.Post, error) {
 }
 
 // AssociateTags associates tags with a post
-func (r *PostRepository) AssociateTags(post *models.Post, tags []*models.Tag) error {
-	return r.db.Model(post).Association("Tags").Replace(tags)
+func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
+
+	tagsToSave := make([]*models.Tag, len(tags))
+	for i, tag := range tags {
+		var existingTag models.Tag
+		err := r.db.Where("name = ?", tag).First(&existingTag).Error
+		if err != nil {
+			existingTag = models.Tag{
+				Name: tag,
+			}
+			if err := r.db.Create(&existingTag).Error; err != nil {
+				return err
+			}
+		}
+		tagsToSave[i] = &existingTag
+	}
+
+	return r.db.Model(post).Association("Tags").Replace(tagsToSave)
 }

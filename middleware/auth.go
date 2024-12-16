@@ -4,24 +4,34 @@ import (
 	"net/http"
 
 	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
 )
+
+func abort(c *gin.Context) {
+	c.SetCookie(system.CookieName, "", -1, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/login")
+	c.Abort()
+}
 
 // AuthRequired ensures that a user is authenticated
 func AuthRequired(repos *repository.Repositories) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := c.Cookie("session")
+		token, err := c.Cookie(system.CookieName)
 		if err != nil {
-			c.Redirect(http.StatusFound, "/login")
-			c.Abort()
+			abort(c)
 			return
 		}
 
-		user, err := repos.Users.FindBySessionToken(token)
+		session, err := repos.Sessions.FindByToken(token)
 		if err != nil {
-			c.SetCookie("session", "", -1, "/", "", false, true)
-			c.Redirect(http.StatusFound, "/login")
-			c.Abort()
+			abort(c)
+			return
+		}
+
+		user, err := repos.Users.FindByID(session.UserID)
+		if err != nil {
+			abort(c)
 			return
 		}
 

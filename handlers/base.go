@@ -19,6 +19,7 @@ type BaseHandler struct {
 	menuRepo     models.MenuItemRepository
 	settingsRepo models.SettingsRepository
 	mediaRepo    models.MediaRepository
+	sessionRepo  models.SessionRepository
 }
 
 // NewBaseHandler creates a new base handler with common dependencies
@@ -35,12 +36,12 @@ func NewBaseHandler(repos *repository.Repositories, cfg *config.Config) *BaseHan
 		menuRepo:     repos.MenuItems,
 		settingsRepo: repos.Settings,
 		mediaRepo:    repos.Media,
+		sessionRepo:  repos.Sessions,
 	}
 }
 
 // NewRepositories creates a new instance of Repositories
-func NewRepositories(db interface{}) *repository.Repositories {
-	gormDB := db.(*gorm.DB)
+func NewRepositories(gormDB *gorm.DB) *repository.Repositories {
 	return &repository.Repositories{
 		Posts:     repository.NewPostRepository(gormDB),
 		Tags:      repository.NewTagRepository(gormDB),

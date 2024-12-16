@@ -12,7 +12,7 @@ type PostRepository interface {
 	FindVisibleByTag(tagID uint, page, perPage int) ([]Post, int64, error)
 	FindAll() ([]*Post, error)
 	FindRecent(limit int) ([]*Post, error)
-	AssociateTags(post *Post, tags []*Tag) error
+	AssociateTags(post *Post, tags []string) error
 	CountByAuthor(user *User) (int64, error)
 }
 
@@ -38,7 +38,6 @@ type UserRepository interface {
 	Delete(user *User) error
 	FindByID(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
-	FindByUsername(username string) (*User, error)
 	FindBySessionToken(token string) (*User, error)
 	FindAll() ([]*User, error)
 	CountByEmail(email string) (int64, error)
@@ -74,6 +73,7 @@ type MenuItemRepository interface {
 type SettingsRepository interface {
 	Get() (*Settings, error)
 	Update(settings *Settings) error
+	Create(settings Settings) error
 }
 
 // MediaRepository defines the interface for media operations
