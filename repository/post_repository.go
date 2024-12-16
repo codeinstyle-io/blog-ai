@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"codeinstyle.io/captain/models"
 	"gorm.io/gorm"
 )
@@ -136,8 +138,12 @@ func (r *PostRepository) FindRecent(limit int) ([]*models.Post, error) {
 // AssociateTags associates tags with a post
 func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
 
-	tagsToSave := make([]*models.Tag, len(tags))
-	for i, tag := range tags {
+	var tagsToSave []*models.Tag
+	for _, tag := range tags {
+		if strings.TrimSpace(tag) == "" {
+			continue
+		}
+
 		var existingTag models.Tag
 		err := r.db.Where("name = ?", tag).First(&existingTag).Error
 		if err != nil {
@@ -148,8 +154,15 @@ func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
 				return err
 			}
 		}
-		tagsToSave[i] = &existingTag
+		tagsToSave = append(tagsToSave, &existingTag)
 	}
 
-	return r.db.Model(post).Association("Tags").Replace(tagsToSave)
+	assoc := r.db.Model(post).Association("Tags")
+
+	if len(tagsToSave) == 0 {
+		assoc.Clear()
+		return nil
+	}
+
+	return assoc.Replace(tagsToSave)
 }
