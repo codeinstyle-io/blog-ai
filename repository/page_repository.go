@@ -49,3 +49,7 @@ func (r *pageRepository) FindBySlug(slug string) (*models.Page, error) {
 	}
 	return &page, nil
 }
+
+func (r *pageRepository) CountRelatedMenuItems(id uint, count *int64) error {
+	return r.db.Model(&models.MenuItem{}).Where("page_id = ?", id).Count(count).Error
+}

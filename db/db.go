@@ -10,10 +10,11 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func InitDB(cfg *config.Config) (*gorm.DB, error) {
+func New(cfg *config.Config) (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open(cfg.DB.Path), &gorm.Config{
 		Logger: logger.Default.LogMode(cfg.GetGormLogLevel()),
 	})
+
 	if err != nil {
 		return nil, err
 	}

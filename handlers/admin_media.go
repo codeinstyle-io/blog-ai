@@ -3,12 +3,12 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -103,9 +103,7 @@ func (h *AdminMediaHandlers) UploadMedia(c *gin.Context) {
 
 // DeleteMedia handles media deletion
 func (h *AdminMediaHandlers) DeleteMedia(c *gin.Context) {
-	id := c.Param("id")
-	parsedID, err := strconv.ParseUint(id, 10, 32)
-	mediaID := uint(parsedID)
+	mediaID, err := utils.ParseUint(c.Param("id"))
 
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
@@ -146,9 +144,7 @@ func (h *AdminMediaHandlers) GetMediaList(c *gin.Context) {
 
 // ConfirmDeleteMedia shows the delete confirmation page
 func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *gin.Context) {
-	id := c.Param("id")
-	parsedID, err := strconv.ParseUint(id, 10, 32)
-	mediaID := uint(parsedID)
+	mediaID, err := utils.ParseUint(c.Param("id"))
 
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))

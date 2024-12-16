@@ -3,14 +3,15 @@ package handlers
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // ListPages shows all pages
 func (h *AdminHandlers) ListPages(c *gin.Context) {
-	var pages []db.Page
-	if err := h.db.Find(&pages).Error; err != nil {
+	pages, err := h.pageRepo.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -41,14 +42,14 @@ func (h *AdminHandlers) CreatePage(c *gin.Context) {
 		return
 	}
 
-	page := db.Page{
+	page := models.Page{
 		Title:   title,
 		Slug:    slug,
 		Content: content,
 		Visible: visible,
 	}
 
-	if err := h.db.Create(&page).Error; err != nil {
+	if err := h.pageRepo.Create(&page).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_page.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to create page",
 		}))
@@ -61,8 +62,15 @@ func (h *AdminHandlers) CreatePage(c *gin.Context) {
 // EditPage shows the page edit form
 func (h *AdminHandlers) EditPage(c *gin.Context) {
 	id := c.Param("id")
-	var page db.Page
-	if err := h.db.First(&page, id).Error; err != nil {
+	pageID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	page, err := h.pageRepo.FindByID(pageID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -76,8 +84,15 @@ func (h *AdminHandlers) EditPage(c *gin.Context) {
 // UpdatePage handles page updates
 func (h *AdminHandlers) UpdatePage(c *gin.Context) {
 	id := c.Param("id")
-	var page db.Page
-	if err := h.db.First(&page, id).Error; err != nil {
+	pageID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	page, err := h.pageRepo.FindByID(pageID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -100,7 +115,7 @@ func (h *AdminHandlers) UpdatePage(c *gin.Context) {
 	page.Content = content
 	page.Visible = visible
 
-	if err := h.db.Save(&page).Error; err != nil {
+	if err := h.pageRepo.Update(page).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_page.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update page",
 			"page":  page,
@@ -114,8 +129,15 @@ func (h *AdminHandlers) UpdatePage(c *gin.Context) {
 // ConfirmDeletePage shows deletion confirmation page
 func (h *AdminHandlers) ConfirmDeletePage(c *gin.Context) {
 	id := c.Param("id")
-	var page db.Page
-	if err := h.db.First(&page, id).Error; err != nil {
+	pageID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	page, err := h.pageRepo.FindByID(pageID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -128,11 +150,26 @@ func (h *AdminHandlers) ConfirmDeletePage(c *gin.Context) {
 
 // DeletePage removes a page
 func (h *AdminHandlers) DeletePage(c *gin.Context) {
+	var menuItemCount int64
 	id := c.Param("id")
+	pageId, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	page, err := h.pageRepo.FindByID(pageId)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
 
 	// Check for menu item references
-	var menuItemCount int64
-	if err := h.db.Model(&db.MenuItem{}).Where("page_id = ?", id).Count(&menuItemCount).Error; err != nil {
+
+	err = h.pageRepo.CountRelatedMenuItems(page.ID, &menuItemCount)
+
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -145,7 +182,7 @@ func (h *AdminHandlers) DeletePage(c *gin.Context) {
 	}
 
 	// If no references exist, proceed with deletion
-	if err := h.db.Delete(&db.Page{}, id).Error; err != nil {
+	if err := h.pageRepo.Delete(page).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}

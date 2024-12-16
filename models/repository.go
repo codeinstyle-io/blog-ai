@@ -12,6 +12,8 @@ type PostRepository interface {
 	FindVisibleByTag(tagID uint, page, perPage int) ([]Post, int64, error)
 	FindAll() ([]*Post, error)
 	FindRecent(limit int) ([]*Post, error)
+	AssociateTags(post *Post, tags []*Tag) error
+	CountByAuthor(user *User) (int64, error)
 }
 
 // TagRepository defines the interface for tag operations
@@ -21,7 +23,12 @@ type TagRepository interface {
 	Delete(tag *Tag) error
 	FindByID(id uint) (*Tag, error)
 	FindBySlug(slug string) (*Tag, error)
+	FindByName(name string) (*Tag, error)
 	FindAll() ([]*Tag, error)
+	FindPostsAndCount() ([]struct {
+		Tag
+		PostCount int64
+	}, error)
 }
 
 // UserRepository defines the interface for user operations
@@ -34,6 +41,8 @@ type UserRepository interface {
 	FindByUsername(username string) (*User, error)
 	FindBySessionToken(token string) (*User, error)
 	FindAll() ([]*User, error)
+	CountByEmail(email string) (int64, error)
+	CountAll() (int64, error)
 }
 
 // PageRepository defines the interface for page operations
@@ -44,11 +53,13 @@ type PageRepository interface {
 	FindByID(id uint) (*Page, error)
 	FindBySlug(slug string) (*Page, error)
 	FindAll() ([]*Page, error)
+	CountRelatedMenuItems(id uint, count *int64) error
 }
 
 // MenuItemRepository defines the interface for menu item operations
 type MenuItemRepository interface {
 	Create(item *MenuItem) error
+	CreateAll(items []MenuItem) error
 	Update(item *MenuItem) error
 	Delete(item *MenuItem) error
 	DeleteAll() error
@@ -56,6 +67,7 @@ type MenuItemRepository interface {
 	FindAll() ([]*MenuItem, error)
 	UpdatePositions(startPosition int) error
 	GetNextPosition() int
+	Move(id uint, direction string) error
 }
 
 // SettingsRepository defines the interface for settings operations

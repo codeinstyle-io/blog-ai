@@ -12,7 +12,9 @@ type PostRepository struct {
 
 // NewPostRepository creates a new post repository
 func NewPostRepository(db *gorm.DB) models.PostRepository {
-	return &PostRepository{db: db}
+	return &PostRepository{
+		db: db,
+	}
 }
 
 // Create creates a new post
@@ -50,13 +52,19 @@ func (r *PostRepository) FindBySlug(slug string) (*models.Post, error) {
 	return &post, nil
 }
 
-// FindByTag finds all posts with a specific tag
+func (r *PostRepository) CountByAuthor(user *models.User) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Post{}).Where("author_id = ?", user.ID).Count(&count).Error
+	return count, err
+}
+
+// FindByTag finds all posts with a specific tag slug
 func (r *PostRepository) FindByTag(tag string) ([]*models.Post, error) {
 	var posts []*models.Post
 	err := r.db.Preload("Tags").Preload("Author").
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
 		Joins("JOIN tags ON post_tags.tag_id = tags.id").
-		Where("tags.name = ?", tag).
+		Where("tags.slug = ?", tag).
 		Find(&posts).Error
 	return posts, err
 }
@@ -123,4 +131,9 @@ func (r *PostRepository) FindRecent(limit int) ([]*models.Post, error) {
 		Limit(limit).
 		Find(&posts).Error
 	return posts, err
+}
+
+// AssociateTags associates tags with a post
+func (r *PostRepository) AssociateTags(post *models.Post, tags []*models.Tag) error {
+	return r.db.Model(post).Association("Tags").Replace(tags)
 }

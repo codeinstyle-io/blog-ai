@@ -28,11 +28,10 @@ type Server struct {
 }
 
 // New creates a new server instance
-func New(database *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
+func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 	return &Server{
 		router:     gin.Default(),
-		db:         database,
-		repos:      repository.NewRepositories(database),
+		repos:      repository.NewRepositories(db),
 		config:     cfg,
 		embeddedFS: embeddedFS,
 	}

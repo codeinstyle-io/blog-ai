@@ -67,3 +67,15 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *userRepository) CountByEmail(email string) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.User{}).Where("email = ?", email).Count(&count).Error
+	return count, err
+}
+
+func (r *userRepository) CountAll() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.User{}).Count(&count).Error
+	return count, err
+}

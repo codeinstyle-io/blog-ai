@@ -6,7 +6,6 @@ import (
 
 	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
@@ -103,10 +102,14 @@ func (h *AuthHandlers) Logout(c *gin.Context) {
 // HandleSetup handles both GET and POST requests for the setup page
 func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 	// If users already exist, redirect to login
-	var count int64
-	h.db.Model(&db.User{}).Count(&count)
+	count, err := h.userRepo.CountAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to count users"})
+		return
+	}
+
 	if count > 0 {
-		c.Redirect(http.StatusFound, "/admin/login")
+		c.Redirect(http.StatusFound, "/login?next=/admin")
 		return
 	}
 
@@ -143,14 +146,14 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 		}
 
 		// Create admin user
-		user := &db.User{
+		user := &models.User{
 			Email:     email,
 			Password:  hashedPassword,
 			FirstName: firstName,
 			LastName:  lastName,
 		}
 
-		if err := db.CreateUser(h.db, user); err != nil {
+		if err := h.userRepo.Create(user); err != nil {
 			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to create user"})
 			return
 		}

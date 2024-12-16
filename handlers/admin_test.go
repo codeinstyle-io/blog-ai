@@ -10,6 +10,7 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
@@ -72,10 +73,10 @@ func TestListPostsByTag(t *testing.T) {
 	router.GET("/admin/tags/:id/posts", handlers.ListPostsByTag)
 
 	// Create test data
-	tag := db.Tag{Name: "test-tag"}
+	tag := models.Tag{Name: "test-tag"}
 	database.Create(&tag)
 
-	author := db.User{
+	author := models.User{
 		FirstName: "Test",
 		LastName:  "Author",
 		Email:     "test@example.com",
@@ -83,13 +84,13 @@ func TestListPostsByTag(t *testing.T) {
 	database.Create(&author)
 
 	// Create settings with timezone
-	settings := db.Settings{
+	settings := models.Settings{
 		Timezone: "UTC",
 	}
 	database.Create(&settings)
 
 	// Create post with author
-	postWithAuthor := db.Post{
+	postWithAuthor := models.Post{
 		Title:       "Test Post With Author",
 		Slug:        "test-post-with-author",
 		Content:     "Test content",
@@ -105,7 +106,7 @@ func TestListPostsByTag(t *testing.T) {
 	}
 
 	// Create post without author
-	postWithoutAuthor := db.Post{
+	postWithoutAuthor := models.Post{
 		Title:       "Test Post Without Author",
 		Slug:        "test-post-without-author",
 		Content:     "Test content",
