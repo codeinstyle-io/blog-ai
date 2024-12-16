@@ -10,6 +10,7 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -62,7 +63,7 @@ func TestListPostsByTag(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
-	handlers := NewAdminHandlers(database, cfg)
+	handlers := NewAdminHandlers(repository.NewRepositories(database), cfg)
 
 	// Setup router with test templates
 	router := setupTestRouter()

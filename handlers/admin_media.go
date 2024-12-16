@@ -5,15 +5,33 @@ import (
 	"net/http"
 	"strconv"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/config"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/storage"
 	"github.com/gin-gonic/gin"
 )
 
+// AdminMediaHandlers handles media routes
+type AdminMediaHandlers struct {
+	*BaseHandler
+	storage   storage.Provider
+	mediaRepo models.MediaRepository
+}
+
+// NewAdminMediaHandlers creates a new AdminMediaHandlers instance
+func NewAdminMediaHandlers(repos *repository.Repositories, config *config.Config, storage storage.Provider) *AdminMediaHandlers {
+	return &AdminMediaHandlers{
+		BaseHandler: NewBaseHandler(repos, config),
+		storage:     storage,
+		mediaRepo:   repos.Media,
+	}
+}
+
 // ListMedia displays the list of media files
-func (h *AdminHandlers) ListMedia(c *gin.Context) {
-	var media []db.Media
-	result := h.db.Order("created_at desc").Find(&media)
-	if result.Error != nil {
+func (h *AdminMediaHandlers) ListMedia(c *gin.Context) {
+	media, err := h.mediaRepo.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -27,7 +45,7 @@ func (h *AdminHandlers) ListMedia(c *gin.Context) {
 }
 
 // ShowUploadMedia displays the upload media form
-func (h *AdminHandlers) ShowUploadMedia(c *gin.Context) {
+func (h *AdminMediaHandlers) ShowUploadMedia(c *gin.Context) {
 	data := gin.H{
 		"title": "Upload Media",
 	}
@@ -36,7 +54,7 @@ func (h *AdminHandlers) ShowUploadMedia(c *gin.Context) {
 }
 
 // UploadMedia handles media file upload
-func (h *AdminHandlers) UploadMedia(c *gin.Context) {
+func (h *AdminMediaHandlers) UploadMedia(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
@@ -57,14 +75,15 @@ func (h *AdminHandlers) UploadMedia(c *gin.Context) {
 	}
 
 	// Create media record
-	media := db.Media{
+	media := &models.Media{
 		Name:        file.Filename,
 		Path:        filename,
 		Size:        file.Size,
 		Description: description,
 	}
 
-	if result := h.db.Create(&media); result.Error != nil {
+	err = h.mediaRepo.Create(media)
+	if err != nil {
 		// Clean up file if database insert fails
 		if err := h.storage.Delete(filename); err != nil {
 			c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
@@ -74,7 +93,7 @@ func (h *AdminHandlers) UploadMedia(c *gin.Context) {
 		}
 
 		c.HTML(http.StatusInternalServerError, "admin_media_upload.tmpl", h.addCommonData(c, gin.H{
-			"error": fmt.Sprintf("Failed to save media record: %v", result.Error),
+			"error": fmt.Sprintf("Failed to save media record: %v", err),
 		}))
 		return
 	}
@@ -83,16 +102,18 @@ func (h *AdminHandlers) UploadMedia(c *gin.Context) {
 }
 
 // DeleteMedia handles media deletion
-func (h *AdminHandlers) DeleteMedia(c *gin.Context) {
+func (h *AdminMediaHandlers) DeleteMedia(c *gin.Context) {
 	id := c.Param("id")
-	mediaID, err := strconv.ParseUint(id, 10, 32)
+	parsedID, err := strconv.ParseUint(id, 10, 32)
+	mediaID := uint(parsedID)
+
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	var media db.Media
-	if err := h.db.First(&media, mediaID).Error; err != nil {
+	media, err := h.mediaRepo.FindByID(mediaID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -104,7 +125,7 @@ func (h *AdminHandlers) DeleteMedia(c *gin.Context) {
 	}
 
 	// Delete record
-	if err := h.db.Delete(&media).Error; err != nil {
+	if err := h.mediaRepo.Delete(media); err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -113,9 +134,9 @@ func (h *AdminHandlers) DeleteMedia(c *gin.Context) {
 }
 
 // GetMediaList returns a JSON list of media for AJAX requests
-func (h *AdminHandlers) GetMediaList(c *gin.Context) {
-	var media []db.Media
-	if err := h.db.Order("created_at desc").Find(&media).Error; err != nil {
+func (h *AdminMediaHandlers) GetMediaList(c *gin.Context) {
+	media, err := h.mediaRepo.FindAll()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch media"})
 		return
 	}
@@ -124,16 +145,18 @@ func (h *AdminHandlers) GetMediaList(c *gin.Context) {
 }
 
 // ConfirmDeleteMedia shows the delete confirmation page
-func (h *AdminHandlers) ConfirmDeleteMedia(c *gin.Context) {
+func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *gin.Context) {
 	id := c.Param("id")
-	mediaID, err := strconv.ParseUint(id, 10, 32)
+	parsedID, err := strconv.ParseUint(id, 10, 32)
+	mediaID := uint(parsedID)
+
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	var media db.Media
-	if err := h.db.First(&media, mediaID).Error; err != nil {
+	media, err := h.mediaRepo.FindByID(mediaID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -144,4 +167,18 @@ func (h *AdminHandlers) ConfirmDeleteMedia(c *gin.Context) {
 	}
 	data = h.addCommonData(c, data)
 	c.HTML(http.StatusOK, "admin_confirm_delete_media.tmpl", data)
+}
+
+func (h *AdminMediaHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
+	settings, err := h.repos.Settings.Get()
+	if err != nil {
+		settings = &models.Settings{
+			Title:    "Captain",
+			Subtitle: "A simple blog engine",
+		}
+	}
+
+	data["settings"] = settings
+	data["user"] = c.MustGet("user").(*models.User)
+	return data
 }

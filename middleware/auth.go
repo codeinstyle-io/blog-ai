@@ -3,28 +3,24 @@ package middleware
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/repository"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func AuthRequired(database *gorm.DB) gin.HandlerFunc {
+// AuthRequired ensures that a user is authenticated
+func AuthRequired(repos *repository.Repositories) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie("session")
-		if err != nil || token == "" {
-			// Store requested URL and redirect to login
-			next := c.Request.URL.String()
-			c.Redirect(http.StatusFound, "/login?next="+next)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
 
-		user, err := db.GetUserByToken(database, token)
-		if err != nil || user.SessionToken == nil {
+		user, err := repos.Users.FindBySessionToken(token)
+		if err != nil {
 			c.SetCookie("session", "", -1, "/", "", false, true)
-			// Store requested URL and redirect to login
-			next := c.Request.URL.String()
-			c.Redirect(http.StatusFound, "/login?next="+next)
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}

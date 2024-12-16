@@ -9,6 +9,8 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -57,7 +59,7 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
-	handlers := NewPublicHandlers(database, cfg)
+	handlers := NewPublicHandlers(repository.NewRepositories(database), cfg)
 
 	// Setup router with test templates
 	router := setupPublicRouter()
@@ -66,7 +68,7 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	router.GET("/posts/:slug", handlers.GetPostBySlug)
 
 	// Create test author
-	author := &db.User{
+	author := &models.User{
 		FirstName: "Test",
 		LastName:  "Author",
 		Email:     "test@example.com",
@@ -74,7 +76,7 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	database.Create(author)
 
 	// Create test post with author
-	postWithAuthor := &db.Post{
+	postWithAuthor := &models.Post{
 		Title:       "Test Post With Author",
 		Slug:        "test-post-with-author",
 		Content:     "Test Content",
@@ -85,7 +87,7 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	database.Create(postWithAuthor)
 
 	// Create test post without author
-	postWithoutAuthor := &db.Post{
+	postWithoutAuthor := &models.Post{
 		Title:       "Test Post Without Author",
 		Slug:        "test-post-without-author",
 		Content:     "Test Content",
@@ -149,7 +151,7 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	}
 
 	// Create default settings first
-	settings := &db.Settings{
+	settings := &models.Settings{
 		PostsPerPage: 2, // Set a small number to test pagination
 		Title:        "Test Blog",
 		Subtitle:     "Test Subtitle",
@@ -161,7 +163,7 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 		t.Fatalf("Failed to create settings: %v", err)
 	}
 
-	handlers := NewPublicHandlers(database, cfg)
+	handlers := NewPublicHandlers(repository.NewRepositories(database), cfg)
 
 	// Setup router with test templates
 	router := setupPublicRouter()
@@ -170,7 +172,7 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	router.GET("/posts", handlers.ListPosts)
 
 	// Create test author
-	author := &db.User{
+	author := &models.User{
 		FirstName: "Test",
 		LastName:  "Author",
 		Email:     "test@example.com",
@@ -179,7 +181,7 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 
 	// Create test posts
 	now := time.Now()
-	posts := []db.Post{
+	posts := []models.Post{
 		{
 			Title:       "Test Post With Author",
 			Slug:        "test-post-1",

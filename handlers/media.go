@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 // ServeMedia serves media files from the configured storage provider
-func ServeMedia(database *gorm.DB, cfg *config.Config) gin.HandlerFunc {
+func ServeMedia(repositories *repository.Repositories, cfg *config.Config) gin.HandlerFunc {
 	// Initialize storage provider
 	var provider storage.Provider
 	var err error
@@ -41,8 +41,8 @@ func ServeMedia(database *gorm.DB, cfg *config.Config) gin.HandlerFunc {
 		path = strings.TrimPrefix(path, "/")
 
 		// Query the media from the database
-		var media db.Media
-		if err := database.Where("path = ?", path).First(&media).Error; err != nil {
+		media, err := repositories.Media.FindByPath(path)
+		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				// If the media doesn't exist, return a 404
 				c.String(http.StatusNotFound, "Media not found")

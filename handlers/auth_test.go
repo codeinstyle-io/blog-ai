@@ -10,6 +10,8 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -38,14 +40,14 @@ func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers)
 
 	router.SetHTMLTemplate(templates)
 
-	authHandlers := NewAuthHandlers(database, &config.Config{})
+	authHandlers := NewAuthHandlers(repository.NewRepositories(database), &config.Config{})
 
 	// Create test user
 	password := "Test1234!"
 	hashedPassword, err := utils.HashPassword(password)
 	assert.NoError(t, err)
 
-	testUser := db.User{
+	testUser := models.User{
 		Email:    "test@example.com",
 		Password: hashedPassword,
 	}

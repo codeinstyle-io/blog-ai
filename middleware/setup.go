@@ -3,29 +3,25 @@ package middleware
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/repository"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-// RequireSetup redirects to setup if no users exist
-func RequireSetup(database *gorm.DB) gin.HandlerFunc {
+// RequireSetup checks if there are any users in the system
+func RequireSetup(repos *repository.Repositories) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Skip setup and static assets
-		if c.Request.URL.Path == "/admin/setup" || c.Request.URL.Path == "/admin/static" {
-			c.Next()
-			return
-		}
-
-		// Check if any users exist
-		var count int64
-		database.Model(&db.User{}).Count(&count)
-		if count == 0 {
-			c.Redirect(http.StatusFound, "/admin/setup")
+		users, err := repos.Users.FindAll()
+		if err != nil || len(users) == 0 {
+			if c.Request.URL.Path != "/setup" {
+				c.Redirect(http.StatusFound, "/setup")
+				c.Abort()
+				return
+			}
+		} else if c.Request.URL.Path == "/setup" {
+			c.Redirect(http.StatusFound, "/")
 			c.Abort()
 			return
 		}
-
 		c.Next()
 	}
 }

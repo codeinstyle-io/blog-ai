@@ -3,8 +3,7 @@ package handlers
 import (
 	"strconv"
 
-	"codeinstyle.io/captain/db"
-	"github.com/gin-gonic/gin"
+	"codeinstyle.io/captain/models"
 )
 
 // parseUint converts a string to uint, returns 0 if conversion fails
@@ -19,20 +18,6 @@ func parseUint(pageID string) uint {
 // getNextMenuPosition gets the next available menu position
 func (h *AdminHandlers) getNextMenuPosition() int {
 	var maxPosition struct{ Max int }
-	h.db.Model(&db.MenuItem{}).Select("COALESCE(MAX(position), -1) + 1 as max").Scan(&maxPosition)
+	h.db.Model(&models.MenuItem{}).Select("COALESCE(MAX(position), -1) + 1 as max").Scan(&maxPosition)
 	return maxPosition.Max
-}
-
-func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
-	if data == nil {
-		data = gin.H{}
-	}
-
-	// Get settings for title and theme
-	var settings db.Settings
-	h.db.First(&settings)
-
-	data["AdminTheme"] = settings.Theme
-	data["SiteTitle"] = settings.Title
-	return data
 }
