@@ -61,6 +61,8 @@ func RegisterAdminRoutes(r *gin.Engine, repos *repository.Repositories, cfg *con
 	admin.GET("/tags", adminHandlers.ListTags)
 	admin.GET("/tags/create", adminHandlers.ShowCreateTag)
 	admin.POST("/tags/create", adminHandlers.CreateTag)
+	admin.GET("/tags/:id/edit", adminHandlers.ShowEditTag)
+	admin.POST("/tags/:id/edit", adminHandlers.UpdateTag)
 	admin.GET("/tags/:id/posts", adminHandlers.ListPostsByTag)
 	admin.GET("/tags/:id/delete", adminHandlers.ConfirmDeleteTag)
 	admin.DELETE("/tags/:id", adminHandlers.DeleteTag)

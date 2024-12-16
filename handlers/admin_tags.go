@@ -113,6 +113,54 @@ func (h *AdminHandlers) CreateTag(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/admin/tags")
 }
 
+// ShowEditTag displays the tag update form
+func (h *AdminHandlers) ShowEditTag(c *gin.Context) {
+	id := c.Param("id")
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	tag, err := h.tagRepo.FindByID(tagID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	c.HTML(http.StatusOK, "admin_edit_tag.tmpl", h.addCommonData(c, gin.H{
+		"title": "Edit Tag",
+		"tag":   tag,
+	}))
+}
+
+// UpdateTag updates a tag
+func (h *AdminHandlers) UpdateTag(c *gin.Context) {
+	id := c.Param("id")
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	tag, err := h.tagRepo.FindByID(tagID)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	tag.Name = c.PostForm("name")
+
+	if err := h.tagRepo.Update(tag); err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/admin/tags")
+}
+
 // GetTags returns a list of tags for API consumption
 func (h *AdminHandlers) GetTags(c *gin.Context) {
 	tags, err := h.repos.Tags.FindAll()
