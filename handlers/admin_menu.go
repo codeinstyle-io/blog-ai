@@ -18,8 +18,12 @@ func (h *AdminHandlers) ListMenuItems(c *gin.Context) {
 		return
 	}
 
+	lastPosition := len(menuItems)
+
 	c.HTML(http.StatusOK, "admin_menu_items.tmpl", h.addCommonData(c, gin.H{
-		"menuItems": menuItems,
+		"menuItems":    menuItems,
+		"title":        "Menu Items",
+		"lastPosition": lastPosition,
 	}))
 }
 
