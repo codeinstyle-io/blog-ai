@@ -226,13 +226,10 @@ test.describe('Admin Panel E2E Tests', () => {
             // Verify changes on public site
             await page.goto(rootURL);
 
-            // TODO: Remove this when settings are cached properly
-            await page.reload();
-
-            //await expect(page.locator('.pagination')).toBeVisible();
-            //await expect(page.locator('a[href="?page=2"]')).toBeVisible();
-            //await expect(page.locator('text=Updated Title')).toBeVisible();
-            //await expect(page.locator('text=Updated Subtitle')).toBeVisible();
+            await expect(page.locator('.pagination')).toBeVisible();
+            await expect(page.locator('a[href="?page=2"]')).toBeVisible();
+            await expect(page.locator('text=Updated Title')).toBeVisible();
+            await expect(page.locator('text=Updated Subtitle')).toBeVisible();
         });
     });
 });

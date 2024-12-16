@@ -39,8 +39,10 @@ func NewPublicHandlers(repos *repository.Repositories, cfg *config.Config) *Publ
 
 func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	// Generate ETag based on the chroma style name
+	settings, _ := h.repos.Settings.Get()
+
 	var chromaCSS string
-	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(h.settings.ChromaStyle)))
+	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(settings.ChromaStyle)))
 
 	// Check If-None-Match header first
 	if match := c.GetHeader("If-None-Match"); match != "" {
@@ -51,7 +53,7 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	}
 
 	// Generate CSS
-	style := styles.Get(h.settings.ChromaStyle)
+	style := styles.Get(settings.ChromaStyle)
 	if style == nil {
 		style = styles.Fallback
 	}
@@ -71,6 +73,8 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 
 func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	slug := c.Param("slug")
+	settings, _ := h.repos.Settings.Get()
+
 	post, err := h.postRepo.FindBySlug(slug)
 	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
@@ -83,7 +87,7 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	post.Content = renderMarkdown(post.Content)
 
 	// Convert UTC time to configured timezone for display
-	loc, err := time.LoadLocation(h.settings.Timezone)
+	loc, err := time.LoadLocation(settings.Timezone)
 	if err != nil {
 		loc = time.UTC
 	}
@@ -96,19 +100,21 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 }
 
 func (h *PublicHandlers) ListPosts(c *gin.Context) {
+	settings, _ := h.repos.Settings.Get()
+
 	// Get page number from query params
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	posts, total, err := h.postRepo.FindVisible(page, h.settings.PostsPerPage)
+	posts, total, err := h.postRepo.FindVisible(page, settings.PostsPerPage)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{}))
 		return
 	}
 
-	totalPages := int(math.Ceil(float64(total) / float64(h.settings.PostsPerPage)))
+	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
 
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
@@ -123,6 +129,8 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	tagSlug := c.Param("slug")
+	settings, _ := h.repos.Settings.Get()
+
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
@@ -136,7 +144,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 		return
 	}
 
-	posts, total, err := h.postRepo.FindVisibleByTag(tag.ID, page, h.settings.PostsPerPage)
+	posts, total, err := h.postRepo.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
 			"title": "Error",
@@ -148,7 +156,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	processPostsPublishedAt(posts)
 	processPostsContent(posts)
 
-	totalPages := int(math.Ceil(float64(total) / float64(h.settings.PostsPerPage)))
+	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
 
 	c.HTML(http.StatusOK, "tag_posts.tmpl", h.addCommonData(gin.H{
 		"title":      fmt.Sprintf("Posts tagged with %s", tag.Name),
