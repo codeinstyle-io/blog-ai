@@ -6,7 +6,7 @@
         release-linux-arm64 release-linux-amd64 \
         release-windows-arm64 release-windows-amd64 \
         bump-major bump-minor bump-patch \
-        docker-build
+        docker-build test-e2e test-e2e-ui
 
 # Variables
 BINARY_NAME=dist/bin/captain-darwin-amd64
@@ -42,6 +42,13 @@ test-coverage:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 
+# E2E test commands
+test-e2e:
+	npx playwright test
+
+test-e2e-ui:
+	npx playwright test --ui
+
 # Code quality commands
 lint:
 	golangci-lint run
@@ -49,7 +56,7 @@ lint:
 fmt:
 	go fmt ./...
 
-quality: fmt lint test
+quality: fmt lint test test-e2e
 
 # Release commands for each platform
 release-darwin-arm64:

@@ -41,6 +41,9 @@
                 <label for="firstName">First Name</label>
                 <input type="text" id="firstName" name="firstName" required class="form-control">
             </div>
+            {{if .Error}}
+            <div class="error error-message">{{.Error}}</div>
+            {{end}}
             <div class="form-group">
                 <label for="lastName">Last Name</label>
                 <input type="text" id="lastName" name="lastName" required class="form-control">
@@ -53,9 +56,6 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required class="form-control">
             </div>
-            {{if .Error}}
-            <div class="alert alert-danger">{{.Error}}</div>
-            {{end}}
             <button type="submit" class="btn btn-primary btn-block">Create Admin Account</button>
         </form>
     </div>

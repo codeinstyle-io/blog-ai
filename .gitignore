@@ -5,3 +5,24 @@ coverage.html
 coverage.out
 config.yaml
 media
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/.auth/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.env
+.env.test
+.env.production
+
+# Build
+build/

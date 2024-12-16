@@ -116,26 +116,26 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 
 		// Validate input
 		if err := cmd.ValidateEmail(email); err != nil {
-			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": "Invalid email address"})
+			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": "Invalid email address"})
 			return
 		}
 		if err := cmd.ValidatePassword(password); err != nil {
-			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": "Password must be at least 8 characters"})
+			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": "Password must be at least 8 characters"})
 			return
 		}
 		if err := cmd.ValidateFirstName(firstName); err != nil {
-			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": err.Error()})
+			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": err.Error()})
 			return
 		}
 		if err := cmd.ValidateLastName(lastName); err != nil {
-			c.HTML(http.StatusBadRequest, "pages/setup.tmpl", gin.H{"Error": err.Error()})
+			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": err.Error()})
 			return
 		}
 
 		// Hash password
 		hashedPassword, err := utils.HashPassword(password)
 		if err != nil {
-			c.HTML(http.StatusInternalServerError, "pages/setup.tmpl", gin.H{"Error": "Failed to hash password"})
+			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to hash password"})
 			return
 		}
 
@@ -148,7 +148,7 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 		}
 
 		if err := db.CreateUser(h.db, user); err != nil {
-			c.HTML(http.StatusInternalServerError, "pages/setup.tmpl", gin.H{"Error": "Failed to create user"})
+			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to create user"})
 			return
 		}
 
