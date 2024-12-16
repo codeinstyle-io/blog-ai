@@ -160,7 +160,9 @@ func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
 	assoc := r.db.Model(post).Association("Tags")
 
 	if len(tagsToSave) == 0 {
-		assoc.Clear()
+		if err := assoc.Clear(); err != nil {
+			return err
+		}
 		return nil
 	}
 
