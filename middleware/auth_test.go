@@ -10,7 +10,6 @@ import (
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 

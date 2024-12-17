@@ -8,8 +8,8 @@ import (
 
 type Tag struct {
 	gorm.Model
-	Name string `gorm:"uniqueIndex;not null"`
-	Slug string `gorm:"uniqueIndex;not null"`
+	Name string `gorm:"uniqueIndex;not null" form:"name"`
+	Slug string `gorm:"uniqueIndex;not null" form:"slug"`
 }
 
 // BeforeCreate hook to ensure tag has a slug

@@ -7,51 +7,50 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-// AdminHandlers handles all admin routes
+// AdminHandlers contains handlers for admin routes
 type AdminHandlers struct {
-	*BaseHandler
+	repos  *repository.Repositories
+	config *config.Config
 }
 
-// NewAdminHandlers creates a new admin handlers instance
+// NewAdminHandlers creates a new AdminHandlers instance
 func NewAdminHandlers(repos *repository.Repositories, cfg *config.Config) *AdminHandlers {
 	return &AdminHandlers{
-		BaseHandler: NewBaseHandler(repos, cfg),
+		repos:  repos,
+		config: cfg,
 	}
 }
 
-func (h *AdminHandlers) Index(c *gin.Context) {
+// Index handles the GET /admin route
+func (h *AdminHandlers) Index(c *fiber.Ctx) error {
 	posts, err := h.repos.Posts.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 	postCount := int64(len(posts))
 
 	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 	tagCount := int64(len(tags))
 
 	users, err := h.repos.Users.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 	userCount := int64(len(users))
 
 	// Get 5 most recent posts
 	recentPosts, err := h.repos.Posts.FindRecent(5)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	data := gin.H{
+	data := fiber.Map{
 		"title":       "Dashboard",
 		"postCount":   postCount,
 		"tagCount":    tagCount,
@@ -59,39 +58,38 @@ func (h *AdminHandlers) Index(c *gin.Context) {
 		"recentPosts": recentPosts,
 	}
 
-	data = h.addCommonData(c, data)
-	c.HTML(http.StatusOK, "admin_index.tmpl", data)
+	return c.Render("admin_index", data)
 }
 
-func (h *AdminHandlers) ShowSettings(c *gin.Context) {
+// ShowSettings handles the GET /admin/settings route
+func (h *AdminHandlers) ShowSettings(c *fiber.Ctx) error {
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	data := gin.H{
+	data := fiber.Map{
 		"title":        "Site Settings",
 		"settings":     settings,
 		"timezones":    h.config.GetTimezones(),
 		"chromaStyles": h.config.GetChromaStyles(),
 	}
 
-	data = h.addCommonData(c, data)
-	c.HTML(http.StatusOK, "admin_settings.tmpl", data)
+	return c.Render("admin_settings", data)
 }
 
-func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
+// UpdateSettings handles the POST /admin/settings route
+func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	form, _ := h.repos.Settings.Get()
 	var errors []string
 
 	// Get form values
-	form.Title = c.PostForm("title")
-	form.Subtitle = c.PostForm("subtitle")
-	form.Timezone = c.PostForm("timezone")
-	form.ChromaStyle = c.PostForm("chroma_style")
-	form.Theme = c.PostForm("theme")
-	postsPerPage := c.PostForm("posts_per_page")
+	form.Title = c.FormValue("title")
+	form.Subtitle = c.FormValue("subtitle")
+	form.Timezone = c.FormValue("timezone")
+	form.ChromaStyle = c.FormValue("chroma_style")
+	form.Theme = c.FormValue("theme")
+	postsPerPage := c.FormValue("posts_per_page")
 
 	// Validate required fields
 	if form.Title == "" {
@@ -146,7 +144,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 	}
 
 	if len(errors) > 0 {
-		data := gin.H{
+		data := fiber.Map{
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
@@ -154,8 +152,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
-		c.HTML(http.StatusBadRequest, "admin_settings.tmpl", h.addCommonData(c, data))
-		return
+		return c.Status(http.StatusBadRequest).Render("admin_settings", data)
 	}
 
 	// Set defaults for optional fields if not provided
@@ -174,7 +171,7 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 
 	if err := h.repos.Settings.Update(form); err != nil {
 		errors = append(errors, "Failed to update settings")
-		data := gin.H{
+		data := fiber.Map{
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
@@ -182,16 +179,9 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 			"postsPerPage": form.PostsPerPage,
 			"errors":       errors,
 		}
-		c.HTML(http.StatusInternalServerError, "admin_settings.tmpl", h.addCommonData(c, data))
-		return
+
+		return c.Status(http.StatusInternalServerError).Render("admin_settings", data)
 	}
 
-	c.Redirect(http.StatusFound, "/admin/settings")
-}
-
-func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
-	settings, _ := h.repos.Settings.Get()
-
-	data["settings"] = settings
-	return data
+	return c.Redirect("/admin/settings")
 }

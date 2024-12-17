@@ -14,6 +14,7 @@ type PostRepository interface {
 	FindRecent(limit int) ([]*Post, error)
 	AssociateTags(post *Post, tags []string) error
 	CountByAuthor(user *User) (int64, error)
+	CountByTag(tagID uint) (int64, error)
 }
 
 // TagRepository defines the interface for tag operations

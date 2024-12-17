@@ -12,18 +12,18 @@ import (
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 // setupPublicRouter creates a test router with embedded templates
-func setupPublicRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	router := gin.New()
-	router.SetFuncMap(utils.GetTemplateFuncs())
+func setupPublicRouter() *fiber.App {
+	app := fiber.New()
+	app.Settings.TemplateDir = "./templates"
+	app.Settings.TemplateExtension = ""
 
 	// Create minimal templates for testing
-	templates := template.Must(template.New("post.tmpl").Parse(`
+	templates := template.Must(template.New("post").Parse(`
 		<article>
 			<h1>{{ .post.Title }}</h1>
 			<div>{{ .post.Content }}</div>
@@ -32,9 +32,9 @@ func setupPublicRouter() *gin.Engine {
 	`))
 
 	// Add error templates
-	template.Must(templates.New("404.tmpl").Parse(`<h1>Not Found</h1>`))
-	template.Must(templates.New("500.tmpl").Parse(`<h1>Internal Server Error</h1>`))
-	template.Must(templates.New("posts.tmpl").Parse(`
+	template.Must(templates.New("404").Parse(`<h1>Not Found</h1>`))
+	template.Must(templates.New("500").Parse(`<h1>Internal Server Error</h1>`))
+	template.Must(templates.New("posts").Parse(`
 		<div>
 		{{ range .posts }}
 			<article>
@@ -49,8 +49,8 @@ func setupPublicRouter() *gin.Engine {
 		</div>
 	`))
 
-	router.SetHTMLTemplate(templates)
-	return router
+	app.Settings.TemplateFileSystem = utils.GetTemplateFuncs()
+	return app
 }
 
 func TestPostHandlers_GetPostBySlug(t *testing.T) {
@@ -62,10 +62,10 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 	handlers := NewPublicHandlers(repository.NewRepositories(database), cfg)
 
 	// Setup router with test templates
-	router := setupPublicRouter()
+	app := setupPublicRouter()
 
 	// Register handler
-	router.GET("/posts/:slug", handlers.GetPostBySlug)
+	app.Get("/posts/:slug", handlers.GetPostBySlug)
 
 	// Create test author
 	author := &models.User{
@@ -124,19 +124,21 @@ func TestPostHandlers_GetPostBySlug(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("GET", "/posts/"+tt.slug, nil)
-			router.ServeHTTP(w, req)
+			req := httptest.NewRequest("GET", "/posts/"+tt.slug, nil)
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			assert.Equal(t, tt.wantStatus, w.Code)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantStatus == http.StatusOK {
-				body := w.Body.String()
+				body := resp.Body()
 				if tt.wantAuthor {
-					assert.Contains(t, body, "Test Author")
-					assert.NotContains(t, body, "Deleted User")
+					assert.Contains(t, body.String(), "Test Author")
+					assert.NotContains(t, body.String(), "Deleted User")
 				} else {
-					assert.Contains(t, body, "Deleted User")
-					assert.NotContains(t, body, "Test Author")
+					assert.Contains(t, body.String(), "Deleted User")
+					assert.NotContains(t, body.String(), "Test Author")
 				}
 			}
 		})
@@ -166,10 +168,10 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	handlers := NewPublicHandlers(repository.NewRepositories(database), cfg)
 
 	// Setup router with test templates
-	router := setupPublicRouter()
+	app := setupPublicRouter()
 
 	// Register handler
-	router.GET("/posts", handlers.ListPosts)
+	app.Get("/posts", handlers.ListPosts)
 
 	// Create test author
 	author := &models.User{
@@ -207,19 +209,21 @@ func TestPostHandlers_ListPosts(t *testing.T) {
 	}
 
 	// Test listing posts
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/posts", nil)
-	router.ServeHTTP(w, req)
+	req := httptest.NewRequest("GET", "/posts", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Check that both posts are present with correct author display
-	body := w.Body.String()
-	assert.Contains(t, body, "Test Post With Author")
-	assert.Contains(t, body, "Test Author")
-	assert.Contains(t, body, "Test Post Without Author")
-	assert.Contains(t, body, "Deleted User")
+	body := resp.Body()
+	assert.Contains(t, body.String(), "Test Post With Author")
+	assert.Contains(t, body.String(), "Test Author")
+	assert.Contains(t, body.String(), "Test Post Without Author")
+	assert.Contains(t, body.String(), "Deleted User")
 
 	// Check pagination data
-	assert.Contains(t, body, "Page 1 of 1")
+	assert.Contains(t, body.String(), "Page 1 of 1")
 }

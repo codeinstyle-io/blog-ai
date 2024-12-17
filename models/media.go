@@ -12,11 +12,11 @@ import (
 // Media represents a media file in the system
 type Media struct {
 	gorm.Model
-	Name        string `gorm:"not null"`
-	Path        string `gorm:"not null;unique"`
-	MimeType    string `gorm:"not null"`
-	Size        int64  `gorm:"not null"`
-	Description string
+	Name        string `gorm:"not null" form:"name"`
+	Path        string `gorm:"not null;unique" form:"path"`
+	MimeType    string `gorm:"not null" form:"mimeType"`
+	Size        int64  `gorm:"not null" form:"size"`
+	Description string `gorm:"type:text" form:"description"`
 }
 
 // BeforeCreate hook to ensure media has a mime type

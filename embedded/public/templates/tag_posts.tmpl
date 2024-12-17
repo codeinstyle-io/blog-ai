@@ -1,4 +1,4 @@
-{{ template "header.tmpl" . }}
+{{ template "header" . }}
 <main class="main-content">
     <section class="text-section centered-container">
         <h1 class="tag-title">Posts tagged with #{{ .tag.Name }}</h1>
@@ -33,4 +33,4 @@
         {{ end }}
     </section>
 </main>
-{{ template "footer.tmpl" . }}
+{{ template "footer" . }}

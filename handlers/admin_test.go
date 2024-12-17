@@ -12,19 +12,18 @@ import (
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 // setupTestRouter creates a test router with embedded templates
-func setupTestRouter(repositories *repository.Repositories) *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	router := gin.New()
-	router.SetFuncMap(utils.GetTemplateFuncs())
+func setupTestRouter(repositories *repository.Repositories) *fiber.App {
+	app := fiber.New(fiber.Config{
+		Views: setupTestTemplates(),
+	})
 
 	// Create a minimal template for testing
-	tmpl := template.Must(template.New("admin_tag_posts.tmpl").Parse(`
+	tmpl := template.Must(template.New("admin_tag_posts").Parse(`
 		{{if .error}}
 		<div class="error">{{.error}}</div>
 		{{end}}
@@ -36,7 +35,7 @@ func setupTestRouter(repositories *repository.Repositories) *gin.Engine {
 		</ul>
 	`))
 
-	template.Must(tmpl.New("login.tmpl").Parse(`
+	template.Must(tmpl.New("login").Parse(`
 		<form method="post" action="/login">
 			<input type="email" name="email" />
 			<input type="password" name="password" />
@@ -45,25 +44,35 @@ func setupTestRouter(repositories *repository.Repositories) *gin.Engine {
 	`))
 
 	// Add the 500 error template
-	template.Must(tmpl.New("500.tmpl").Parse(`
+	template.Must(tmpl.New("500").Parse(`
 		<h1>Internal Server Error</h1>
 		<p>Something went wrong.</p>
 	`))
 
 	// Add the 404 error template
-	template.Must(tmpl.New("404.tmpl").Parse(`
+	template.Must(tmpl.New("404").Parse(`
 		<h1>Not Found</h1>
 		<p>The requested resource was not found.</p>
 	`))
 
 	// Add the common data template
-	template.Must(tmpl.New("common_data.tmpl").Parse(`
+	template.Must(tmpl.New("common_data").Parse(`
 		{{define "common_data"}}
 		{{end}}
 	`))
 
-	router.SetHTMLTemplate(tmpl)
-	return router
+	app.Views = tmpl
+	return app
+}
+
+func setupTestAdmin(t *testing.T) (*fiber.App, *AdminHandlers, *repository.Repositories) {
+	cfg := config.NewTestConfig()
+	repos := repository.NewTestRepositories()
+
+	app := setupTestRouter(repos)
+	handlers := NewAdminHandlers(repos, cfg)
+
+	return app, handlers, repos
 }
 
 func TestListPostsByTag(t *testing.T) {
@@ -77,11 +86,10 @@ func TestListPostsByTag(t *testing.T) {
 	handlers := NewAdminHandlers(repos, cfg)
 
 	// Setup router with test templates
-	router := setupTestRouter(repos)
-	router.Use(gin.Recovery())
+	app := setupTestRouter(repos)
 
 	// Register the handler
-	router.GET("/admin/tags/:id/posts", handlers.ListPostsByTag)
+	app.Get("/admin/tags/:id/posts", handlers.ListPostsByTag)
 
 	// Create test data
 	tag := models.Tag{Name: "test-tag"}
@@ -132,16 +140,15 @@ func TestListPostsByTag(t *testing.T) {
 	}
 
 	// Make request
-	w := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", fmt.Sprintf("/admin/tags/%d/posts", tag.ID), nil)
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/admin/tags/%d/posts", tag.ID), nil)
+	resp, err := app.Test(req)
 	if err != nil {
-		t.Fatalf("Failed to create request: %v", err)
+		t.Fatalf("Failed to make request: %v", err)
 	}
-	router.ServeHTTP(w, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, w.Code)
-	body := w.Body.String()
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	body := resp.Body.String()
 	assert.Contains(t, body, "Test Post With Author")
 	assert.Contains(t, body, "Test Author")
 	assert.Contains(t, body, "Test Post Without Author")

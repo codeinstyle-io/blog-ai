@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 
 	"codeinstyle.io/captain/config"
@@ -13,14 +13,14 @@ import (
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/system"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
-func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers) {
+func setupAuthTest(t *testing.T, database *gorm.DB) (*fiber.App, *AuthHandlers) {
 	repositories := repository.NewRepositories(database)
-	router := setupTestRouter(repositories)
+	app := fiber.New()
 
 	// Create minimal templates for testing
 	authHandlers := NewAuthHandlers(repositories, &config.Config{})
@@ -38,16 +38,16 @@ func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers)
 	err = database.Create(&testUser).Error
 	assert.NoError(t, err)
 
-	return router, authHandlers
+	return app, authHandlers
 }
 
 func TestAuthHandlers_Login(t *testing.T) {
 	database := db.SetupTestDB()
-	router, authHandlers := setupAuthTest(t, database)
+	app, authHandlers := setupAuthTest(t, database)
 
 	// Add routes
-	router.GET("/login", authHandlers.Login)
-	router.POST("/login", authHandlers.PostLogin)
+	app.Get("/login", authHandlers.Login)
+	app.Post("/login", authHandlers.PostLogin)
 
 	tests := []struct {
 		name          string
@@ -105,27 +105,23 @@ func TestAuthHandlers_Login(t *testing.T) {
 			}
 
 			// Create request
-			req, err := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
-			assert.NoError(t, err)
-
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			req := httptest.NewRequest("POST", "/login", bytes.NewReader([]byte(form.Encode())))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			// Create response recorder
-			w := httptest.NewRecorder()
+			resp, err := app.Test(req)
+			assert.NoError(t, err)
 
-			// Serve request
-			router.ServeHTTP(w, req)
-
-			assert.Equal(t, tt.expectedCode, w.Code)
+			assert.Equal(t, tt.expectedCode, resp.StatusCode)
 			if tt.expectedPath != "" {
-				assert.Equal(t, tt.expectedPath, w.Header().Get("Location"))
+				assert.Equal(t, tt.expectedPath, resp.Header.Get("Location"))
 			}
 
 			// Check session cookie
 			if tt.sessionCookie {
-				assert.Contains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=")
+				assert.Contains(t, resp.Header.Get("Set-Cookie"), system.CookieName+"=")
 			} else {
-				assert.NotContains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=")
+				assert.NotContains(t, resp.Header.Get("Set-Cookie"), system.CookieName+"=")
 			}
 		})
 	}
@@ -133,20 +129,28 @@ func TestAuthHandlers_Login(t *testing.T) {
 
 func TestAuthHandlers_Logout(t *testing.T) {
 	database := db.SetupTestDB()
-	router, authHandlers := setupAuthTest(t, database)
+	app, authHandlers := setupAuthTest(t, database)
 
 	// Add route
-	router.GET("/logout", authHandlers.Logout)
+	app.Get("/logout", authHandlers.Logout)
 
 	// Test GET /logout
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/logout", nil)
-	router.ServeHTTP(w, req)
+	req := httptest.NewRequest("GET", "/logout", nil)
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
 
-	assert.Equal(t, http.StatusFound, w.Code)
-	assert.Equal(t, "/login", w.Header().Get("Location"))
+	assert.Equal(t, http.StatusFound, resp.StatusCode)
+	assert.Equal(t, "/login", resp.Header.Get("Location"))
 
 	// Check that session cookie is cleared
-	assert.Contains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=;")
-	assert.Contains(t, w.Header().Get("Set-Cookie"), "Max-Age=0")
+	cookies := resp.Cookies()
+	var sessionCookie *http.Cookie
+	for _, cookie := range cookies {
+		if cookie.Name == system.CookieName {
+			sessionCookie = cookie
+			break
+		}
+	}
+	assert.NotNil(t, sessionCookie)
+	assert.True(t, sessionCookie.MaxAge < 0)
 }

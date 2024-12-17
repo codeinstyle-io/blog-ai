@@ -2,153 +2,131 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/system"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 // AuthHandlers handles all authentication related routes
 type AuthHandlers struct {
-	*BaseHandler
+	*BaseHandlers
+	store *session.Store
 }
 
 // NewAuthHandlers creates a new auth handlers instance
 func NewAuthHandlers(repos *repository.Repositories, cfg *config.Config) *AuthHandlers {
 	return &AuthHandlers{
-		BaseHandler: NewBaseHandler(repos, cfg),
+		BaseHandlers: NewBaseHandlers(repos, cfg),
+		store:        session.New(),
 	}
 }
 
-func (h *AuthHandlers) Login(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.tmpl", h.addCommonData(gin.H{
-		"title": "Login",
-	}))
+func (h *AuthHandlers) ShowLogin(c *fiber.Ctx) error {
+	return c.Render("login", fiber.Map{})
 }
 
-func (h *AuthHandlers) PostLogin(c *gin.Context) {
-	email := c.PostForm("email")
-	password := c.PostForm("password")
-	next := c.PostForm("next")
+func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+	next := c.FormValue("next")
 	if next == "" {
 		next = "/admin"
 	}
 
-	// Check if user exists
-	user, _ := h.userRepo.FindByEmail(email)
-
-	if user == nil {
-		user = &models.User{
-			Password: "",
-		}
+	if err := cmd.ValidateEmail(email); err != nil {
+		return c.Status(http.StatusBadRequest).Render("login", fiber.Map{
+			"error": "Invalid form data",
+		})
 	}
 
-	// Compare hashed password
-	if !utils.CheckPasswordHash(password, user.Password) {
-		c.HTML(http.StatusUnauthorized, "login.tmpl", h.addCommonData(gin.H{
-			"title": "Login",
-			"error": "Invalid credentials",
-			"next":  next,
-		}))
-		return
-	}
-
-	// Generate session token
-	token, err := utils.GenerateSessionToken()
+	// Find user by email
+	user, err := h.repos.Users.FindByEmail(email)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-			"title": "Login",
-			"error": "Failed to generate session token",
-		}))
-		return
+		return c.Status(http.StatusUnauthorized).Render("login", fiber.Map{
+			"error": "Invalid credentials",
+		})
 	}
 
-	// Create session
-	session := &models.Session{
-		UserID:    user.ID,
-		Token:     token,
-		ExpiresAt: time.Now().Add(24 * time.Hour),
+	// Check password
+	if !utils.CheckPasswordHash(password, user.Password) {
+		return c.Status(http.StatusUnauthorized).Render("login", fiber.Map{
+			"error": "Invalid credentials",
+		})
 	}
 
-	if err := h.sessionRepo.Create(session); err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-			"title": "Login",
+	// Set session
+	sess, err := h.store.Get(c)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
 			"error": "Failed to create session",
-		}))
-		return
+		})
 	}
 
-	// Set cookie
-	c.SetCookie(system.CookieName, token, int(24*time.Hour.Seconds()), "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
-	c.Redirect(http.StatusFound, next)
+	sess.Set("user_id", user.ID)
+	if err := sess.Save(); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
+			"error": "Failed to save session",
+		})
+	}
+
+	return c.Redirect(next)
 }
 
-func (h *AuthHandlers) Logout(c *gin.Context) {
-	token, err := c.Cookie(system.CookieName)
-	if err == nil {
-		// Delete session from database
-		if err := h.sessionRepo.DeleteByToken(token); err != nil {
-			c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-				"error": "Failed to delete session",
-			}))
-			return
-		}
+func (h *AuthHandlers) Logout(c *fiber.Ctx) error {
+	sess, err := h.store.Get(c)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	// Clear cookie
-	c.SetCookie(system.CookieName, "", -1, "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
-	c.Redirect(http.StatusFound, "/login")
+	if err := sess.Destroy(); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+	}
+
+	return c.Redirect("/login")
 }
 
 // HandleSetup handles both GET and POST requests for the setup page
-func (h *AuthHandlers) HandleSetup(c *gin.Context) {
+func (h *AuthHandlers) HandleSetup(c *fiber.Ctx) error {
 	// If users already exist, redirect to login
-	count, err := h.userRepo.CountAll()
+	count, err := h.repos.Users.CountAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to count users"})
-		return
+		return c.Status(http.StatusInternalServerError).Render("setup", fiber.Map{"Error": "Failed to count users"})
 	}
 
 	if count > 0 {
-		c.Redirect(http.StatusFound, "/login?next=/admin")
-		return
+		return c.Redirect("/login?next=/admin")
 	}
 
 	// Handle POST request
-	if c.Request.Method == http.MethodPost {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
-		firstName := c.PostForm("firstName")
-		lastName := c.PostForm("lastName")
+	if c.Method() == fiber.MethodPost {
+		email := c.FormValue("email")
+		password := c.FormValue("password")
+		firstName := c.FormValue("firstName")
+		lastName := c.FormValue("lastName")
 
 		// Validate input
 		if err := cmd.ValidateEmail(email); err != nil {
-			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": "Invalid email address"})
-			return
+			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": "Invalid email address"})
 		}
 		if err := cmd.ValidatePassword(password); err != nil {
-			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": "Password must be at least 8 characters"})
-			return
+			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": "Password must be at least 8 characters"})
 		}
 		if err := cmd.ValidateFirstName(firstName); err != nil {
-			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": err.Error()})
-			return
+			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": err.Error()})
 		}
 		if err := cmd.ValidateLastName(lastName); err != nil {
-			c.HTML(http.StatusBadRequest, "setup.tmpl", gin.H{"Error": err.Error()})
-			return
+			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": err.Error()})
 		}
 
 		// Hash password
 		hashedPassword, err := utils.HashPassword(password)
 		if err != nil {
-			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to hash password"})
-			return
+			return c.Status(http.StatusInternalServerError).Render("setup", fiber.Map{"Error": "Failed to hash password"})
 		}
 
 		// Create admin user
@@ -159,34 +137,14 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 			LastName:  lastName,
 		}
 
-		if err := h.userRepo.Create(user); err != nil {
-			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to create user"})
-			return
+		if err := h.repos.Users.Create(user); err != nil {
+			return c.Status(http.StatusInternalServerError).Render("setup", fiber.Map{"Error": "Failed to create user"})
 		}
 
 		// Redirect to admin login
-		c.Redirect(http.StatusFound, "/login")
-		return
+		return c.Redirect("/login")
 	}
 
 	// Handle GET request
-	c.HTML(http.StatusOK, "setup.tmpl", gin.H{})
-}
-
-func (h *AuthHandlers) addCommonData(data gin.H) gin.H {
-	// Get menu items
-	menuItems, _ := h.BaseHandler.menuRepo.FindAll()
-	settings, _ := h.BaseHandler.repos.Settings.Get()
-
-	// Add menu items to the data
-	data["menuItems"] = menuItems
-
-	// Add site config from settings
-	data["config"] = gin.H{
-		"SiteTitle":    settings.Title,
-		"SiteSubtitle": settings.Subtitle,
-		"Theme":        settings.Theme,
-	}
-
-	return data
+	return c.Render("setup", fiber.Map{})
 }

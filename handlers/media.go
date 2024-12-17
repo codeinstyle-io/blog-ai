@@ -9,12 +9,12 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 // ServeMedia serves media files from the configured storage provider
-func ServeMedia(repositories *repository.Repositories, cfg *config.Config) gin.HandlerFunc {
+func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber.Handler {
 	// Initialize storage provider
 	var provider storage.Provider
 	var err error
@@ -30,12 +30,11 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) gin.H
 		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
 	}
 
-	return func(c *gin.Context) {
+	return func(c *fiber.Ctx) error {
 		// Get path and trim leading slash if present
-		path := c.Param("path")
+		path := c.Params("path")
 		if path == "" {
-			c.String(http.StatusBadRequest, "No path provided")
-			return
+			return c.Status(http.StatusBadRequest).SendString("No path provided")
 		}
 		// Trim the leading slash as paths are stored without it in the database
 		path = strings.TrimPrefix(path, "/")
@@ -45,45 +44,42 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) gin.H
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				// If the media doesn't exist, return a 404
-				c.String(http.StatusNotFound, "Media not found")
-				return
+				return c.Status(http.StatusNotFound).SendString("Media not found")
 			}
-			c.String(http.StatusInternalServerError, "Error retrieving media")
-			return
+			return c.Status(http.StatusInternalServerError).SendString("Error retrieving media")
 		}
 
 		// Generate ETag based on last modified time and size
 		etag := fmt.Sprintf(`"%x-%x"`, media.UpdatedAt.Unix(), media.Size)
 
 		// Check If-None-Match header
-		if match := c.GetHeader("If-None-Match"); match != "" {
+		if match := c.Get("If-None-Match"); match != "" {
 			if match == etag {
-				c.Status(http.StatusNotModified)
-				return
+				return c.Status(http.StatusNotModified).SendString("")
 			}
 		}
 
 		// Get file from storage provider
 		file, err := provider.Get(path)
 		if err != nil {
-			c.String(http.StatusInternalServerError, "Error retrieving media file")
-			return
+			return c.Status(http.StatusInternalServerError).SendString("Error retrieving media file")
 		}
 		defer file.Close()
 
 		// Set content type header
-		c.Header("Content-Type", media.MimeType)
-		c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", path))
-		c.Header("ETag", etag)
-		c.Header("Last-Modified", media.UpdatedAt.Format(http.TimeFormat))
-		c.Header("Content-Length", fmt.Sprintf("%d", media.Size))
-		c.Header("Accept-Ranges", "bytes")
-		c.Header("Cache-Control", "public, max-age=31536000")
+		c.Set("Content-Type", media.MimeType)
+		c.Set("Content-Disposition", fmt.Sprintf("inline; filename=%s", path))
+		c.Set("ETag", etag)
+		c.Set("Last-Modified", media.UpdatedAt.Format(http.TimeFormat))
+		c.Set("Content-Length", fmt.Sprintf("%d", media.Size))
+		c.Set("Accept-Ranges", "bytes")
+		c.Set("Cache-Control", "public, max-age=31536000")
 
 		// Stream the file to the response
-		if _, err := io.Copy(c.Writer, file); err != nil {
-			c.String(http.StatusInternalServerError, "Error streaming media file")
-			return
+		if _, err := io.Copy(c.Response().BodyWriter(), file); err != nil {
+			return c.Status(http.StatusInternalServerError).SendString("Error streaming media file")
 		}
+
+		return nil
 	}
 }

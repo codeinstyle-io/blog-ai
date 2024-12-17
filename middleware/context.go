@@ -2,16 +2,16 @@ package middleware
 
 import (
 	"codeinstyle.io/captain/repository"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 // LoadMenuItems loads menu items into the context
-func LoadMenuItems(repos *repository.Repositories) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func LoadMenuItems(repos *repository.Repositories) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		menuItems, err := repos.MenuItems.FindAll()
 		if err == nil {
-			c.Set("menuItems", menuItems)
+			c.Bind(fiber.Map{"menuItems": menuItems})
 		}
-		c.Next()
+		return nil
 	}
 }

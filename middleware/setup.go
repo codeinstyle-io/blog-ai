@@ -4,24 +4,20 @@ import (
 	"net/http"
 
 	"codeinstyle.io/captain/repository"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 // RequireSetup checks if there are any users in the system
-func RequireSetup(repos *repository.Repositories) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		users, err := repos.Users.FindAll()
-		if err != nil || len(users) == 0 {
-			if c.Request.URL.Path != "/admin/setup" {
-				c.Redirect(http.StatusFound, "/admin/setup")
-				c.Abort()
-				return
+func RequireSetup(repos *repository.Repositories) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		usersCount, err := repos.Users.CountAll()
+		if err != nil || usersCount == 0 {
+			if c.Path() != "/admin/setup" {
+				return c.Redirect("/admin/setup", http.StatusFound)
 			}
-		} else if c.Request.URL.Path == "/admin/setup" {
-			c.Redirect(http.StatusFound, "/")
-			c.Abort()
-			return
+		} else if c.Path() == "/admin/setup" {
+			return c.Redirect("/", http.StatusFound)
 		}
-		c.Next()
+		return c.Next()
 	}
 }

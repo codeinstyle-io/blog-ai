@@ -60,6 +60,15 @@ func (r *PostRepository) CountByAuthor(user *models.User) (int64, error) {
 	return count, err
 }
 
+func (r *PostRepository) CountByTag(tagID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Post{}).
+		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+		Where("post_tags.tag_id = ?", tagID).
+		Count(&count).Error
+	return count, err
+}
+
 // FindByTag finds all posts with a specific tag slug
 func (r *PostRepository) FindByTag(tag string) ([]*models.Post, error) {
 	var posts []*models.Post

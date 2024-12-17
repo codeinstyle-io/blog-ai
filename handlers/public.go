@@ -18,7 +18,7 @@ import (
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
 	mdhtml "github.com/gomarkdown/markdown/html"
@@ -27,17 +27,17 @@ import (
 
 // PublicHandlers handles all public routes
 type PublicHandlers struct {
-	*BaseHandler
+	*BaseHandlers
 }
 
 // NewPublicHandlers creates a new public handlers instance
 func NewPublicHandlers(repos *repository.Repositories, cfg *config.Config) *PublicHandlers {
 	return &PublicHandlers{
-		BaseHandler: NewBaseHandler(repos, cfg),
+		BaseHandlers: NewBaseHandlers(repos, cfg),
 	}
 }
 
-func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
+func (h *PublicHandlers) GetChromaCSS(c *fiber.Ctx) error {
 	// Generate ETag based on the chroma style name
 	settings, _ := h.repos.Settings.Get()
 
@@ -45,10 +45,10 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(settings.ChromaStyle)))
 
 	// Check If-None-Match header first
-	if match := c.GetHeader("If-None-Match"); match != "" {
+	if match := c.Get("If-None-Match"); match != "" {
 		if match == etag {
 			c.Status(http.StatusNotModified)
-			return
+			return nil
 		}
 	}
 
@@ -60,27 +60,25 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	formatter := html.New(html.WithClasses(true))
 	buf := new(bytes.Buffer)
 	if err := formatter.WriteCSS(buf, style); err != nil {
-		c.String(http.StatusInternalServerError, "")
-		return
+		return c.Status(http.StatusInternalServerError).SendString("")
 	}
 	chromaCSS = buf.String()
 
 	// Set headers
-	c.Header("ETag", etag)
-	c.Header("Content-Type", "text/css")
-	c.String(http.StatusOK, chromaCSS)
+	c.Set("ETag", etag)
+	c.Set("Content-Type", "text/css")
+	return c.SendString(chromaCSS)
 }
 
-func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
-	slug := c.Param("slug")
+func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
+	slug := c.Params("slug")
 	settings, _ := h.repos.Settings.Get()
 
-	post, err := h.postRepo.FindBySlug(slug)
+	post, err := h.repos.Posts.FindBySlug(slug)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
+		return c.Status(http.StatusNotFound).Render("404", h.addCommonData(c, fiber.Map{
 			"title": "Post not found",
 		}))
-		return
 	}
 
 	// Render markdown content
@@ -93,25 +91,24 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	}
 	post.PublishedAt = post.PublishedAt.In(loc)
 
-	c.HTML(http.StatusOK, "post.tmpl", h.addCommonData(gin.H{
+	return c.Render("post", h.addCommonData(c, fiber.Map{
 		"title": post.Title,
 		"post":  post,
 	}))
 }
 
-func (h *PublicHandlers) ListPosts(c *gin.Context) {
+func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 	settings, _ := h.repos.Settings.Get()
 
 	// Get page number from query params
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	posts, total, err := h.postRepo.FindVisible(page, settings.PostsPerPage)
+	posts, total, err := h.repos.Posts.FindVisible(page, settings.PostsPerPage)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{}))
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
@@ -119,7 +116,7 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
 
-	c.HTML(http.StatusOK, "posts.tmpl", h.addCommonData(gin.H{
+	return c.Render("posts", h.addCommonData(c, fiber.Map{
 		"title":       "Latest Articles",
 		"posts":       posts,
 		"currentPage": page,
@@ -127,29 +124,27 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 	}))
 }
 
-func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
-	tagSlug := c.Param("slug")
+func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
+	tagSlug := c.Params("slug")
 	settings, _ := h.repos.Settings.Get()
 
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	tag, err := h.tagRepo.FindBySlug(tagSlug)
+	tag, err := h.repos.Tags.FindBySlug(tagSlug)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
+		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{
 			"title": "Error",
 		}))
-		return
 	}
 
-	posts, total, err := h.postRepo.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
+	posts, total, err := h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
+		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{
 			"title": "Error",
 		}))
-		return
 	}
 
 	// Process posts
@@ -158,7 +153,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 
 	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
 
-	c.HTML(http.StatusOK, "tag_posts.tmpl", h.addCommonData(gin.H{
+	return c.Render("tag_posts", h.addCommonData(c, fiber.Map{
 		"title":      fmt.Sprintf("Posts tagged with %s", tag.Name),
 		"posts":      posts,
 		"tag":        tag,
@@ -167,14 +162,13 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	}))
 }
 
-func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
-	slug := c.Param("slug")
-	page, err := h.pageRepo.FindBySlug(slug)
+func (h *PublicHandlers) GetPageBySlug(c *fiber.Ctx) error {
+	slug := c.Params("slug")
+	page, err := h.repos.Pages.FindBySlug(slug)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
+		return c.Status(http.StatusNotFound).Render("404", h.addCommonData(c, fiber.Map{
 			"title": "Page not found",
 		}))
-		return
 	}
 
 	// Render content based on type
@@ -182,22 +176,22 @@ func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
 		page.Content = renderMarkdown(page.Content)
 	}
 
-	c.HTML(http.StatusOK, "page.tmpl", h.addCommonData(gin.H{
+	return c.Render("page", h.addCommonData(c, fiber.Map{
 		"title": page.Title,
 		"page":  page,
 	}))
 }
 
-func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
+func (h *PublicHandlers) addCommonData(c *fiber.Ctx, data fiber.Map) fiber.Map {
 	// Get menu items
-	menuItems, _ := h.menuRepo.FindAll()
+	menuItems, _ := h.repos.MenuItems.FindAll()
 	settings, _ := h.repos.Settings.Get()
 
 	// Add menu items to the data
 	data["menuItems"] = menuItems
 
 	// Add site config from settings
-	data["config"] = gin.H{
+	data["config"] = fiber.Map{
 		"SiteTitle":    settings.Title,
 		"SiteSubtitle": settings.Subtitle,
 		"Theme":        settings.Theme,

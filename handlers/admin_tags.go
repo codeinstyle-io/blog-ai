@@ -5,7 +5,7 @@ import (
 
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 // tagResponse struct for API responses
@@ -14,160 +14,147 @@ type tagResponse struct {
 	Name string `json:"name"`
 }
 
-// ListTags shows all tags and their post counts
-func (h *AdminHandlers) ListTags(c *gin.Context) {
-	tagsAndCount, err := h.tagRepo.FindPostsAndCount()
-
+// ListTags handles the GET /admin/tags route
+func (h *AdminHandlers) ListTags(c *fiber.Ctx) error {
+	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_tags.tmpl", h.addCommonData(c, gin.H{
-		"title": "Tags",
-		"tags":  tagsAndCount,
-	}))
+	return c.Render("admin_tags", fiber.Map{
+		"tags": tags,
+	})
 }
 
-// DeleteTag removes a tag without affecting posts
-func (h *AdminHandlers) DeleteTag(c *gin.Context) {
-	id := c.Param("id")
-
-	tagID, err := utils.ParseUint(id)
+// DeleteTag handles the DELETE /admin/tags/:id route
+func (h *AdminHandlers) DeleteTag(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
-		return
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid tag ID"})
 	}
 
-	tag, err := h.tagRepo.FindByID(tagID)
+	tag, err := h.repos.Tags.FindByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Tag not found"})
-		return
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Tag not found"})
 	}
 
-	if err := h.tagRepo.Delete(tag); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	// Check if tag has any posts
+	count, err := h.repos.Posts.CountByTag(tag.ID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check tag usage"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Tag deleted successfully"})
+	if count > 0 {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Cannot delete tag with associated posts"})
+	}
+
+	// Delete tag
+	if err := h.repos.Tags.Delete(tag); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+	}
+
+	return c.Redirect("/admin/tags")
 }
 
 // ConfirmDeleteTag shows deletion confirmation page for a tag
-func (h *AdminHandlers) ConfirmDeleteTag(c *gin.Context) {
-	id := c.Param("id")
-
-	tagID, err := utils.ParseUint(id)
+func (h *AdminHandlers) ConfirmDeleteTag(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	tag, err := h.tagRepo.FindByID(tagID)
+	tag, err := h.repos.Tags.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_confirm_delete_tag.tmpl", h.addCommonData(c, gin.H{
-		"title": "Confirm Delete Tag",
-		"tag":   tag,
-	}))
+	return c.Render("admin_confirm_delete_tag", fiber.Map{
+		"tag": tag,
+	})
 }
 
-// ShowCreateTag displays the tag creation form
-func (h *AdminHandlers) ShowCreateTag(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
-		"title": "Create Tag",
-	}))
+// ShowCreateTag handles the GET /admin/tags/create route
+func (h *AdminHandlers) ShowCreateTag(c *fiber.Ctx) error {
+	return c.Render("admin_create_tag", fiber.Map{
+		"tag": &models.Tag{},
+	})
 }
 
-// CreateTag handles tag creation
-func (h *AdminHandlers) CreateTag(c *gin.Context) {
-	name := c.PostForm("name")
-	if name == "" {
-		c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
-			"error": "Tag name is required",
-		}))
-		return
+// CreateTag handles the POST /admin/tags/create route
+func (h *AdminHandlers) CreateTag(c *fiber.Ctx) error {
+	tag := new(models.Tag)
+
+	if err := c.BodyParser(tag); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_create_tag", fiber.Map{
+			"tag":   &tag,
+			"error": "Invalid form data",
+		})
 	}
 
-	tag := models.Tag{
-		Name: name,
-	}
-
-	if err := h.tagRepo.Create(&tag); err != nil {
-		if err.Error() == "UNIQUE constraint failed: tags.name" {
-			c.HTML(http.StatusBadRequest, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
-				"error": "Tag name already exists",
-			}))
-			return
-		}
-
-		c.HTML(http.StatusInternalServerError, "admin_create_tag.tmpl", h.addCommonData(c, gin.H{
+	// Create tag
+	if err := h.repos.Tags.Create(tag); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_create_tag", fiber.Map{
+			"tag":   &tag,
 			"error": "Failed to create tag",
-		}))
-		return
+		})
 	}
 
-	c.Redirect(http.StatusFound, "/admin/tags")
+	return c.Redirect("/admin/tags")
 }
 
-// ShowEditTag displays the tag update form
-func (h *AdminHandlers) ShowEditTag(c *gin.Context) {
-	id := c.Param("id")
-	tagID, err := utils.ParseUint(id)
-
+// ShowEditTag handles the GET /admin/tags/:id/edit route
+func (h *AdminHandlers) ShowEditTag(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	tag, err := h.tagRepo.FindByID(tagID)
+	tag, err := h.repos.Tags.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_edit_tag.tmpl", h.addCommonData(c, gin.H{
-		"title": "Edit Tag",
-		"tag":   tag,
-	}))
+	return c.Render("admin_edit_tag", fiber.Map{
+		"tag": tag,
+	})
 }
 
-// UpdateTag updates a tag
-func (h *AdminHandlers) UpdateTag(c *gin.Context) {
-	id := c.Param("id")
-	tagID, err := utils.ParseUint(id)
-
+// UpdateTag handles the POST /admin/tags/:id route
+func (h *AdminHandlers) UpdateTag(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	tag, err := h.tagRepo.FindByID(tagID)
+	tag, err := h.repos.Tags.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	tag.Name = c.PostForm("name")
-	tag.Slug = c.PostForm("slug")
-
-	if err := h.tagRepo.Update(tag); err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+	// Parse form data
+	if err := c.BodyParser(&tag); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_tag", fiber.Map{
+			"tag":   tag,
+			"error": "Invalid form data",
+		})
 	}
 
-	c.Redirect(http.StatusFound, "/admin/tags")
+	// Update tag
+	if err := h.repos.Tags.Update(tag); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_edit_tag", fiber.Map{
+			"tag":   tag,
+			"error": "Failed to update tag",
+		})
+	}
+
+	return c.Redirect("/admin/tags")
 }
 
 // GetTags returns a list of tags for API consumption
-func (h *AdminHandlers) GetTags(c *gin.Context) {
+func (h *AdminHandlers) GetTags(c *fiber.Ctx) error {
 	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tags"})
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch tags"})
 	}
 
 	var response []tagResponse
@@ -178,5 +165,5 @@ func (h *AdminHandlers) GetTags(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, response)
+	return c.JSON(response)
 }

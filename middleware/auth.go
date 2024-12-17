@@ -1,41 +1,42 @@
 package middleware
 
 import (
-	"net/http"
-
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func abort(c *gin.Context) {
-	c.SetCookie(system.CookieName, "", -1, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/login")
-	c.Abort()
+func abort(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     system.CookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   false,
+		HTTPOnly: true,
+	})
+	return c.Redirect("/login")
 }
 
 // AuthRequired ensures that a user is authenticated
-func AuthRequired(repos *repository.Repositories) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token, err := c.Cookie(system.CookieName)
-		if err != nil {
-			abort(c)
-			return
+func AuthRequired(repos *repository.Repositories) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		token := c.Cookies(system.CookieName)
+		if token == "" {
+			return abort(c)
 		}
 
 		session, err := repos.Sessions.FindByToken(token)
 		if err != nil {
-			abort(c)
-			return
+			return abort(c)
 		}
 
 		user, err := repos.Users.FindByID(session.UserID)
 		if err != nil {
-			abort(c)
-			return
+			return abort(c)
 		}
 
-		c.Set("user", user)
-		c.Next()
+		c.Locals("user", user)
+		return c.Next()
 	}
 }
