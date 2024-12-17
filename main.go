@@ -84,6 +84,8 @@ func main() {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
+	var srv *server.Server
+
 	// Load config
 	cfg, err := config.InitConfig()
 	if err != nil {
@@ -117,7 +119,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Create and start server
-	srv := server.New(database, cfg, embeddedFS)
+	if srv, err = server.New(database, cfg, embeddedFS); err != nil {
+		log.Fatalf("Failed to initialize server: %v", err)
+	}
 
 	// Run the server
 	if err := srv.Run(); err != nil {

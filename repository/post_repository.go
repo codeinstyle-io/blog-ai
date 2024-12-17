@@ -5,6 +5,8 @@ import (
 
 	"codeinstyle.io/captain/models"
 	"gorm.io/gorm"
+
+	"codeinstyle.io/captain/utils"
 )
 
 // PostRepository handles database operations for posts
@@ -154,10 +156,12 @@ func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
 		}
 
 		var existingTag models.Tag
-		err := r.db.Where("name = ?", tag).First(&existingTag).Error
+		slug := utils.Slugify(tag)
+		err := r.db.Where("slug = ?", slug).First(&existingTag).Error
 		if err != nil {
 			existingTag = models.Tag{
 				Name: tag,
+				Slug: slug,
 			}
 			if err := r.db.Create(&existingTag).Error; err != nil {
 				return err

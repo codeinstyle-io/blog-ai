@@ -32,7 +32,7 @@ type Server struct {
 }
 
 // New creates a new server instance
-func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
+func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) {
 	// Initialize template engine
 
 	var err error
@@ -40,6 +40,7 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 	var staticFS fs.FS
 	themeName := cfg.Site.Theme
 	repositories := repository.NewRepositories(db)
+	sessionStore := session.New()
 
 	// Load theme static files
 	if adminStaticFS, staticFS, err = setupStatics(themeName, embeddedFS); err != nil {
@@ -67,33 +68,37 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 		Browse: false, // TODO: Set to true for development
 	}))
 
-	app.Use(recover.New())
-
-	app.Use(middleware.LoadMenuItems(repositories))
-	app.Use(middleware.LoadSettings(repositories))
-	app.Use(middleware.LoadVersion(repositories))
-	app.Use(middleware.LoadUserData(repositories))
-
-	return &Server{
+	s := &Server{
 		app:        app,
 		repos:      repositories,
 		config:     cfg,
 		embeddedFS: embeddedFS,
 	}
 
+	if err := s.setupRouter(sessionStore); err != nil {
+		return nil, fmt.Errorf("error setting up router: %v", err)
+	}
+
+	return s, nil
+
 }
 
 // setupRouter configures all routes and middleware
-func (s *Server) setupRouter() error {
-	// Register routes
-	sessionStore := session.New()
+func (s *Server) setupRouter(sessionStore *session.Store) error {
+	// Add middleware to load menu items
+	s.app.Use(recover.New(
+		recover.Config{
+			EnableStackTrace: true,
+		},
+	))
+	s.app.Use(middleware.LoadMenuItems(s.repos))
+	s.app.Use(middleware.LoadSettings(s.repos))
+	s.app.Use(middleware.LoadVersion(s.repos))
+	s.app.Use(middleware.LoadUserData(s.repos, sessionStore))
 
 	handlers.RegisterPublicRoutes(s.app, s.repos, s.config)
 	handlers.RegisterAuthRoutes(s.app, s.repos, s.config, sessionStore)
 	handlers.RegisterAdminRoutes(s.app, s.repos, s.config, sessionStore)
-
-	// Add middleware to load menu items
-	s.app.Use(middleware.LoadMenuItems(s.repos))
 
 	return nil
 }
@@ -158,11 +163,6 @@ func setupTemplates(themeName string, embeddedFS embed.FS) (*html.Engine, error)
 // Run starts the HTTP server
 func (s *Server) Run() error {
 	// Load theme based on config
-
-	// Setup router with theme
-	if err := s.setupRouter(); err != nil {
-		return fmt.Errorf("error setting up router: %v", err)
-	}
 
 	addr := fmt.Sprintf("%s:%d", s.config.Server.Host, s.config.Server.Port)
 	fmt.Printf("Server running on http://%s\n", addr)

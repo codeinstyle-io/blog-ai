@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -56,9 +58,11 @@ func (h *AdminHandlers) ShowCreatePost(c *fiber.Ctx) error {
 
 // CreatePost handles post creation
 func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
-	// Get the logged in user
-	publishedAt := c.FormValue("published_at")
 
+	// Get settings for timezone
+	settings := c.Locals("settings").(*models.Settings)
+
+	// Get the logged in user
 	exists := c.Locals("user")
 	if exists == nil {
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
@@ -67,39 +71,26 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	}
 	user := exists.(*models.User)
 
-	// Parse form data
-	var post models.Post
-	if err := c.BodyParser(&post); err != nil {
+	// Parse multipart form
+	form, err := c.MultipartForm()
+	if err != nil {
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
 			"error": "Invalid form data",
-			"post":  &post,
+			"post":  &models.Post{},
 		})
 	}
 
-	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
+	// Parse form data
+	post, err := postFromForm(form, settings)
+	post.AuthorID = user.ID
+
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
-			"error": "Failed to get settings",
+		fmt.Printf("Error parsing form: %v\n", err)
+		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
+			"error": "Unable to parse form into post",
 			"post":  &post,
 		})
 	}
-
-	// Load timezone from settings
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	// Convert post time to user timezone
-	var parsedTime time.Time
-
-	if publishedAt != "" {
-		parsedTime = post.PublishedAt.In(loc)
-	} else {
-		parsedTime = time.Now().In(loc)
-	}
-	post.PublishedAt = parsedTime
 
 	// Basic validation
 	if post.Title == "" || post.Slug == "" || post.Content == "" {
@@ -109,22 +100,19 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set author to current user
-	post.AuthorID = user.ID
-
 	// Handle tags
-
 	tags := strings.Split(c.FormValue("tags"), ",")
 
 	// Create post with transaction to ensure atomic operation
-	if err := h.repos.Posts.Create(&post); err != nil {
+	if err := h.repos.Posts.Create(post); err != nil {
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
 			"error": "Failed to create post",
 			"post":  &post,
 		})
 	}
 
-	if err := h.repos.Posts.AssociateTags(&post, tags); err != nil {
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
+		fmt.Printf("Error associating tags: %v\n", err)
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
 			"error": "Failed to associate tags",
 			"post":  &post,
@@ -339,4 +327,43 @@ func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {
 		"allTags":  allTags,
 		"postTags": post.Tags,
 	})
+}
+
+func postFromForm(form *multipart.Form, settings *models.Settings) (*models.Post, error) {
+	post := &models.Post{
+		Title:   form.Value["title"][0],
+		Slug:    form.Value["slug"][0],
+		Content: form.Value["content"][0],
+	}
+
+	if _, ok := form.Value["visible"]; ok {
+		post.Visible = true
+	}
+
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	publishedAt := form.Value["publishedAt"][0]
+	parsedTime, err := parseTime(publishedAt, loc)
+	post.PublishedAt = parsedTime
+
+	return post, err
+}
+
+func parseTime(publishedAt string, loc *time.Location) (time.Time, error) {
+	var err error
+	var parsedTime time.Time
+
+	if publishedAt != "" {
+		// 2024-12-17T23:30
+		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
+		if err != nil {
+			return time.Time{}, errors.New("invalid date format")
+		}
+	} else {
+		parsedTime = time.Now().In(loc)
+	}
+
+	return parsedTime, nil
 }

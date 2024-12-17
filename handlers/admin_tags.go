@@ -16,7 +16,7 @@ type tagResponse struct {
 
 // ListTags handles the GET /admin/tags route
 func (h *AdminHandlers) ListTags(c *fiber.Ctx) error {
-	tags, err := h.repos.Tags.FindAll()
+	tags, err := h.repos.Tags.FindPostsAndCount()
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
