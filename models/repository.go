@@ -39,7 +39,6 @@ type UserRepository interface {
 	Delete(user *User) error
 	FindByID(id uint) (*User, error)
 	FindByEmail(email string) (*User, error)
-	FindBySessionToken(token string) (*User, error)
 	FindAll() ([]*User, error)
 	CountByEmail(email string) (int64, error)
 	CountAll() (int64, error)
@@ -85,12 +84,4 @@ type MediaRepository interface {
 	FindByPath(path string) (*Media, error)
 	FindByID(id uint) (*Media, error)
 	FindAll() ([]*Media, error)
-}
-
-// SessionRepository defines the interface for session operations
-type SessionRepository interface {
-	Create(session *Session) error
-	FindByToken(token string) (*Session, error)
-	DeleteByToken(token string) error
-	DeleteExpired() error
 }

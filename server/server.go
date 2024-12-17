@@ -17,6 +17,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/storage/sqlite3"
 	"github.com/gofiber/template/html/v2"
 	"github.com/yalue/merged_fs"
 	"gorm.io/gorm"
@@ -40,7 +41,10 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 	var staticFS fs.FS
 	themeName := cfg.Site.Theme
 	repositories := repository.NewRepositories(db)
-	sessionStore := session.New()
+	sessionStorage := sqlite3.New(sqlite3.Config{Database: cfg.DB.Path})
+	sessionStore := session.New(session.Config{
+		Storage: sessionStorage,
+	})
 
 	// Load theme static files
 	if adminStaticFS, staticFS, err = setupStatics(themeName, embeddedFS); err != nil {
