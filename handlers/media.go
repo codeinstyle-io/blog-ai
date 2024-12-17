@@ -32,12 +32,12 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber
 
 	return func(c *fiber.Ctx) error {
 		// Get path and trim leading slash if present
-		path := c.Params("path")
+		path := c.Path()
 		if path == "" {
 			return c.Status(http.StatusBadRequest).SendString("No path provided")
 		}
 		// Trim the leading slash as paths are stored without it in the database
-		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimPrefix(path, "/media/")
 
 		// Query the media from the database
 		media, err := repositories.Media.FindByPath(path)
