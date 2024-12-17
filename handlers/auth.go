@@ -47,6 +47,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	// Find user by email
 	user, err := h.repos.Users.FindByEmail(email)
 	if err != nil {
+		// Timing attack prevention
+		utils.CheckPasswordHash(password, "")
 		return c.Status(http.StatusUnauthorized).Render("login", fiber.Map{
 			"error": "Invalid credentials",
 		})
