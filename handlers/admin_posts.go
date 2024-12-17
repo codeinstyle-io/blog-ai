@@ -259,16 +259,22 @@ func (h *AdminHandlers) DeletePost(c *fiber.Ctx) error {
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid post ID",
+		})
 	}
 
 	post, err := h.repos.Posts.FindByID(tagID)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error": "Post not found",
+		})
 	}
 
 	if err := h.repos.Posts.Delete(post); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete post",
+		})
 	}
 
 	return c.JSON(fiber.Map{"message": "Post deleted successfully"})

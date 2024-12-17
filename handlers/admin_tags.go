@@ -50,10 +50,10 @@ func (h *AdminHandlers) DeleteTag(c *fiber.Ctx) error {
 
 	// Delete tag
 	if err := h.repos.Tags.Delete(tag); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete tag"})
 	}
 
-	return c.Redirect("/admin/tags")
+	return c.JSON(fiber.Map{"message": "Tag deleted successfully"})
 }
 
 // ConfirmDeleteTag shows deletion confirmation page for a tag

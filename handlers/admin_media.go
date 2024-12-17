@@ -97,22 +97,30 @@ func (h *AdminMediaHandlers) DeleteMedia(c *fiber.Ctx) error {
 	mediaID, err := utils.ParseUint(c.Params("id"))
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid media ID",
+		})
 	}
 
 	media, err := h.mediaRepo.FindByID(mediaID)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error": "Media not found",
+		})
 	}
 
 	// Delete file using storage provider
 	if err := h.storage.Delete(media.Path); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete file",
+		})
 	}
 
 	// Delete record
 	if err := h.mediaRepo.Delete(media); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete media record",
+		})
 	}
 
 	return c.JSON(fiber.Map{"message": "Media deleted successfully"})
