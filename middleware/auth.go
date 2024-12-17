@@ -17,7 +17,7 @@ func abort(c *fiber.Ctx) error {
 		Secure:   false,
 		HTTPOnly: true,
 	})
-	return c.Redirect("/login")
+	return c.Redirect("/login?next=" + c.Path())
 }
 
 // AuthRequired ensures that a user is authenticated

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"codeinstyle.io/captain/cmd"
@@ -27,13 +28,19 @@ func NewAuthHandlers(repos *repository.Repositories, cfg *config.Config, session
 }
 
 func (h *AuthHandlers) ShowLogin(c *fiber.Ctx) error {
-	return c.Render("login", fiber.Map{})
+	next := c.Query("next")
+	return c.Render("login", fiber.Map{
+		"next": next,
+	})
 }
 
 func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 	next := c.FormValue("next")
+
+	fmt.Println("next:", next)
+
 	if next == "" {
 		next = "/admin"
 	}
@@ -41,6 +48,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	if err := cmd.ValidateEmail(email); err != nil {
 		return c.Status(http.StatusBadRequest).Render("login", fiber.Map{
 			"error": "Invalid form data",
+			"email": email,
+			"next":  next,
 		})
 	}
 
@@ -51,6 +60,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 		utils.CheckPasswordHash(password, "")
 		return c.Status(http.StatusUnauthorized).Render("login", fiber.Map{
 			"error": "Invalid credentials",
+			"email": email,
+			"next":  next,
 		})
 	}
 
@@ -58,6 +69,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	if !utils.CheckPasswordHash(password, user.Password) {
 		return c.Status(http.StatusUnauthorized).Render("login", fiber.Map{
 			"error": "Invalid credentials",
+			"email": email,
+			"next":  next,
 		})
 	}
 
@@ -66,6 +79,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
 			"error": "Failed to create session",
+			"email": email,
+			"next":  next,
 		})
 	}
 
@@ -75,6 +90,8 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	if err := sess.Save(); err != nil {
 		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
 			"error": "Failed to save session",
+			"email": email,
+			"next":  next,
 		})
 	}
 
