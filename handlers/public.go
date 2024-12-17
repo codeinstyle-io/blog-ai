@@ -135,8 +135,8 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 
 	tag, err := h.repos.Tags.FindBySlug(tagSlug)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{
-			"title": "Error",
+		return c.Status(http.StatusInternalServerError).Render("404", h.addCommonData(c, fiber.Map{
+			"title": "Tag not found",
 		}))
 	}
 

@@ -46,7 +46,7 @@ func TestAuthHandlers_Login(t *testing.T) {
 	app, authHandlers := setupAuthTest(t, database)
 
 	// Add routes
-	app.Get("/login", authHandlers.Login)
+	app.Get("/login", authHandlers.ShowLogin)
 	app.Post("/login", authHandlers.PostLogin)
 
 	tests := []struct {

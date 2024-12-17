@@ -14,7 +14,6 @@ import (
 )
 
 func TestAuthRequired(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	database := db.SetupTestDB()
 	repos := repository.NewRepositories(database)
 
