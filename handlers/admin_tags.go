@@ -152,6 +152,7 @@ func (h *AdminHandlers) UpdateTag(c *gin.Context) {
 	}
 
 	tag.Name = c.PostForm("name")
+	tag.Slug = c.PostForm("slug")
 
 	if err := h.tagRepo.Update(tag); err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
