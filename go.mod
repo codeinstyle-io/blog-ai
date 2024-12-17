@@ -11,6 +11,7 @@ require (
 	github.com/aws/smithy-go v1.19.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/storage/sqlite3 v1.3.8
 	github.com/gofiber/template/html/v2 v2.1.0
 	github.com/gomarkdown/markdown v0.0.0-20241105142532-d03b89096d81
 	github.com/spf13/cobra v1.8.1
@@ -20,6 +21,8 @@ require (
 	golang.org/x/term v0.27.0
 	gorm.io/gorm v1.25.12
 )
+
+require github.com/mattn/go-sqlite3 v1.14.17 // indirect
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect

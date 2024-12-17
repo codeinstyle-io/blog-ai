@@ -6,6 +6,7 @@ import (
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 // RegisterPublicRoutes registers all public routes
@@ -25,8 +26,8 @@ func RegisterPublicRoutes(app *fiber.App, repos *repository.Repositories, cfg *c
 }
 
 // RegisterAuthRoutes registers all authentication routes
-func RegisterAuthRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config) {
-	authHandlers := NewAuthHandlers(repos, cfg)
+func RegisterAuthRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) {
+	authHandlers := NewAuthHandlers(repos, cfg, sessionStore)
 
 	app.Get("/admin/setup", authHandlers.HandleSetup)
 	app.Post("/admin/setup", authHandlers.HandleSetup)
@@ -40,13 +41,13 @@ func RegisterAuthRoutes(app *fiber.App, repos *repository.Repositories, cfg *con
 }
 
 // RegisterAdminRoutes registers all admin routes
-func RegisterAdminRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config) {
+func RegisterAdminRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) {
 	storage := storage.NewStorage(cfg)
 	adminHandlers := NewAdminHandlers(repos, cfg)
 	adminMediaHandlers := NewAdminMediaHandlers(repos, cfg, storage)
 
 	admin := app.Group("/admin")
-	admin.Use(middleware.AuthRequired(repos))
+	admin.Use(middleware.AuthRequired(repos, sessionStore))
 
 	// Dashboard
 	admin.Get("/", adminHandlers.Index)

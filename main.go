@@ -17,6 +17,7 @@ import (
 //go:embed embedded/admin/static/css/*
 //go:embed embedded/admin/static/js/*
 //go:embed embedded/admin/static/fonts/*
+//go:embed embedded/admin/templates/includes/*
 //go:embed embedded/admin/templates/*
 //go:embed embedded/public/templates/*
 //go:embed embedded/public/static/css/*

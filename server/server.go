@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 
@@ -16,6 +15,8 @@ import (
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	"github.com/yalue/merged_fs"
 	"gorm.io/gorm"
@@ -65,6 +66,8 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 		Browse: false, // TODO: Set to true for development
 	}))
 
+	app.Use(recover.New())
+
 	return &Server{
 		app:        app,
 		repos:      repository.NewRepositories(db),
@@ -77,9 +80,11 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 // setupRouter configures all routes and middleware
 func (s *Server) setupRouter() error {
 	// Register routes
+	sessionStore := session.New()
+
 	handlers.RegisterPublicRoutes(s.app, s.repos, s.config)
-	handlers.RegisterAuthRoutes(s.app, s.repos, s.config)
-	handlers.RegisterAdminRoutes(s.app, s.repos, s.config)
+	handlers.RegisterAuthRoutes(s.app, s.repos, s.config, sessionStore)
+	handlers.RegisterAdminRoutes(s.app, s.repos, s.config, sessionStore)
 
 	// Add middleware to load menu items
 	s.app.Use(middleware.LoadMenuItems(s.repos))
@@ -137,20 +142,6 @@ func setupTemplates(themeName string, embeddedFS embed.FS) (*html.Engine, error)
 		}
 		templateFS = merged_fs.MergeMultiple(userTemplatesFS, templateFS)
 	}
-
-	templateFS, err = fs.Sub(templateFS, ".")
-	if err != nil {
-		return nil, fmt.Errorf("error setting up theme templates: %v", err)
-	}
-
-	fmt.Println("TemplateFS:")
-	fs.WalkDir(templateFS, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(path)
-		return nil
-	})
 
 	engine := html.NewFileSystem(http.FS(templateFS), ".tmpl")
 	engine.AddFuncMap(utils.GetTemplateFuncs())

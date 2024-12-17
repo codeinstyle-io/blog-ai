@@ -15,14 +15,14 @@ import (
 // AuthHandlers handles all authentication related routes
 type AuthHandlers struct {
 	*BaseHandlers
-	store *session.Store
+	sessionStore *session.Store
 }
 
 // NewAuthHandlers creates a new auth handlers instance
-func NewAuthHandlers(repos *repository.Repositories, cfg *config.Config) *AuthHandlers {
+func NewAuthHandlers(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *AuthHandlers {
 	return &AuthHandlers{
 		BaseHandlers: NewBaseHandlers(repos, cfg),
-		store:        session.New(),
+		sessionStore: sessionStore,
 	}
 }
 
@@ -60,14 +60,15 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	}
 
 	// Set session
-	sess, err := h.store.Get(c)
+	sess, err := h.sessionStore.Get(c)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
 			"error": "Failed to create session",
 		})
 	}
 
-	sess.Set("user_id", user.ID)
+	sess.Set("loggedIn", true)
+
 	if err := sess.Save(); err != nil {
 		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{
 			"error": "Failed to save session",
@@ -78,7 +79,7 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 }
 
 func (h *AuthHandlers) Logout(c *fiber.Ctx) error {
-	sess, err := h.store.Get(c)
+	sess, err := h.sessionStore.Get(c)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}

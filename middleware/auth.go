@@ -4,6 +4,7 @@ import (
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 func abort(c *fiber.Ctx) error {
@@ -19,24 +20,20 @@ func abort(c *fiber.Ctx) error {
 }
 
 // AuthRequired ensures that a user is authenticated
-func AuthRequired(repos *repository.Repositories) fiber.Handler {
+func AuthRequired(repos *repository.Repositories, sessionStore *session.Store) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		token := c.Cookies(system.CookieName)
-		if token == "" {
-			return abort(c)
-		}
+		session, err := sessionStore.Get(c)
 
-		session, err := repos.Sessions.FindByToken(token)
 		if err != nil {
 			return abort(c)
 		}
 
-		user, err := repos.Users.FindByID(session.UserID)
-		if err != nil {
+		loggedIn, _ := session.Get("loggedIn").(bool)
+
+		if !loggedIn {
 			return abort(c)
 		}
 
-		c.Locals("user", user)
 		return c.Next()
 	}
 }
