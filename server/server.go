@@ -43,7 +43,11 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 	repositories := repository.NewRepositories(db)
 	sessionStorage := sqlite3.New(sqlite3.Config{Database: cfg.DB.Path})
 	sessionStore := session.New(session.Config{
-		Storage: sessionStorage,
+		Storage:        sessionStorage,
+		CookieDomain:   cfg.Site.Domain,
+		CookieHTTPOnly: true,
+		CookieSameSite: "Lax",
+		CookieSecure:   cfg.Site.SecureCookie,
 	})
 
 	// Load theme static files
