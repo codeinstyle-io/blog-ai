@@ -191,9 +191,9 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator(`text=${randomTitle}`)).toBeVisible();
             
             // Check public tag page
-            await page.goto(rootURL + '/tag/e2e');
+            await page.goto(rootURL + '/tags/e2e');
             await expect(page.locator('text=New title')).toBeVisible();
-            await page.goto(rootURL + '/tag/another');
+            await page.goto(rootURL + '/tags/another');
             await expect(page.locator('text=New title')).not.toBeVisible();
         });
 

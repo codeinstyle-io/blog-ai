@@ -19,7 +19,6 @@ func RegisterPublicRoutes(r *gin.Engine, repos *repository.Repositories, cfg *co
 	r.GET("/", publicHandlers.ListPosts)
 	r.GET("/posts/:slug", publicHandlers.GetPostBySlug)
 	r.GET("/pages/:slug", publicHandlers.GetPageBySlug)
-	r.GET("/tag/:slug", publicHandlers.ListPostsByTag)
 	r.GET("/tags/:slug", publicHandlers.ListPostsByTag)
 	r.GET("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
 	r.GET("/media/*path", ServeMedia(repos, cfg))

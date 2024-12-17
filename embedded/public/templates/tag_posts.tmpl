@@ -11,7 +11,7 @@
                 {{ end }}
                 <div class="post-tags">
                     {{ range .Tags }}
-                        <a href="/tag/{{ .Slug }}" class="post-tag">#{{ .Name }}</a>
+                        <a href="/tags/{{ .Slug }}" class="post-tag">#{{ .Name }}</a>
                     {{ end }}
                 </div>
             </article>
@@ -21,13 +21,13 @@
         {{ if gt .totalPages 1 }}
         <div class="pagination">
             {{ if gt .currentPage 1 }}
-                <a href="/tag/{{ .tag.Slug }}?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+                <a href="/tags/{{ .tag.Slug }}?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
             {{ end }}
             
             <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
             
             {{ if lt .currentPage .totalPages }}
-                <a href="/tag/{{ .tag.Slug }}?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+                <a href="/tags/{{ .tag.Slug }}?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
             {{ end }}
         </div>
         {{ end }}
