@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"codeinstyle.io/captain/cmd"
@@ -38,8 +37,6 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 	next := c.FormValue("next")
-
-	fmt.Println("next:", next)
 
 	if next == "" {
 		next = "/admin"
