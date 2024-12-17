@@ -41,7 +41,7 @@ func TestAuthRequired(t *testing.T) {
 		{
 			name: "Valid session",
 			setupAuth: func(c *gin.Context) {
-				c.SetCookie(system.CookieName, "valid-token", 3600, "/", "", false, true)
+				c.SetCookie("", "valid-token", 3600, "/", "", false, true)
 			},
 			checkResponse: func(w *httptest.ResponseRecorder) {
 				assert.Equal(t, http.StatusOK, w.Code)

@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
@@ -11,7 +10,7 @@ import (
 // TODO: Pass the next page
 func abort(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
-		Name:     system.CookieName,
+		Name:     "session_id",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,

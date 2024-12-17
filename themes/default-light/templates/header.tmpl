@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{if .title}}{{.title}} - {{end}}{{.config.SiteTitle}}</title>
+    <title>{{if .title}}{{.title}} - {{end}}{{.settings.Title}}</title>
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/generated/css/chroma.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1><a href="/">{{.config.SiteTitle}}</a></h1>
-            <p class="subtitle">{{.config.SiteSubtitle}}</p>
+            <h1><a href="/">{{.settings.Title}}</a></h1>
+            <p class="subtitle">{{.settings.Subtitle}}</p>
             <nav>
                 <a href="/">Home</a>
                 {{range .menuItems}}

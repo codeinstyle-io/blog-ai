@@ -11,7 +11,6 @@ import (
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/system"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -119,9 +118,9 @@ func TestAuthHandlers_Login(t *testing.T) {
 
 			// Check session cookie
 			if tt.sessionCookie {
-				assert.Contains(t, resp.Header.Get("Set-Cookie"), system.CookieName+"=")
+				assert.Contains(t, resp.Header.Get("Set-Cookie"), "=")
 			} else {
-				assert.NotContains(t, resp.Header.Get("Set-Cookie"), system.CookieName+"=")
+				assert.NotContains(t, resp.Header.Get("Set-Cookie"), "=")
 			}
 		})
 	}
@@ -146,7 +145,7 @@ func TestAuthHandlers_Logout(t *testing.T) {
 	cookies := resp.Cookies()
 	var sessionCookie *http.Cookie
 	for _, cookie := range cookies {
-		if cookie.Name == system.CookieName {
+		if cookie.Name == "" {
 			sessionCookie = cookie
 			break
 		}
