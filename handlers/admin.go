@@ -1,63 +1,55 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
-	"codeinstyle.io/captain/storage"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-const (
-	DefaultTimezone    = "UTC"
-	DefaultChromaStyle = "paraiso-dark"
-	DefaultPostPerPage = 10
-	DefaultTheme       = "light"
-)
-
+// AdminHandlers handles all admin routes
 type AdminHandlers struct {
-	db      *gorm.DB
-	config  *config.Config
-	storage storage.Provider
+	*BaseHandler
 }
 
-func NewAdminHandlers(database *gorm.DB, cfg *config.Config) *AdminHandlers {
-	var provider storage.Provider
-	var err error
-
-	switch cfg.Storage.Provider {
-	case "s3":
-		provider, err = storage.NewS3Provider(cfg.Storage.S3.Bucket, cfg.Storage.S3.Region, cfg.Storage.S3.Endpoint, cfg.Storage.S3.AccessKey, cfg.Storage.S3.SecretKey)
-	default: // "local"
-		provider, err = storage.NewLocalProvider(cfg.Storage.LocalPath)
-	}
-
-	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
-	}
-
+// NewAdminHandlers creates a new admin handlers instance
+func NewAdminHandlers(repos *repository.Repositories, cfg *config.Config) *AdminHandlers {
 	return &AdminHandlers{
-		db:      database,
-		config:  cfg,
-		storage: provider,
+		BaseHandler: NewBaseHandler(repos, cfg),
 	}
 }
 
 func (h *AdminHandlers) Index(c *gin.Context) {
-	var postCount, tagCount, userCount int64
-	var recentPosts []db.Post
+	posts, err := h.repos.Posts.FindAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+	postCount := int64(len(posts))
 
-	// Get counts
-	h.db.Model(&db.Post{}).Count(&postCount)
-	h.db.Model(&db.Tag{}).Count(&tagCount)
-	h.db.Model(&db.User{}).Count(&userCount)
+	tags, err := h.repos.Tags.FindAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+	tagCount := int64(len(tags))
+
+	users, err := h.repos.Users.FindAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+	userCount := int64(len(users))
 
 	// Get 5 most recent posts
-	h.db.Order("published_at desc").Limit(5).Find(&recentPosts)
+	recentPosts, err := h.repos.Posts.FindRecent(5)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
 
 	data := gin.H{
 		"title":       "Dashboard",
@@ -68,12 +60,11 @@ func (h *AdminHandlers) Index(c *gin.Context) {
 	}
 
 	data = h.addCommonData(c, data)
-
 	c.HTML(http.StatusOK, "admin_index.tmpl", data)
 }
 
 func (h *AdminHandlers) ShowSettings(c *gin.Context) {
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
@@ -91,7 +82,7 @@ func (h *AdminHandlers) ShowSettings(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
-	var form db.Settings
+	form, _ := h.repos.Settings.Get()
 	var errors []string
 
 	// Get form values
@@ -169,19 +160,19 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 
 	// Set defaults for optional fields if not provided
 	if form.Timezone == "" {
-		form.Timezone = DefaultTimezone
+		form.Timezone = system.DefaultTimezone
 	}
 	if form.ChromaStyle == "" {
-		form.ChromaStyle = DefaultChromaStyle
+		form.ChromaStyle = system.DefaultChromaStyle
 	}
 	if form.Theme == "" {
-		form.Theme = DefaultTheme
+		form.Theme = system.DefaultTheme
 	}
 	if form.PostsPerPage == 0 {
-		form.PostsPerPage = DefaultPostPerPage
+		form.PostsPerPage = system.DefaultPostsPerPage
 	}
 
-	if err := db.UpdateSettings(h.db, &form); err != nil {
+	if err := h.repos.Settings.Update(form); err != nil {
 		errors = append(errors, "Failed to update settings")
 		data := gin.H{
 			"settings":     form,
@@ -196,4 +187,11 @@ func (h *AdminHandlers) UpdateSettings(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, "/admin/settings")
+}
+
+func (h *AdminHandlers) addCommonData(c *gin.Context, data gin.H) gin.H {
+	settings, _ := h.repos.Settings.Get()
+
+	data["settings"] = settings
+	return data
 }

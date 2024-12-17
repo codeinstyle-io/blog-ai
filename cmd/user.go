@@ -8,9 +8,10 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
 )
 
@@ -67,11 +68,13 @@ func CreateUser(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	database, err := db.InitDB(cfg)
 
+	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	repos := repository.NewRepositories(database)
 
 	firstName := getValidInput("First Name: ", ValidateFirstName)
 	lastName := getValidInput("Last Name: ", ValidateLastName)
@@ -84,14 +87,14 @@ func CreateUser(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	user := &db.User{
+	user := &models.User{
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
 		Password:  hashedPassword,
 	}
 
-	if err := db.CreateUser(database, user); err != nil {
+	if err := repos.Users.Create(user); err != nil {
 		log.Printf("Failed to create user: %v\n", err)
 		return
 	}
@@ -100,19 +103,22 @@ func CreateUser(cmd *cobra.Command, args []string) {
 }
 
 func UpdateUserPassword(cmd *cobra.Command, args []string) {
+	var user *models.User
+
 	cfg, err := config.InitConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	database, err := db.InitDB(cfg)
+	database, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	repos := repository.NewRepositories(database)
+
 	email := getValidInput("Email: ", ValidateEmail)
 
-	var user db.User
-	if err := database.Where("email = ?", email).First(&user).Error; err != nil {
+	if user, err = repos.Users.FindByEmail(email); err != nil {
 		fmt.Println("User not found")
 		return
 	}
@@ -122,7 +128,7 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 		oldPasswordBytes, _ := term.ReadPassword(0)
 		fmt.Println()
 
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), oldPasswordBytes); err != nil {
+		if !utils.CheckPasswordHash(user.Password, string(oldPasswordBytes)) {
 			fmt.Println("Incorrect password. Please try again.")
 			continue
 		}
@@ -152,7 +158,7 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 	}
 	user.Password = hashedPassword
 
-	if err := database.Save(&user).Error; err != nil {
+	if err := repos.Users.Update(user); err != nil {
 		log.Printf("Failed to update password: %v\n", err)
 		return
 	}

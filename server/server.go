@@ -12,6 +12,7 @@ import (
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/handlers"
 	"codeinstyle.io/captain/middleware"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -21,15 +22,16 @@ import (
 type Server struct {
 	router     *gin.Engine
 	db         *gorm.DB
+	repos      *repository.Repositories
 	config     *config.Config
 	embeddedFS embed.FS
 }
 
 // New creates a new server instance
-func New(database *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
+func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 	return &Server{
 		router:     gin.Default(),
-		db:         database,
+		repos:      repository.NewRepositories(db),
 		config:     cfg,
 		embeddedFS: embeddedFS,
 	}
@@ -125,12 +127,12 @@ func (s *Server) setupRouter(theme *Theme) error {
 	s.router.StaticFS("/static", http.FS(theme.StaticFS))
 
 	// Register routes
-	handlers.RegisterPublicRoutes(s.router, s.db, s.config)
-	handlers.RegisterAdminRoutes(s.router, s.db, s.config)
-	handlers.RegisterAuthRoutes(s.router, s.db, s.config)
+	handlers.RegisterPublicRoutes(s.router, s.repos, s.config)
+	handlers.RegisterAdminRoutes(s.router, s.repos, s.config)
+	handlers.RegisterAuthRoutes(s.router, s.repos, s.config)
 
 	// Add middleware to load menu items
-	s.router.Use(middleware.LoadMenuItems(s.db))
+	s.router.Use(middleware.LoadMenuItems(s.repos))
 
 	return nil
 }

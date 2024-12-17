@@ -1,16 +1,16 @@
 package middleware
 
 import (
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/repository"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func LoadMenuItems(database *gorm.DB) gin.HandlerFunc {
+// LoadMenuItems loads menu items into the context
+func LoadMenuItems(repos *repository.Repositories) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var items []db.MenuItem
-		if err := database.Preload("Page").Order("position").Find(&items).Error; err == nil {
-			c.Set("menuItems", items)
+		menuItems, err := repos.MenuItems.FindAll()
+		if err == nil {
+			c.Set("menuItems", menuItems)
 		}
 		c.Next()
 	}

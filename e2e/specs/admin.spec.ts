@@ -191,9 +191,9 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator(`text=${randomTitle}`)).toBeVisible();
             
             // Check public tag page
-            await page.goto(rootURL + '/tag/e2e');
+            await page.goto(rootURL + '/tags/e2e');
             await expect(page.locator('text=New title')).toBeVisible();
-            await page.goto(rootURL + '/tag/another');
+            await page.goto(rootURL + '/tags/another');
             await expect(page.locator('text=New title')).not.toBeVisible();
         });
 
@@ -208,19 +208,23 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.selectOption('select[name="theme"]', 'dark');
             await page.fill('input[name="posts_per_page"]', '1');
         
+            const settingsSaveResponse = page.waitForResponse('**/admin/settings');
             await page.click('button:has-text("Save Settings")');
+
+            const response = await settingsSaveResponse;
+            await expect(response.status()).toBe(302);
+            
+            // Verify settings updated
+
             
             // Verify post time updated
             await page.goto(rootURL + '/admin/posts');
-            const firstPost = page.locator('tr').nth(1);
-            const publishedAt = await firstPost.locator('td').nth(2).textContent();
+            const secondPost = page.locator('tr').nth(2);
+            const publishedAt = await secondPost.locator('td').nth(2).textContent();
             expect(publishedAt).toContain('1985-10-26 19:00');
 
             // Verify changes on public site
             await page.goto(rootURL);
-
-            // TODO: Remove this when settings are cached properly
-            await page.reload();
 
             await expect(page.locator('.pagination')).toBeVisible();
             await expect(page.locator('a[href="?page=2"]')).toBeVisible();

@@ -2,31 +2,93 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-// ListMenuItems shows all menu items
+// ListMenuItems displays the menu items management page
 func (h *AdminHandlers) ListMenuItems(c *gin.Context) {
-	var menuItems []db.MenuItem
-	if err := h.db.Preload("Page").Order("position").Find(&menuItems).Error; err != nil {
+	menuItems, err := h.menuRepo.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	lastPosition := len(menuItems) - 1
+	lastPosition := len(menuItems)
+
 	c.HTML(http.StatusOK, "admin_menu_items.tmpl", h.addCommonData(c, gin.H{
-		"title":        "Menu Items",
 		"menuItems":    menuItems,
+		"title":        "Menu Items",
 		"lastPosition": lastPosition,
 	}))
 }
 
+// SaveMenuItems saves the menu items
+func (h *AdminHandlers) SaveMenuItems(c *gin.Context) {
+	var menuItems []models.MenuItem
+	if err := c.ShouldBindJSON(&menuItems); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Delete all existing menu items
+	if err := h.menuRepo.DeleteAll(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create new menu items
+	if err := h.menuRepo.CreateAll(menuItems); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Menu items saved successfully"})
+}
+
+// DeleteMenuItem deletes a menu item
+func (h *AdminHandlers) DeleteMenuItem(c *gin.Context) {
+	menuItemID, err := utils.ParseUint(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid menu item ID"})
+		return
+	}
+
+	menuItem, err := h.menuRepo.FindByID(uint(menuItemID))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Delete the menu item
+	if err := h.menuRepo.Delete(menuItem); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Update positions of remaining items
+	if err := h.menuRepo.UpdatePositions(menuItem.Position); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Menu item deleted successfully"})
+}
+
 // ShowCreateMenuItem displays the menu item creation form
 func (h *AdminHandlers) ShowCreateMenuItem(c *gin.Context) {
-	var pages []db.Page
-	if err := h.db.Find(&pages).Error; err != nil {
+	pages, err := h.repos.Pages.FindAll()
+
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -46,33 +108,35 @@ func (h *AdminHandlers) CreateMenuItem(c *gin.Context) {
 	if label == "" || (urlStr == "" && pageID == "") {
 		c.HTML(http.StatusBadRequest, "admin_create_menu_item.tmpl", h.addCommonData(c, gin.H{
 			"error": "Label and either URL or Page are required",
-			"pages": []db.Page{},
+			"pages": []models.Page{},
 		}))
 		return
 	}
 
-	menuItem := db.MenuItem{
+	menuItem := models.MenuItem{
 		Label:    label,
-		Position: h.getNextMenuPosition(),
+		Position: h.menuRepo.GetNextPosition(),
 	}
 
 	// Handle either URL or Page reference
 	if pageID != "" {
-		pid := parseUint(pageID)
+		pid, _ := utils.ParseUint(pageID)
 		menuItem.PageID = &pid
 	} else if urlStr != "" {
 		menuItem.URL = &urlStr
 	}
 
-	if err := h.db.Create(&menuItem).Error; err != nil {
-		var pages []db.Page
-		h.db.Find(&pages)
-		c.HTML(http.StatusInternalServerError, "admin_create_menu_item.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to create menu item",
-			"item":  menuItem,
-			"pages": pages,
-		}))
-		return
+	if err := h.menuRepo.Create(&menuItem); err != nil {
+		pages, err := h.repos.Pages.FindAll()
+
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "admin_create_menu_item.tmpl", h.addCommonData(c, gin.H{
+				"error": "Failed to create menu item",
+				"item":  menuItem,
+				"pages": pages,
+			}))
+			return
+		}
 	}
 
 	c.Redirect(http.StatusFound, "/admin/menus")
@@ -83,108 +147,62 @@ func (h *AdminHandlers) MoveMenuItem(c *gin.Context) {
 	id := c.Param("id")
 	direction := c.Param("direction")
 
-	// Start transaction
-	tx := h.db.Begin()
-
-	var currentItem db.MenuItem
-	if err := tx.First(&currentItem, id).Error; err != nil {
-		tx.Rollback()
-		c.JSON(http.StatusNotFound, gin.H{"error": "Menu item not found"})
+	menuID, err := utils.ParseUint(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid menu item ID"})
 		return
 	}
 
-	// Find adjacent item
-	var adjacentItem db.MenuItem
-	if direction == "up" {
-		if err := tx.Where("position < ?", currentItem.Position).Order("position DESC").First(&adjacentItem).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Item already at top"})
-			return
-		}
-	} else {
-		if err := tx.Where("position > ?", currentItem.Position).Order("position ASC").First(&adjacentItem).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Item already at bottom"})
-			return
-		}
-	}
-
-	// Swap positions
-	currentPos := currentItem.Position
-	adjacentPos := adjacentItem.Position
-
-	if err := tx.Model(&currentItem).Update("position", adjacentPos).Error; err != nil {
-		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update position"})
+	if err := h.menuRepo.Move(menuID, direction); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := tx.Model(&adjacentItem).Update("position", currentPos).Error; err != nil {
-		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update position"})
-		return
-	}
-
-	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "Menu item moved successfully"})
 }
 
 // ConfirmDeleteMenuItem shows deletion confirmation page
 func (h *AdminHandlers) ConfirmDeleteMenuItem(c *gin.Context) {
 	id := c.Param("id")
-	var menuItem db.MenuItem
-	if err := h.db.First(&menuItem, id).Error; err != nil {
+
+	menuID, err := utils.ParseUint(id)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	menuItem, err := h.menuRepo.FindByID(menuID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
+
 	c.HTML(http.StatusOK, "admin_confirm_delete_menu_item.tmpl", h.addCommonData(c, gin.H{
 		"title":    "Confirm Delete Menu Item",
 		"menuItem": menuItem,
 	}))
 }
 
-// DeleteMenuItem removes a menu item
-func (h *AdminHandlers) DeleteMenuItem(c *gin.Context) {
-	id := c.Param("id")
-	var menuItem db.MenuItem
-	if err := h.db.First(&menuItem, id).Error; err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
-	}
-
-	// Start transaction
-	tx := h.db.Begin()
-
-	// Delete the menu item
-	if err := tx.Delete(&menuItem).Error; err != nil {
-		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
-	}
-
-	// Update positions of remaining items
-	if err := tx.Model(&db.MenuItem{}).Where("position > ?", menuItem.Position).
-		UpdateColumn("position", h.db.Raw("position - 1")).Error; err != nil {
-		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
-	}
-
-	tx.Commit()
-	c.JSON(http.StatusOK, gin.H{"message": "Menu item deleted successfully"})
-}
-
 // EditMenuItem shows the menu item edit form
 func (h *AdminHandlers) EditMenuItem(c *gin.Context) {
-	id := c.Param("id")
-	var menuItem db.MenuItem
-	if err := h.db.First(&menuItem, id).Error; err != nil {
+	var menuItem *models.MenuItem
+	id, err := strconv.ParseInt(c.Param("id"), 10, 32)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	menuID := uint(id)
+
+	if menuItem, err = h.menuRepo.FindByID(menuID); err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	var pages []db.Page
-	if err := h.db.Find(&pages).Error; err != nil {
+	pages, err := h.pageRepo.FindAll()
+
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -199,29 +217,39 @@ func (h *AdminHandlers) EditMenuItem(c *gin.Context) {
 // UpdateMenuItem handles menu item updates
 func (h *AdminHandlers) UpdateMenuItem(c *gin.Context) {
 	id := c.Param("id")
-	var menuItem db.MenuItem
-	if err := h.db.First(&menuItem, id).Error; err != nil {
+
+	menuID, err := utils.ParseUint(id)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	pages, err := h.pageRepo.FindAll()
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	menuItem, err := h.menuRepo.FindByID(menuID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	menuItem.Label = c.PostForm("label")
-
-	// Reset both URL and PageID
 	menuItem.URL = nil
 	menuItem.PageID = nil
 
 	// Handle either URL or Page reference
 	if pageID := c.PostForm("page_id"); pageID != "" {
-		pid := parseUint(pageID)
+		pid, _ := utils.ParseUint(pageID)
 		menuItem.PageID = &pid
 	} else if urlStr := c.PostForm("url"); urlStr != "" {
 		menuItem.URL = &urlStr
 	}
 
-	if err := h.db.Save(&menuItem).Error; err != nil {
-		var pages []db.Page
-		h.db.Find(&pages)
+	if err := h.menuRepo.Update(menuItem); err != nil {
+
 		c.HTML(http.StatusInternalServerError, "admin_edit_menu_item.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update menu item",
 			"item":  menuItem,

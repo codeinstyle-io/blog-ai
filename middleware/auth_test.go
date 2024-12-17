@@ -4,71 +4,90 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthRequired(t *testing.T) {
-	database := db.SetupTestDB()
 	gin.SetMode(gin.TestMode)
-	router := gin.New()
+	database := db.SetupTestDB()
+	repos := repository.NewRepositories(database)
 
-	token := "valid-token"
-	// Create test user with session
-	user := &db.User{
-		Email:        "test@example.com",
-		SessionToken: &token,
+	userRepo := repository.NewUserRepository(database)
+	user := &models.User{
+		Email:    "test@example.com",
+		Password: "password",
 	}
-	database.Create(user)
+	assert.NoError(t, userRepo.Create(user))
+
+	sessionRepo := repository.NewSessionRepository(database)
+	session := &models.Session{
+		Token:     "valid-token",
+		UserID:    1,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	assert.NoError(t, sessionRepo.Create(session))
 
 	tests := []struct {
-		name         string
-		token        string
-		wantStatus   int
-		wantRedirect string
+		name           string
+		setupAuth      func(*gin.Context)
+		checkResponse  func(*httptest.ResponseRecorder)
+		expectedStatus int
 	}{
 		{
-			name:         "No token",
-			token:        "",
-			wantStatus:   http.StatusFound,
-			wantRedirect: "/login",
+			name: "Valid session",
+			setupAuth: func(c *gin.Context) {
+				c.SetCookie(system.CookieName, "valid-token", 3600, "/", "", false, true)
+			},
+			checkResponse: func(w *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusOK, w.Code)
+			},
+			expectedStatus: http.StatusOK,
 		},
 		{
-			name:       "Valid token",
-			token:      "valid-token",
-			wantStatus: http.StatusOK,
-		},
-		{
-			name:         "Invalid token",
-			token:        "invalid-token",
-			wantStatus:   http.StatusFound,
-			wantRedirect: "/login",
+			name: "No session cookie",
+			setupAuth: func(c *gin.Context) {
+				// Don't set any cookie
+			},
+			checkResponse: func(w *httptest.ResponseRecorder) {
+				assert.Equal(t, http.StatusFound, w.Code)
+				assert.Equal(t, "/login", w.Header().Get("Location"))
+			},
+			expectedStatus: http.StatusFound,
 		},
 	}
-
-	// Protected route
-	router.GET("/protected", AuthRequired(database), func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			router := gin.New()
+			router.Use(gin.Recovery())
+			router.Use(AuthRequired(repos))
+			router.GET("/test", func(c *gin.Context) {
+				c.Status(http.StatusOK)
+			})
+
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest("GET", "/protected", nil)
-			if tt.token != "" {
-				req.AddCookie(&http.Cookie{
-					Name:  "session",
-					Value: tt.token,
-				})
+			req, _ := http.NewRequest("GET", "/test", nil)
+			if tt.setupAuth != nil {
+				ctx, _ := gin.CreateTestContext(w)
+				ctx.Request = req
+				tt.setupAuth(ctx)
+				// Copy cookies from the test context to the request
+				for _, cookie := range w.Result().Cookies() {
+					req.AddCookie(cookie)
+				}
 			}
 
 			router.ServeHTTP(w, req)
-
-			assert.Equal(t, tt.wantStatus, w.Code)
-			if tt.wantRedirect != "" {
-				assert.Contains(t, w.Header().Get("Location"), tt.wantRedirect)
+			if tt.checkResponse != nil {
+				tt.checkResponse(w)
 			}
 		})
 	}

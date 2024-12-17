@@ -11,45 +11,38 @@ import (
 	"strings"
 	"time"
 
+	"codeinstyle.io/captain/config"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
+	"github.com/gin-gonic/gin"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/ast"
 	mdhtml "github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
-
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
-	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-var (
-	chromaCSS string
-)
-
+// PublicHandlers handles all public routes
 type PublicHandlers struct {
-	db       *gorm.DB
-	config   *config.Config
-	settings *db.Settings
+	*BaseHandler
 }
 
-func NewPublicHandlers(database *gorm.DB, cfg *config.Config) *PublicHandlers {
-	var settings db.Settings
-	database.First(&settings)
-
+// NewPublicHandlers creates a new public handlers instance
+func NewPublicHandlers(repos *repository.Repositories, cfg *config.Config) *PublicHandlers {
 	return &PublicHandlers{
-		db:       database,
-		config:   cfg,
-		settings: &settings,
+		BaseHandler: NewBaseHandler(repos, cfg),
 	}
 }
 
 func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	// Generate ETag based on the chroma style name
-	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(h.settings.ChromaStyle)))
+	settings, _ := h.repos.Settings.Get()
+
+	var chromaCSS string
+	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(settings.ChromaStyle)))
 
 	// Check If-None-Match header first
 	if match := c.GetHeader("If-None-Match"); match != "" {
@@ -60,15 +53,14 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 	}
 
 	// Generate CSS
-	style := styles.Get(h.settings.ChromaStyle)
+	style := styles.Get(settings.ChromaStyle)
 	if style == nil {
 		style = styles.Fallback
 	}
 	formatter := html.New(html.WithClasses(true))
 	buf := new(bytes.Buffer)
 	if err := formatter.WriteCSS(buf, style); err != nil {
-		// If there's an error, use empty CSS
-		chromaCSS = ""
+		c.String(http.StatusInternalServerError, "")
 		return
 	}
 	chromaCSS = buf.String()
@@ -81,20 +73,12 @@ func (h *PublicHandlers) GetChromaCSS(c *gin.Context) {
 
 func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	slug := c.Param("slug")
-	now := time.Now()
+	settings, _ := h.repos.Settings.Get()
 
-	var post db.Post
-	if err := h.db.Preload("Tags").Preload("Author").
-		Where("slug = ? AND visible = ? AND published_at <= ?", slug, true, now).
-		First(&post).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
-				"title": "Post not found",
-			}))
-			return
-		}
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-			"title": "Error",
+	post, err := h.postRepo.FindBySlug(slug)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
+			"title": "Post not found",
 		}))
 		return
 	}
@@ -103,7 +87,7 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 	post.Content = renderMarkdown(post.Content)
 
 	// Convert UTC time to configured timezone for display
-	loc, err := time.LoadLocation(h.settings.Timezone)
+	loc, err := time.LoadLocation(settings.Timezone)
 	if err != nil {
 		loc = time.UTC
 	}
@@ -116,35 +100,21 @@ func (h *PublicHandlers) GetPostBySlug(c *gin.Context) {
 }
 
 func (h *PublicHandlers) ListPosts(c *gin.Context) {
+	settings, _ := h.repos.Settings.Get()
+
 	// Get page number from query params
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	// Get posts per page from settings
-	perPage := h.settings.PostsPerPage
-
-	now := time.Now()
-
-	var total int64
-	h.db.Model(&db.Post{}).Where("visible = ? AND published_at <= ?", true, now).Count(&total)
-
-	totalPages := int(math.Ceil(float64(total) / float64(perPage)))
-	offset := (page - 1) * perPage
-
-	var posts []db.Post
-	result := h.db.Preload("Tags").Preload("Author").
-		Where("visible = ? AND published_at <= ?", true, now).
-		Order("published_at desc").
-		Offset(offset).
-		Limit(perPage).
-		Find(&posts)
-
-	if result.Error != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", gin.H{})
+	posts, total, err := h.postRepo.FindVisible(page, settings.PostsPerPage)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{}))
 		return
 	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
 
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
@@ -159,32 +129,23 @@ func (h *PublicHandlers) ListPosts(c *gin.Context) {
 
 func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	tagSlug := c.Param("slug")
+	settings, _ := h.repos.Settings.Get()
+
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	var tag db.Tag
-	if err := h.db.Where("slug = ?", tagSlug).First(&tag).Error; err != nil {
+	tag, err := h.tagRepo.FindBySlug(tagSlug)
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
 			"title": "Error",
 		}))
 		return
 	}
 
-	var posts []db.Post
-	offset := (page - 1) * h.settings.PostsPerPage
-	now := time.Now()
-
-	if err := h.db.
-		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Where("post_tags.tag_id = ? AND posts.visible = ? AND posts.published_at <= ?", tag.ID, true, now).
-		Preload("Tags").
-		Preload("Author").
-		Order("published_at desc").
-		Offset(offset).
-		Limit(h.settings.PostsPerPage).
-		Find(&posts).Error; err != nil {
+	posts, total, err := h.postRepo.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
 			"title": "Error",
 		}))
@@ -195,14 +156,7 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 	processPostsPublishedAt(posts)
 	processPostsContent(posts)
 
-	// Get total count for pagination
-	var total int64
-	h.db.Model(&db.Post{}).
-		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Where("post_tags.tag_id = ? AND posts.visible = ? AND posts.published_at <= ?", tag.ID, true, now).
-		Count(&total)
-
-	totalPages := int(math.Ceil(float64(total) / float64(h.settings.PostsPerPage)))
+	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
 
 	c.HTML(http.StatusOK, "tag_posts.tmpl", h.addCommonData(gin.H{
 		"title":      fmt.Sprintf("Posts tagged with %s", tag.Name),
@@ -215,9 +169,11 @@ func (h *PublicHandlers) ListPostsByTag(c *gin.Context) {
 
 func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
 	slug := c.Param("slug")
-	var page db.Page
-	if err := h.db.Where("slug = ? AND visible = true", slug).First(&page).Error; err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", nil)
+	page, err := h.pageRepo.FindBySlug(slug)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(gin.H{
+			"title": "Page not found",
+		}))
 		return
 	}
 
@@ -234,21 +190,17 @@ func (h *PublicHandlers) GetPageBySlug(c *gin.Context) {
 
 func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
 	// Get menu items
-	var menuItems []db.MenuItem
-	h.db.Preload("Page").Order("position").Find(&menuItems)
-
-	var settings db.Settings
-	h.db.First(&settings)
-	h.settings = &settings
+	menuItems, _ := h.menuRepo.FindAll()
+	settings, _ := h.repos.Settings.Get()
 
 	// Add menu items to the data
 	data["menuItems"] = menuItems
 
 	// Add site config from settings
 	data["config"] = gin.H{
-		"SiteTitle":    h.settings.Title,
-		"SiteSubtitle": h.settings.Subtitle,
-		"Theme":        h.settings.Theme,
+		"SiteTitle":    settings.Title,
+		"SiteSubtitle": settings.Subtitle,
+		"Theme":        settings.Theme,
 	}
 
 	// Add version information
@@ -257,13 +209,13 @@ func (h *PublicHandlers) addCommonData(data gin.H) gin.H {
 	return data
 }
 
-func processPostsPublishedAt(posts []db.Post) {
+func processPostsPublishedAt(posts []models.Post) {
 	for i := range posts {
 		posts[i].PublishedAt = posts[i].PublishedAt.In(time.UTC)
 	}
 }
 
-func processPostsContent(posts []db.Post) {
+func processPostsContent(posts []models.Post) {
 	for i := range posts {
 		if posts[i].Excerpt != nil && *posts[i].Excerpt != "" {
 			continue
@@ -286,20 +238,20 @@ func processPostsContent(posts []db.Post) {
 	}
 }
 
-// New functions for markdown processing
+// renderMarkdown converts markdown content to HTML
 func renderMarkdown(content string) string {
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
 	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse([]byte(content))
 
+	htmlFlags := mdhtml.CommonFlags | mdhtml.HrefTargetBlank
 	opts := mdhtml.RendererOptions{
-		Flags:          mdhtml.CommonFlags,
+		Flags:          htmlFlags,
 		RenderNodeHook: renderHook,
 	}
-	htmlRenderer := mdhtml.NewRenderer(opts)
+	renderer := mdhtml.NewRenderer(opts)
 
-	md := []byte(content)
-	parsed := p.Parse(md)
-	return string(markdown.Render(parsed, htmlRenderer))
+	return string(markdown.Render(doc, renderer))
 }
 
 func renderHook(w io.Writer, node ast.Node, entering bool) (ast.WalkStatus, bool) {
@@ -349,5 +301,3 @@ func renderHook(w io.Writer, node ast.Node, entering bool) (ast.WalkStatus, bool
 	}
 	return ast.GoToNext, false
 }
-
-// ...other post handlers like GetPostBySlug, EditPost, etc...

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -10,6 +9,9 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -17,35 +19,18 @@ import (
 )
 
 func setupAuthTest(t *testing.T, database *gorm.DB) (*gin.Engine, *AuthHandlers) {
-	gin.SetMode(gin.TestMode)
-	router := gin.New()
-	router.Use(gin.Recovery())
-
-	// Add template functions and set up test templates
-	router.SetFuncMap(utils.GetTemplateFuncs())
+	repositories := repository.NewRepositories(database)
+	router := setupTestRouter(repositories)
 
 	// Create minimal templates for testing
-	templates := template.Must(template.New("login.tmpl").Parse(`
-		<form method="post" action="/login">
-			<input type="email" name="email" />
-			<input type="password" name="password" />
-			<button type="submit">Login</button>
-		</form>
-	`))
-
-	// Add error template
-	template.Must(templates.New("500.tmpl").Parse(`<h1>Internal Server Error</h1>`))
-
-	router.SetHTMLTemplate(templates)
-
-	authHandlers := NewAuthHandlers(database, &config.Config{})
+	authHandlers := NewAuthHandlers(repositories, &config.Config{})
 
 	// Create test user
 	password := "Test1234!"
 	hashedPassword, err := utils.HashPassword(password)
 	assert.NoError(t, err)
 
-	testUser := db.User{
+	testUser := models.User{
 		Email:    "test@example.com",
 		Password: hashedPassword,
 	}
@@ -138,9 +123,9 @@ func TestAuthHandlers_Login(t *testing.T) {
 
 			// Check session cookie
 			if tt.sessionCookie {
-				assert.Contains(t, w.Header().Get("Set-Cookie"), "session=")
+				assert.Contains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=")
 			} else {
-				assert.NotContains(t, w.Header().Get("Set-Cookie"), "session=")
+				assert.NotContains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=")
 			}
 		})
 	}
@@ -162,6 +147,6 @@ func TestAuthHandlers_Logout(t *testing.T) {
 	assert.Equal(t, "/login", w.Header().Get("Location"))
 
 	// Check that session cookie is cleared
-	assert.Contains(t, w.Header().Get("Set-Cookie"), "session=;")
+	assert.Contains(t, w.Header().Get("Set-Cookie"), system.CookieName+"=;")
 	assert.Contains(t, w.Header().Get("Set-Cookie"), "Max-Age=0")
 }

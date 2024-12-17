@@ -1,27 +1,26 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // ListPosts shows all posts for admin
 func (h *AdminHandlers) ListPosts(c *gin.Context) {
-	var posts []db.Post
-	if err := h.db.Preload("Tags").Preload("Author").Find(&posts).Error; err != nil {
+	posts, err := h.repos.Posts.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	// Get settings for timezone
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
@@ -46,8 +45,8 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 
 // ShowCreatePost displays the post creation form
 func (h *AdminHandlers) ShowCreatePost(c *gin.Context) {
-	var tags []db.Tag
-	if err := h.db.Find(&tags).Error; err != nil {
+	tags, err := h.repos.Tags.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -58,6 +57,7 @@ func (h *AdminHandlers) ShowCreatePost(c *gin.Context) {
 	}))
 }
 
+// CreatePost handles post creation
 func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	// Get the logged in user
 	userInterface, exists := c.Get("user")
@@ -67,9 +67,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		}))
 		return
 	}
-	user := userInterface.(*db.User)
-
-	var post db.Post
+	user := userInterface.(*models.User)
 
 	// Parse form data
 	title := c.PostForm("title")
@@ -80,7 +78,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	var parsedTime time.Time
 
 	// Get settings for timezone
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to get settings",
@@ -118,7 +116,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	}
 
 	// Create post
-	post = db.Post{
+	post := &models.Post{
 		Title:       title,
 		Slug:        slug,
 		Content:     content,
@@ -142,44 +140,9 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 	}
 
 	tags = strings.Split(c.PostForm("tags"), ",")
-	for i := range tags {
-		tags[i] = strings.TrimSpace(tags[i])
-	}
-
-	// Create or get existing tags
-	var postTags []db.Tag
-	for _, tagName := range tags {
-		if tagName == "" {
-			continue
-		}
-
-		var tag db.Tag
-		// Try to find existing tag
-		err := h.db.Where("name = ?", tagName).First(&tag).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Create new tag if it doesn't exist
-				tag = db.Tag{Name: tagName}
-				if err := h.db.Create(&tag).Error; err != nil {
-					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-						"error": fmt.Sprintf("Error creating tag: %v", err),
-					})
-					return
-				}
-			} else {
-				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-					"error": fmt.Sprintf("Database error: %v", err),
-				})
-				return
-			}
-		}
-		postTags = append(postTags, tag)
-	}
 
 	// Create post with transaction to ensure atomic operation
-	tx := h.db.Begin()
-	if err := tx.Create(&post).Error; err != nil {
-		tx.Rollback()
+	if err := h.repos.Posts.Create(post); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to create post",
 			"post":  post,
@@ -187,8 +150,7 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&post).Association("Tags").Replace(postTags); err != nil {
-		tx.Rollback()
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to associate tags",
 			"post":  post,
@@ -196,32 +158,35 @@ func (h *AdminHandlers) CreatePost(c *gin.Context) {
 		return
 	}
 
-	tx.Commit()
 	c.Redirect(http.StatusFound, "/admin/posts")
 }
 
 // ListPostsByTag shows all posts for a specific tag
 func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
-	tagID := c.Param("id")
-	var tag db.Tag
-	if err := h.db.First(&tag, tagID).Error; err != nil {
+	id := c.Param("id")
+
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	// Find the tag
+	tag, err := h.tagRepo.FindByID(tagID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	var posts []db.Post
-	if err := h.db.Joins("JOIN post_tags ON post_tags.post_id = posts.id").
-		Joins("JOIN tags ON tags.id = post_tags.tag_id").
-		Where("tags.id = ?", tagID).
-		Preload("Tags").
-		Preload("Author").
-		Find(&posts).Error; err != nil {
+	posts, err := h.repos.Posts.FindByTag(tag.Slug)
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	// Get settings for timezone
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
@@ -248,11 +213,19 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 // ConfirmDeletePost shows deletion confirmation page
 func (h *AdminHandlers) ConfirmDeletePost(c *gin.Context) {
 	id := c.Param("id")
-	var post db.Post
-	if err := h.db.First(&post, id).Error; err != nil {
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	post, err := h.postRepo.FindByID(tagID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
+
 	c.HTML(http.StatusOK, "admin_confirm_delete_post.tmpl", h.addCommonData(c, gin.H{
 		"title": "Confirm Delete Post",
 		"post":  post,
@@ -262,56 +235,51 @@ func (h *AdminHandlers) ConfirmDeletePost(c *gin.Context) {
 // DeletePost removes a post and its tag associations
 func (h *AdminHandlers) DeletePost(c *gin.Context) {
 	id := c.Param("id")
+	tagID, err := utils.ParseUint(id)
 
-	// Start transaction
-	tx := h.db.Begin()
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
 
-	// First, find the post
-	var post db.Post
-	if err := tx.First(&post, id).Error; err != nil {
-		tx.Rollback()
+	post, err := h.postRepo.FindByID(tagID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	fmt.Println("Deleting post with ID:", id)
-
-	// Clear associations first
-	if err := tx.Model(&post).Association("Tags").Clear(); err != nil {
-		fmt.Println("Error clearing associations:", err)
-		tx.Rollback()
+	if err := h.repos.Posts.Delete(post); err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	// Then delete the post
-	if err := tx.Delete(&post).Error; err != nil {
-		fmt.Println("Error deleting post:", err)
-		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
-	}
-
-	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
 func (h *AdminHandlers) EditPost(c *gin.Context) {
+	var allTags []*models.Tag
 	id := c.Param("id")
-	var post db.Post
-	if err := h.db.Preload("Tags").First(&post, id).Error; err != nil {
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	post, err := h.postRepo.FindByID(tagID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
-	var allTags []db.Tag
-	if err := h.db.Find(&allTags).Error; err != nil {
+	allTags, err = h.tagRepo.FindAll()
+	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
 
 	// Get settings for timezone
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
 		return
@@ -335,12 +303,16 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 }
 
 func (h *AdminHandlers) UpdatePost(c *gin.Context) {
-	// Get the post ID from the URL
-	postID := c.Param("id")
+	id := c.Param("id")
+	tagID, err := utils.ParseUint(id)
 
-	// Find the existing post
-	var post db.Post
-	if err := h.db.First(&post, postID).Error; err != nil {
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
+		return
+	}
+
+	post, err := h.postRepo.FindByID(tagID)
+	if err != nil {
 		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
 		return
 	}
@@ -363,7 +335,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	}
 
 	// Get settings for timezone
-	settings, err := db.GetSettings(h.db)
+	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to get settings",
@@ -417,45 +389,9 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 	}
 
 	tags = strings.Split(c.PostForm("tags"), ",")
-	for i := range tags {
-		tags[i] = strings.TrimSpace(tags[i])
-	}
 
-	// Create or get existing tags
-	var postTags []db.Tag
-	for _, tagName := range tags {
-		if tagName == "" {
-			continue
-		}
-
-		var tag db.Tag
-		// Try to find existing tag
-		err := h.db.Where("name = ?", tagName).First(&tag).Error
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				// Create new tag if it doesn't exist
-				tag = db.Tag{Name: tagName}
-				if err := h.db.Create(&tag).Error; err != nil {
-					c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-						"error": fmt.Sprintf("Error creating tag: %v", err),
-					})
-					return
-				}
-			} else {
-				c.HTML(http.StatusInternalServerError, "admin_error.tmpl", gin.H{
-					"error": fmt.Sprintf("Database error: %v", err),
-				})
-				return
-			}
-		}
-		postTags = append(postTags, tag)
-	}
-
-	// Start transaction for update
-	tx := h.db.Begin()
-
-	if err := tx.Save(&post).Error; err != nil {
-		tx.Rollback()
+	// Update post with transaction to ensure atomic operation
+	if err := h.repos.Posts.Update(post); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update post",
 			"post":  post,
@@ -463,8 +399,7 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	if err := tx.Model(&post).Association("Tags").Replace(postTags); err != nil {
-		tx.Rollback()
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
 		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
 			"error": "Failed to update tags",
 			"post":  post,
@@ -472,6 +407,5 @@ func (h *AdminHandlers) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	tx.Commit()
 	c.Redirect(http.StatusFound, "/admin/posts")
 }

@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -17,7 +17,7 @@ func SetupTestDB() *gorm.DB {
 	}
 
 	// Migrate the schema
-	if err := db.AutoMigrate(&User{}, &Post{}, &Tag{}, &Settings{}, &Page{}, &MenuItem{}); err != nil {
+	if err := ExecuteMigrations(db); err != nil {
 		panic(fmt.Sprintf("failed to auto-migrate: %v", err))
 	}
 

@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"codeinstyle.io/captain/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,11 +57,11 @@ func TestInsertTestData(t *testing.T) {
 
 				// Verify data was inserted
 				var tagCount int64
-				db.Model(&Tag{}).Count(&tagCount)
+				db.Model(&models.Tag{}).Count(&tagCount)
 				assert.Equal(t, int64(2), tagCount)
 
 				var postCount int64
-				db.Model(&Post{}).Count(&postCount)
+				db.Model(&models.Post{}).Count(&postCount)
 				assert.Equal(t, int64(1), postCount)
 			}
 		})

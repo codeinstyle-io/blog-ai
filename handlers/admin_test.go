@@ -10,13 +10,15 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 // setupTestRouter creates a test router with embedded templates
-func setupTestRouter() *gin.Engine {
+func setupTestRouter(repositories *repository.Repositories) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.SetFuncMap(utils.GetTemplateFuncs())
@@ -32,6 +34,14 @@ func setupTestRouter() *gin.Engine {
 			<li>{{ .Title }} - By: {{if .Author}}{{.Author.FirstName}} {{.Author.LastName}}{{else}}<em>Deleted User</em>{{end}}</li>
 		{{ end }}
 		</ul>
+	`))
+
+	template.Must(tmpl.New("login.tmpl").Parse(`
+		<form method="post" action="/login">
+			<input type="email" name="email" />
+			<input type="password" name="password" />
+			<button type="submit">Login</button>
+		</form>
 	`))
 
 	// Add the 500 error template
@@ -62,19 +72,22 @@ func TestListPostsByTag(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to load config: %v", err)
 	}
-	handlers := NewAdminHandlers(database, cfg)
+
+	repos := repository.NewRepositories(database)
+	handlers := NewAdminHandlers(repos, cfg)
 
 	// Setup router with test templates
-	router := setupTestRouter()
+	router := setupTestRouter(repos)
+	router.Use(gin.Recovery())
 
 	// Register the handler
 	router.GET("/admin/tags/:id/posts", handlers.ListPostsByTag)
 
 	// Create test data
-	tag := db.Tag{Name: "test-tag"}
+	tag := models.Tag{Name: "test-tag"}
 	database.Create(&tag)
 
-	author := db.User{
+	author := models.User{
 		FirstName: "Test",
 		LastName:  "Author",
 		Email:     "test@example.com",
@@ -82,13 +95,13 @@ func TestListPostsByTag(t *testing.T) {
 	database.Create(&author)
 
 	// Create settings with timezone
-	settings := db.Settings{
+	settings := models.Settings{
 		Timezone: "UTC",
 	}
 	database.Create(&settings)
 
 	// Create post with author
-	postWithAuthor := db.Post{
+	postWithAuthor := models.Post{
 		Title:       "Test Post With Author",
 		Slug:        "test-post-with-author",
 		Content:     "Test content",
@@ -104,7 +117,7 @@ func TestListPostsByTag(t *testing.T) {
 	}
 
 	// Create post without author
-	postWithoutAuthor := db.Post{
+	postWithoutAuthor := models.Post{
 		Title:       "Test Post Without Author",
 		Slug:        "test-post-without-author",
 		Content:     "Test content",

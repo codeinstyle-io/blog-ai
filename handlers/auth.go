@@ -2,29 +2,32 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/models"
+	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/system"
 	"codeinstyle.io/captain/utils"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
+// AuthHandlers handles all authentication related routes
 type AuthHandlers struct {
-	db       *gorm.DB
-	config   *config.Config
-	settings *db.Settings
+	*BaseHandler
 }
 
-func NewAuthHandlers(database *gorm.DB, config *config.Config) *AuthHandlers {
-	return &AuthHandlers{db: database, config: config}
+// NewAuthHandlers creates a new auth handlers instance
+func NewAuthHandlers(repos *repository.Repositories, cfg *config.Config) *AuthHandlers {
+	return &AuthHandlers{
+		BaseHandler: NewBaseHandler(repos, cfg),
+	}
 }
 
 func (h *AuthHandlers) Login(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.tmpl", h.addCommonData(gin.H{
 		"title": "Login",
-		"next":  c.Query("next"),
 	}))
 }
 
@@ -36,8 +39,17 @@ func (h *AuthHandlers) PostLogin(c *gin.Context) {
 		next = "/admin"
 	}
 
-	user, err := db.GetUserByEmail(h.db, email)
-	if err != nil || !utils.CheckPasswordHash(password, user.Password) {
+	// Check if user exists
+	user, _ := h.userRepo.FindByEmail(email)
+
+	if user == nil {
+		user = &models.User{
+			Password: "",
+		}
+	}
+
+	// Compare hashed password
+	if !utils.CheckPasswordHash(password, user.Password) {
 		c.HTML(http.StatusUnauthorized, "login.tmpl", h.addCommonData(gin.H{
 			"title": "Login",
 			"error": "Invalid credentials",
@@ -47,63 +59,63 @@ func (h *AuthHandlers) PostLogin(c *gin.Context) {
 	}
 
 	// Generate session token
-	token, err := db.GenerateSessionToken()
+	token, err := utils.GenerateSessionToken()
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-			"title": "Error",
+			"title": "Login",
+			"error": "Failed to generate session token",
 		}))
 		return
 	}
 
-	// Update user with session token
-	user.SessionToken = &token
-	if err := h.db.Save(&user).Error; err != nil {
+	// Create session
+	session := &models.Session{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := h.sessionRepo.Create(session); err != nil {
 		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
-			"title": "Error",
+			"title": "Login",
+			"error": "Failed to create session",
 		}))
 		return
 	}
 
-	// Set session cookie with config parameters
-	c.SetCookie("session", token, 86400, "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
+	// Set cookie
+	c.SetCookie(system.CookieName, token, int(24*time.Hour.Seconds()), "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
 	c.Redirect(http.StatusFound, next)
 }
 
-func (h *AuthHandlers) addCommonData(data gin.H) gin.H {
-	// Get menu items
-	var menuItems []db.MenuItem
-	h.db.Preload("Page").Order("position").Find(&menuItems)
-
-	var settings db.Settings
-	h.db.First(&settings)
-	h.settings = &settings
-
-	// Add menu items to the data
-	data["menuItems"] = menuItems
-
-	// Add site config from settings
-	data["config"] = gin.H{
-		"SiteTitle":    h.settings.Title,
-		"SiteSubtitle": h.settings.Subtitle,
-		"Theme":        h.settings.Theme,
+func (h *AuthHandlers) Logout(c *gin.Context) {
+	token, err := c.Cookie(system.CookieName)
+	if err == nil {
+		// Delete session from database
+		if err := h.sessionRepo.DeleteByToken(token); err != nil {
+			c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(gin.H{
+				"error": "Failed to delete session",
+			}))
+			return
+		}
 	}
 
-	return data
-}
-
-func (h *AuthHandlers) Logout(c *gin.Context) {
-	// Clear session cookie
-	c.SetCookie("session", "", -1, "/", "", false, true)
+	// Clear cookie
+	c.SetCookie(system.CookieName, "", -1, "/", h.config.Site.Domain, h.config.Site.SecureCookie, true)
 	c.Redirect(http.StatusFound, "/login")
 }
 
 // HandleSetup handles both GET and POST requests for the setup page
 func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 	// If users already exist, redirect to login
-	var count int64
-	h.db.Model(&db.User{}).Count(&count)
+	count, err := h.userRepo.CountAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to count users"})
+		return
+	}
+
 	if count > 0 {
-		c.Redirect(http.StatusFound, "/admin/login")
+		c.Redirect(http.StatusFound, "/login?next=/admin")
 		return
 	}
 
@@ -140,14 +152,14 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 		}
 
 		// Create admin user
-		user := &db.User{
+		user := &models.User{
 			Email:     email,
 			Password:  hashedPassword,
 			FirstName: firstName,
 			LastName:  lastName,
 		}
 
-		if err := db.CreateUser(h.db, user); err != nil {
+		if err := h.userRepo.Create(user); err != nil {
 			c.HTML(http.StatusInternalServerError, "setup.tmpl", gin.H{"Error": "Failed to create user"})
 			return
 		}
@@ -159,4 +171,22 @@ func (h *AuthHandlers) HandleSetup(c *gin.Context) {
 
 	// Handle GET request
 	c.HTML(http.StatusOK, "setup.tmpl", gin.H{})
+}
+
+func (h *AuthHandlers) addCommonData(data gin.H) gin.H {
+	// Get menu items
+	menuItems, _ := h.BaseHandler.menuRepo.FindAll()
+	settings, _ := h.BaseHandler.repos.Settings.Get()
+
+	// Add menu items to the data
+	data["menuItems"] = menuItems
+
+	// Add site config from settings
+	data["config"] = gin.H{
+		"SiteTitle":    settings.Title,
+		"SiteSubtitle": settings.Subtitle,
+		"Theme":        settings.Theme,
+	}
+
+	return data
 }
