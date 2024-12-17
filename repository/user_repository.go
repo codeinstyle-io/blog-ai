@@ -2,7 +2,6 @@ package repository
 
 import (
 	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/system"
 	"gorm.io/gorm"
 )
 
@@ -30,15 +29,6 @@ func (r *userRepository) Update(user *models.User) error {
 
 func (r *userRepository) Delete(user *models.User) error {
 	return r.db.Delete(&models.User{}, user).Error
-}
-
-func (r *userRepository) FindBySessionToken(token string) (*models.User, error) {
-	var user models.User
-	err := r.db.Where(system.CookieName+" = ?", token).First(&user).Error
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
 }
 
 func (r *userRepository) FindByID(id uint) (*models.User, error) {

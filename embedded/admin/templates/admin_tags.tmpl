@@ -1,0 +1,47 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Tags</h1>
+        <a href="/admin/tags/create" class="btn btn-primary">Create New Tag</a>
+    </div>
+    
+    {{if .error}}
+    <div class="error-message">{{.error}}</div>
+    {{end}}
+
+    <div class="table-container">
+        {{if .tags}}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Tag Name</th>
+                    <th>Slug</th>
+                    <th>Posts Count</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .tags}}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>{{.Slug}}</td>
+                    <td>{{.PostCount}}</td>
+                    <td class="actions">
+                        <a href="/admin/tags/{{.ID}}/posts" class="btn btn-view">View Posts</a>
+                        <a href="/admin/tags/{{.ID}}/edit" class="btn btn-primary">Edit</a>
+                        <a href="/admin/tags/{{.ID}}/delete" class="btn btn-delete">Delete</a>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty-state">
+            <p>No tags found. Create tags to organize your posts!</p>
+            <a href="/admin/tags/create" class="btn btn-primary">Create Tag</a>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+{{ template "admin_footer" . }}

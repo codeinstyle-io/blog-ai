@@ -14,7 +14,6 @@ type Repositories struct {
 	MenuItems models.MenuItemRepository
 	Settings  models.SettingsRepository
 	Media     models.MediaRepository
-	Sessions  models.SessionRepository
 }
 
 // NewRepositories creates a new Repositories instance
@@ -27,6 +26,5 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		MenuItems: NewMenuItemRepository(db),
 		Settings:  NewSettingsRepository(db),
 		Media:     NewMediaRepository(db),
-		Sessions:  NewSessionRepository(db),
 	}
 }

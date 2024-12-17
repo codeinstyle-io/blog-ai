@@ -5,6 +5,8 @@ import (
 
 	"codeinstyle.io/captain/models"
 	"gorm.io/gorm"
+
+	"codeinstyle.io/captain/utils"
 )
 
 // PostRepository handles database operations for posts
@@ -57,6 +59,15 @@ func (r *PostRepository) FindBySlug(slug string) (*models.Post, error) {
 func (r *PostRepository) CountByAuthor(user *models.User) (int64, error) {
 	var count int64
 	err := r.db.Model(&models.Post{}).Where("author_id = ?", user.ID).Count(&count).Error
+	return count, err
+}
+
+func (r *PostRepository) CountByTag(tagID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Post{}).
+		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+		Where("post_tags.tag_id = ?", tagID).
+		Count(&count).Error
 	return count, err
 }
 
@@ -145,10 +156,12 @@ func (r *PostRepository) AssociateTags(post *models.Post, tags []string) error {
 		}
 
 		var existingTag models.Tag
-		err := r.db.Where("name = ?", tag).First(&existingTag).Error
+		slug := utils.Slugify(tag)
+		err := r.db.Where("slug = ?", slug).First(&existingTag).Error
 		if err != nil {
 			existingTag = models.Tag{
 				Name: tag,
+				Slug: slug,
 			}
 			if err := r.db.Create(&existingTag).Error; err != nil {
 				return err

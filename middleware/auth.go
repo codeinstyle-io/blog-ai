@@ -1,41 +1,40 @@
 package middleware
 
 import (
-	"net/http"
-
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
-func abort(c *gin.Context) {
-	c.SetCookie(system.CookieName, "", -1, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/login")
-	c.Abort()
+// abort redirects the user to the login page
+// TODO: Pass the next page
+func abort(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   false,
+		HTTPOnly: true,
+	})
+	return c.Redirect("/login?next=" + c.Path())
 }
 
 // AuthRequired ensures that a user is authenticated
-func AuthRequired(repos *repository.Repositories) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token, err := c.Cookie(system.CookieName)
+func AuthRequired(repos *repository.Repositories, sessionStore *session.Store) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		session, err := sessionStore.Get(c)
+
 		if err != nil {
-			abort(c)
-			return
+			return abort(c)
 		}
 
-		session, err := repos.Sessions.FindByToken(token)
-		if err != nil {
-			abort(c)
-			return
+		loggedIn, _ := session.Get("loggedIn").(bool)
+
+		if !loggedIn {
+			return abort(c)
 		}
 
-		user, err := repos.Users.FindByID(session.UserID)
-		if err != nil {
-			abort(c)
-			return
-		}
-
-		c.Set("user", user)
-		c.Next()
+		return c.Next()
 	}
 }

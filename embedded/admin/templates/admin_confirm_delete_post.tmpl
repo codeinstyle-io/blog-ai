@@ -1,0 +1,13 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <h1>Confirm Delete Post</h1>
+    <div class="confirm-delete">
+        <p>Are you sure you want to delete the post "{{.post.Title}}"?</p>
+        <p>This action cannot be undone.</p>
+        <div class="actions">
+            <button onclick="deletePost({{.post.ID}})" class="btn btn-delete">Delete</button>
+            <a href="/admin/posts" class="btn">Cancel</a>
+        </div>
+    </div>
+</div>
+{{ template "admin_footer" . }}

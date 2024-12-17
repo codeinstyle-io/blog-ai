@@ -1,0 +1,60 @@
+{{ template "admin_header" . }}
+
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Media Library</h1>
+        <div class="actions">
+            <a href="/admin/media/upload" class="btn btn-primary">Upload Media</a>
+        </div>
+    </div>
+
+    {{ if not .media }}
+        <div class="empty-state">
+            <i class="fas fa-images"></i>
+            <h2>No Media Files Yet</h2>
+            <p>Upload your first media file to get started.</p>
+            <a href="/admin/media/upload" class="btn btn-primary">Upload Media</a>
+        </div>
+    {{ else }}
+    <div class="media-grid">
+        {{ range .media }}
+        <div class="media-item">
+            {{ if eq (slice .MimeType 0 5) "image" }}
+            <div class="media-preview">
+                <img src="/media/{{ .Path }}" alt="{{ .Name }}">
+            </div>
+            {{ else }}
+            <div class="media-preview file">
+                <i class="fas fa-file"></i>
+            </div>
+            {{ end }}
+            <div class="media-info">
+                <h3>{{ .Name }}</h3>
+                <p class="size">{{ .Size | formatSize }}</p>
+                {{ if .Description }}
+                <p class="description">{{ .Description }}</p>
+                {{ end }}
+                <div class="actions">
+                    <button onclick="copyMediaTag('{{ .GetMarkdownTag }}')" class="btn btn-small">
+                        Copy Markdown
+                    </button>
+                    <a href="/admin/media/{{ .ID }}/delete" class="btn btn-small btn-delete">Delete</a>
+                </div>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+    {{ end }}
+</div>
+
+<script>
+function copyMediaTag(tag) {
+    navigator.clipboard.writeText(tag).then(() => {
+        alert('Markdown tag copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+</script>
+
+{{ template "admin_footer" . }}

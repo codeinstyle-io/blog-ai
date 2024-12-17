@@ -1,0 +1,48 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Delete User</h1>
+        <a href="/admin/users" class="btn">← Back to Users</a>
+    </div>
+
+    {{ if .error }}
+        <div class="error-message">{{ .error }}</div>
+    {{ end }}
+
+    <div class="confirm-delete">
+        <p>Are you sure you want to delete the user "{{.user.FirstName}} {{.user.LastName}}"?</p>
+        {{if .hasContent}}
+        <div class="alert alert-warning">
+            <p>This user has authored posts. If you delete this user:</p>
+            <ul>
+                <li>Their posts will be preserved</li>
+                <li>Their name will still appear as the author</li>
+                <li>But they will no longer be able to log in or edit content</li>
+            </ul>
+        </div>
+        {{end}}
+        <p>This action cannot be undone.</p>
+        <div class="actions">
+            <button onclick="deleteUser({{.user.ID}})" class="btn btn-delete">Delete</button>
+            <a href="/admin/users" class="btn">Cancel</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteUser(id) {
+    fetch(`/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) {
+            window.location.href = '/admin/users';
+        } else {
+            alert('Failed to delete user');
+        }
+    });
+}
+</script>
+{{ template "admin_footer" . }}

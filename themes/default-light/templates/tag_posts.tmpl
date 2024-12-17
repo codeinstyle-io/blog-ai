@@ -1,4 +1,4 @@
-{{ template "header.tmpl" . }}
+{{ template "header" . }}
 <div class="tag-posts">
     <h1>Posts tagged with #{{.tag}}</h1>
     {{if .posts}}
@@ -38,4 +38,4 @@
         <p>No posts found for this tag.</p>
     {{end}}
 </div>
-{{ template "footer.tmpl" . }}
+{{ template "footer" . }}

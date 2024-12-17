@@ -11,20 +11,18 @@ import (
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/server"
 	"codeinstyle.io/captain/system"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
 
 //go:embed embedded/admin/static/css/*
 //go:embed embedded/admin/static/js/*
 //go:embed embedded/admin/static/fonts/*
+//go:embed embedded/admin/templates/includes/*
 //go:embed embedded/admin/templates/*
-//go:embed embedded/public/templates/errors/*
 //go:embed embedded/public/templates/*
-//go:embed embedded/themes/default/static/css/*
-//go:embed embedded/themes/default/static/img/*
-//go:embed embedded/themes/default/static/js/*
-//go:embed embedded/themes/default/templates/*
+//go:embed embedded/public/static/css/*
+//go:embed embedded/public/static/js/*
+//go:embed embedded/public/static/img/*
 var embeddedFS embed.FS
 
 var (
@@ -86,6 +84,8 @@ func main() {
 }
 
 func runServer(cmd *cobra.Command, args []string) {
+	var srv *server.Server
+
 	// Load config
 	cfg, err := config.InitConfig()
 	if err != nil {
@@ -98,13 +98,6 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 	if serverPort != 0 {
 		cfg.Server.Port = serverPort
-	}
-
-	// Set Gin mode based on debug flag
-	if cfg.Debug {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// Initialize database
@@ -126,7 +119,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Create and start server
-	srv := server.New(database, cfg, embeddedFS)
+	if srv, err = server.New(database, cfg, embeddedFS); err != nil {
+		log.Fatalf("Failed to initialize server: %v", err)
+	}
 
 	// Run the server
 	if err := srv.Run(); err != nil {

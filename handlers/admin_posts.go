@@ -1,29 +1,29 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
 
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 // ListPosts shows all posts for admin
-func (h *AdminHandlers) ListPosts(c *gin.Context) {
+func (h *AdminHandlers) ListPosts(c *fiber.Ctx) error {
 	posts, err := h.repos.Posts.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Load timezone from settings
@@ -37,159 +37,182 @@ func (h *AdminHandlers) ListPosts(c *gin.Context) {
 		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
 	}
 
-	c.HTML(http.StatusOK, "admin_posts.tmpl", h.addCommonData(c, gin.H{
+	return c.Render("admin_posts", fiber.Map{
 		"title": "Posts",
 		"posts": posts,
-	}))
+	})
 }
 
 // ShowCreatePost displays the post creation form
-func (h *AdminHandlers) ShowCreatePost(c *gin.Context) {
+func (h *AdminHandlers) ShowCreatePost(c *fiber.Ctx) error {
 	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
+	return c.Render("admin_create_post", fiber.Map{
 		"title": "Create Post",
 		"tags":  tags,
-	}))
+	})
 }
 
 // CreatePost handles post creation
-func (h *AdminHandlers) CreatePost(c *gin.Context) {
-	// Get the logged in user
-	userInterface, exists := c.Get("user")
-	if !exists {
-		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "User session not found",
-		}))
-		return
-	}
-	user := userInterface.(*models.User)
-
-	// Parse form data
-	title := c.PostForm("title")
-	slug := c.PostForm("slug")
-	content := c.PostForm("content")
-	excerpt := c.PostForm("excerpt")
-	publishedAt := c.PostForm("publishedAt")
-	var parsedTime time.Time
+func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
 	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
+	settings := c.Locals("settings").(*models.Settings)
+
+	// Get the logged in user
+	exists := c.Locals("user")
+	if exists == nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
+			"error": "User session not found",
+		})
+	}
+	user := exists.(*models.User)
+
+	// Parse multipart form
+	form, err := c.MultipartForm()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to get settings",
-		}))
-		return
+		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
+			"error": "Invalid form data",
+			"post":  &models.Post{},
+		})
 	}
 
-	// Load timezone from settings
+	// Parse form data
+	post, err := postFromForm(form, settings)
+	post.AuthorID = user.ID
+
+	if err != nil {
+		fmt.Printf("Error parsing form: %v\n", err)
+		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
+			"error": "Unable to parse form into post",
+			"post":  &post,
+		})
+	}
+
+	// Basic validation
+	if post.Title == "" || post.Slug == "" || post.Content == "" {
+		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
+			"error": "Title, slug and content are required",
+			"post":  &post,
+		})
+	}
+
+	// Handle tags
+	tags := strings.Split(c.FormValue("tags"), ",")
+
+	// Create post with transaction to ensure atomic operation
+	if err := h.repos.Posts.Create(post); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
+			"error": "Failed to create post",
+			"post":  &post,
+		})
+	}
+
+	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
+		fmt.Printf("Error associating tags: %v\n", err)
+		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
+			"error": "Failed to associate tags",
+			"post":  &post,
+		})
+	}
+
+	return c.Redirect("/admin/posts")
+}
+
+func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
+	id := c.Params("id")
+	settings := c.Locals("settings").(*models.Settings)
+	tagID, err := utils.ParseUint(id)
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+	}
+
+	post, err := h.repos.Posts.FindByID(tagID)
+	if err != nil {
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+	}
+
 	loc, err := time.LoadLocation(settings.Timezone)
 	if err != nil {
 		loc = time.UTC
 	}
 
-	if publishedAt == "" {
-		// If no date provided, use current time
-		parsedTime = time.Now().In(loc)
-	} else {
-		var err error
-		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
-		if err != nil {
-			c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Invalid date format",
-			}))
-			return
-		}
-	}
-	visible := c.PostForm("visible") == "on"
+	// Parse form data
+	post.Title = c.FormValue("title")
+	post.Slug = c.FormValue("slug")
+	post.Content = c.FormValue("content")
+	excerpt := c.FormValue("excerpt")
+	post.PublishedAt, err = parseTime(c.FormValue("publishedAt"), loc)
 
-	// Basic validation
-	if title == "" || slug == "" || content == "" {
-		c.HTML(http.StatusBadRequest, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Title, slug and content are required",
-		}))
-		return
-	}
-
-	// Create post
-	post := &models.Post{
-		Title:       title,
-		Slug:        slug,
-		Content:     content,
-		PublishedAt: parsedTime.UTC(),
-		Visible:     visible,
-		AuthorID:    user.ID,
-	}
-
-	// Only set excerpt if it's not empty
 	if excerpt != "" {
 		post.Excerpt = &excerpt
 	}
 
-	// Handle tags
-	var tags []string
-	if err := c.Request.ParseForm(); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_error.tmpl", gin.H{
-			"error": "Invalid form data",
+	if err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_post", fiber.Map{
+			"error": "Unable to parse form into post",
+			"post":  &post,
 		})
-		return
 	}
 
-	tags = strings.Split(c.PostForm("tags"), ",")
-
-	// Create post with transaction to ensure atomic operation
-	if err := h.repos.Posts.Create(post); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to create post",
+	// Basic validation
+	if post.Title == "" || post.Slug == "" || post.Content == "" {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_post", fiber.Map{
+			"error": "All fields are required",
 			"post":  post,
-		}))
-		return
+		})
+	}
+
+	// Handle tags
+	tags := strings.Split(c.FormValue("tags"), ",")
+
+	// Update post with transaction to ensure atomic operation
+	if err := h.repos.Posts.Update(post); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_edit_post", fiber.Map{
+			"error": "Failed to update post",
+			"post":  post,
+		})
 	}
 
 	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to associate tags",
+		return c.Status(http.StatusInternalServerError).Render("admin_edit_post", fiber.Map{
+			"error": "Failed to update tags",
 			"post":  post,
-		}))
-		return
+		})
 	}
 
-	c.Redirect(http.StatusFound, "/admin/posts")
+	return c.Redirect("/admin/posts")
 }
 
 // ListPostsByTag shows all posts for a specific tag
-func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
-	id := c.Param("id")
+func (h *AdminHandlers) ListPostsByTag(c *fiber.Ctx) error {
+	id := c.Params("id")
 
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
 	// Find the tag
-	tag, err := h.tagRepo.FindByID(tagID)
+	tag, err := h.repos.Tags.FindByID(tagID)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
 	posts, err := h.repos.Posts.FindByTag(tag.Slug)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Load timezone from settings
@@ -203,86 +226,83 @@ func (h *AdminHandlers) ListPostsByTag(c *gin.Context) {
 		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
 	}
 
-	c.HTML(http.StatusOK, "admin_tag_posts.tmpl", h.addCommonData(c, gin.H{
+	return c.Render("admin_tag_posts", fiber.Map{
 		"title": fmt.Sprintf("Posts tagged with '%s'", tag.Name),
 		"posts": posts,
 		"tag":   tag,
-	}))
+	})
 }
 
 // ConfirmDeletePost shows deletion confirmation page
-func (h *AdminHandlers) ConfirmDeletePost(c *gin.Context) {
-	id := c.Param("id")
+func (h *AdminHandlers) ConfirmDeletePost(c *fiber.Ctx) error {
+	id := c.Params("id")
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	post, err := h.postRepo.FindByID(tagID)
+	post, err := h.repos.Posts.FindByID(tagID)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_confirm_delete_post.tmpl", h.addCommonData(c, gin.H{
+	return c.Render("admin_confirm_delete_post", fiber.Map{
 		"title": "Confirm Delete Post",
 		"post":  post,
-	}))
+	})
 }
 
 // DeletePost removes a post and its tag associations
-func (h *AdminHandlers) DeletePost(c *gin.Context) {
-	id := c.Param("id")
+func (h *AdminHandlers) DeletePost(c *fiber.Ctx) error {
+	id := c.Params("id")
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid post ID",
+		})
 	}
 
-	post, err := h.postRepo.FindByID(tagID)
+	post, err := h.repos.Posts.FindByID(tagID)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error": "Post not found",
+		})
 	}
 
 	if err := h.repos.Posts.Delete(post); err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete post",
+		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
+	return c.JSON(fiber.Map{"message": "Post deleted successfully"})
 }
 
-func (h *AdminHandlers) EditPost(c *gin.Context) {
+func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {
 	var allTags []*models.Tag
-	id := c.Param("id")
+	id := c.Params("id")
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	post, err := h.postRepo.FindByID(tagID)
+	post, err := h.repos.Posts.FindByID(tagID)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	allTags, err = h.tagRepo.FindAll()
+	allTags, err = h.repos.Tags.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Load timezone from settings
@@ -294,118 +314,50 @@ func (h *AdminHandlers) EditPost(c *gin.Context) {
 	// Convert post time to user timezone
 	post.PublishedAt = post.PublishedAt.In(loc)
 
-	c.HTML(http.StatusOK, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
+	return c.Render("admin_edit_post", fiber.Map{
 		"title":    "Edit Post",
 		"post":     post,
 		"allTags":  allTags,
 		"postTags": post.Tags,
-	}))
+	})
 }
 
-func (h *AdminHandlers) UpdatePost(c *gin.Context) {
-	id := c.Param("id")
-	tagID, err := utils.ParseUint(id)
-
-	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+func postFromForm(form *multipart.Form, settings *models.Settings) (*models.Post, error) {
+	post := &models.Post{
+		Title:   form.Value["title"][0],
+		Slug:    form.Value["slug"][0],
+		Content: form.Value["content"][0],
+		Excerpt: &form.Value["excerpt"][0],
 	}
 
-	post, err := h.postRepo.FindByID(tagID)
-	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+	if _, ok := form.Value["visible"]; ok {
+		post.Visible = true
 	}
 
-	// Parse form data
-	title := c.PostForm("title")
-	slug := c.PostForm("slug")
-	content := c.PostForm("content")
-	excerpt := c.PostForm("excerpt")
-	publishedAt := c.PostForm("publishedAt")
-	visible := c.PostForm("visible") == "on"
-
-	// Basic validation
-	if title == "" || slug == "" || content == "" {
-		c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "All fields are required",
-			"post":  post,
-		}))
-		return
-	}
-
-	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to get settings",
-			"post":  post,
-		}))
-		return
-	}
-
-	// Load timezone from settings
 	loc, err := time.LoadLocation(settings.Timezone)
 	if err != nil {
 		loc = time.UTC
 	}
+	publishedAt := form.Value["publishedAt"][0]
+	parsedTime, err := parseTime(publishedAt, loc)
+	post.PublishedAt = parsedTime
 
+	return post, err
+}
+
+func parseTime(publishedAt string, loc *time.Location) (time.Time, error) {
+	var err error
 	var parsedTime time.Time
-	if publishedAt == "" {
-		parsedTime = time.Now().In(loc)
-	} else {
-		var err error
+
+	if publishedAt != "" {
+		// 2024-12-17T23:30
 		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
 		if err != nil {
-			c.HTML(http.StatusBadRequest, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-				"error": "Invalid date format",
-				"post":  post,
-			}))
-			return
+			return time.Time{}, errors.New("invalid date format")
 		}
-	}
-
-	// Update post fields
-	post.Title = title
-	post.Slug = slug
-	post.Content = content
-	post.PublishedAt = parsedTime.UTC()
-	post.Visible = visible
-
-	// Update excerpt - set to nil if empty, otherwise update the value
-	if excerpt == "" {
-		post.Excerpt = nil
 	} else {
-		post.Excerpt = &excerpt
+		parsedTime = time.Now().In(loc)
 	}
 
-	// Handle tags
-	var tags []string
-	if err := c.Request.ParseForm(); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_error.tmpl", gin.H{
-			"error": "Invalid form data",
-		})
-		return
-	}
-
-	tags = strings.Split(c.PostForm("tags"), ",")
-
-	// Update post with transaction to ensure atomic operation
-	if err := h.repos.Posts.Update(post); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to update post",
-			"post":  post,
-		}))
-		return
-	}
-
-	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_edit_post.tmpl", h.addCommonData(c, gin.H{
-			"error": "Failed to update tags",
-			"post":  post,
-		}))
-		return
-	}
-
-	c.Redirect(http.StatusFound, "/admin/posts")
+	return parsedTime, nil
 }

@@ -6,96 +6,85 @@ import (
 	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // ListUsers shows all users (except sensitive data)
-func (h *AdminHandlers) ListUsers(c *gin.Context) {
-
-	users, err := h.userRepo.FindAll()
+func (h *AdminHandlers) ListUsers(c *fiber.Ctx) error {
+	users, err := h.repos.Users.FindAll()
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{
-			"error": err.Error(),
-		}))
-		return
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_users.tmpl", h.addCommonData(c, gin.H{
-		"title": "Users",
+	return c.Render("admin_users", fiber.Map{
 		"users": users,
-	}))
+	})
 }
 
 // ShowCreateUser displays the user creation form
-func (h *AdminHandlers) ShowCreateUser(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-		"title": "Create User",
-	}))
+func (h *AdminHandlers) ShowCreateUser(c *fiber.Ctx) error {
+	return c.Render("admin_create_user", fiber.Map{
+		"user": &models.User{},
+	})
 }
 
 // CreateUser handles user creation
-func (h *AdminHandlers) CreateUser(c *gin.Context) {
-	firstName := c.PostForm("firstName")
-	lastName := c.PostForm("lastName")
-	email := c.PostForm("email")
-	password := c.PostForm("password")
+func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
+	firstName := c.FormValue("firstName")
+	lastName := c.FormValue("lastName")
+	email := c.FormValue("email")
+	password := c.FormValue("password")
 
 	// Validate input
 	if err := cmd.ValidateFirstName(firstName); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
 	if err := cmd.ValidateLastName(lastName); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
 	if err := cmd.ValidateEmail(email); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
 	if err := cmd.ValidatePassword(password); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
 
 	// Check if email already exists
-	count, err := h.userRepo.CountByEmail(email)
+	count, err := h.repos.Users.CountByEmail(email)
 
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": "Failed to check email uniqueness",
-		}))
-		return
+		})
 	}
 	if count > 0 {
-		c.HTML(http.StatusBadRequest, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": "Email already exists",
-		}))
-		return
+		})
 	}
 
 	// Hash password
-	hashedPassword, err := utils.HashPassword(password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
+			"user":  &models.User{},
 			"error": "Failed to hash password",
-		}))
-		return
+		})
 	}
 
 	// Create user
@@ -103,204 +92,155 @@ func (h *AdminHandlers) CreateUser(c *gin.Context) {
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
-		Password:  hashedPassword,
+		Password:  string(hashedPassword),
 	}
 
-	if err := h.userRepo.Create(user); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_create_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Create User",
+	if err := h.repos.Users.Create(user); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
+			"user":  user,
 			"error": "Failed to create user",
-		}))
-		return
+		})
 	}
 
-	c.Redirect(http.StatusFound, "/admin/users")
+	return c.Redirect("/admin/users")
 }
 
 // ShowEditUser displays the user edit form
-func (h *AdminHandlers) ShowEditUser(c *gin.Context) {
-	id := c.Param("id")
-	userID, err := utils.ParseUint(id)
-
+func (h *AdminHandlers) ShowEditUser(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	user, err := h.userRepo.FindByID(userID)
+	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	c.HTML(http.StatusOK, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-		"title": "Edit User",
-		"user":  user,
-	}))
+	return c.Render("admin_edit_user", fiber.Map{
+		"user": user,
+	})
 }
 
 // UpdateUser handles user updates
-func (h *AdminHandlers) UpdateUser(c *gin.Context) {
-	id := c.Param("id")
-	userID, err := utils.ParseUint(id)
-
+func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	user, err := h.userRepo.FindByID(userID)
+	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	firstName := c.PostForm("firstName")
-	lastName := c.PostForm("lastName")
-	email := c.PostForm("email")
-	password := c.PostForm("password")
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
+			"user":  user,
+			"error": "Invalid form data",
+		})
+	}
 
 	// Validate input
-	if err := cmd.ValidateFirstName(firstName); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+	if err := cmd.ValidateFirstName(user.FirstName); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
-	if err := cmd.ValidateLastName(lastName); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+	if err := cmd.ValidateLastName(user.LastName); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
-	if err := cmd.ValidateEmail(email); err != nil {
-		c.HTML(http.StatusBadRequest, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+	if err := cmd.ValidateEmail(user.Email); err != nil {
+		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": err.Error(),
-		}))
-		return
+		})
 	}
 
 	// Check if email already exists for other users
-	count, err := h.userRepo.CountByEmail(email)
+	count, err := h.repos.Users.CountByEmail(user.Email)
 
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": "Failed to check email uniqueness",
-		}))
-		return
+		})
 	}
 
 	if count > 1 {
-		c.HTML(http.StatusBadRequest, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": "Email already exists",
-		}))
-		return
+		})
 	}
-
-	// Update user fields
-	user.FirstName = firstName
-	user.LastName = lastName
-	user.Email = email
 
 	// Update password if provided
-	if password != "" {
-		if err := cmd.ValidatePassword(password); err != nil {
-			c.HTML(http.StatusBadRequest, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-				"title": "Edit User",
+	if user.Password != "" {
+		if err := cmd.ValidatePassword(user.Password); err != nil {
+			return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 				"user":  user,
 				"error": err.Error(),
-			}))
-			return
+			})
 		}
 
-		hashedPassword, err := utils.HashPassword(password)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
-			c.HTML(http.StatusInternalServerError, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-				"title": "Edit User",
+			return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
 				"user":  user,
 				"error": "Failed to hash password",
-			}))
-			return
+			})
 		}
-		user.Password = hashedPassword
+		user.Password = string(hashedPassword)
 	}
 
-	if err := h.userRepo.Update(user); err != nil {
-		c.HTML(http.StatusInternalServerError, "admin_edit_user.tmpl", h.addCommonData(c, gin.H{
-			"title": "Edit User",
+	// Update user
+	if err := h.repos.Users.Update(user); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
 			"user":  user,
 			"error": "Failed to update user",
-		}))
-		return
+		})
 	}
 
-	c.Redirect(http.StatusFound, "/admin/users")
+	return c.Redirect("/admin/users")
 }
 
 // ShowDeleteUser displays the user deletion confirmation page
-func (h *AdminHandlers) ShowDeleteUser(c *gin.Context) {
-	var postCount int64
-	id := c.Param("id")
-	userID, err := utils.ParseUint(id)
-
+func (h *AdminHandlers) ShowDeleteUser(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "500.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	user, err := h.userRepo.FindByID(userID)
+	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		c.HTML(http.StatusNotFound, "404.tmpl", h.addCommonData(c, gin.H{}))
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	// Check if user has any posts
-	postCount, err = h.postRepo.CountByAuthor(user)
-	if err != nil {
-		c.HTML(http.StatusInternalServerError, "500.tmpl", h.addCommonData(c, gin.H{
-			"error": err.Error(),
-		}))
-		return
-	}
-
-	c.HTML(http.StatusOK, "admin_confirm_delete_user.tmpl", h.addCommonData(c, gin.H{
-		"title":      "Delete User",
-		"user":       user,
-		"hasContent": postCount > 0,
-	}))
+	return c.Render("admin_confirm_delete_user", fiber.Map{
+		"user": user,
+	})
 }
 
 // DeleteUser handles user deletion
-func (h *AdminHandlers) DeleteUser(c *gin.Context) {
-	id := c.Param("id")
-	userID, err := utils.ParseUint(id)
-
+func (h *AdminHandlers) DeleteUser(c *fiber.Ctx) error {
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
+		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	user, err := h.userRepo.FindByID(userID)
+	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
-	// Delete user (posts will remain with the author info)
-	if err := h.userRepo.Delete(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
-		return
+	// Delete user
+	if err := h.repos.Users.Delete(user); err != nil {
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+	return c.Redirect("/admin/users")
 }

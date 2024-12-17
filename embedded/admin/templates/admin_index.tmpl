@@ -1,0 +1,58 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <h1>Dashboard</h1>
+    
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>Posts</h3>
+            <div class="stat-number">{{.postCount}}</div>
+            <a href="/admin/posts" class="btn btn-primary">Manage Posts</a>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Tags</h3>
+            <div class="stat-number">{{.tagCount}}</div>
+            <a href="/admin/tags" class="btn btn-primary">Manage Tags</a>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Users</h3>
+            <div class="stat-number">{{.userCount}}</div>
+            <a href="/admin/users" class="btn btn-primary">Manage Users</a>
+        </div>
+    </div>
+
+    <div class="recent-activity">
+        <h2>Recent Posts</h2>
+        {{if .recentPosts}}
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Published</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .recentPosts}}
+                    <tr>
+                        <td>{{.Title}}</td>
+                        <td>{{.PublishedAt.Format "2006-01-02 15:04"}}</td>
+                        <td>
+                            <a href="/admin/posts/{{.ID}}/edit" class="btn btn-edit">Edit</a>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{else}}
+        <div class="empty-state">
+            <p>You haven't created any posts yet. Start your blogging journey by creating your first post!</p>
+            <a href="/admin/posts/create" class="btn btn-primary">Create Your First Post</a>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{ template "admin_footer" . }}

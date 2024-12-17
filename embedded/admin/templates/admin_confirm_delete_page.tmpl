@@ -1,0 +1,13 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <h1>Confirm Delete Page</h1>
+    <div class="confirm-delete">
+        <p>Are you sure you want to delete the page "{{.page.Title}}"?</p>
+        <p>This action cannot be undone.</p>
+        <div class="actions">
+            <button onclick="deletePage({{.page.ID}})" class="btn btn-delete">Delete</button>
+            <a href="/admin/pages" class="btn">Cancel</a>
+        </div>
+    </div>
+</div>
+{{ template "admin_footer" . }}

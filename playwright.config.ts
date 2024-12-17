@@ -20,7 +20,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `CAPTAIN_DEBUG=1 CAPTAIN_DB_PATH=:memory: CAPTAIN_SERVER_PORT=8081 make run`,
+    command: `mkdir -p ./dist && rm -f ./dist/test.db && CAPTAIN_DEBUG=1 CAPTAIN_DB_PATH=./dist/test.db CAPTAIN_SERVER_PORT=8081 make run`,
     url: 'http://localhost:8081',
     reuseExistingServer: !process.env.CI,
     stdout: 'pipe',

@@ -1,0 +1,44 @@
+{{ template "admin_header" . }}
+<div class="admin-page">
+    <div class="page-header">
+        <h1>Pages</h1>
+        <a href="/admin/pages/create" class="btn btn-primary">Create New Page</a>
+    </div>
+    
+    <div class="table-container">
+        {{if .pages}}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Slug</th>
+                    <th>Content Type</th>
+                    <th>Visible</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .pages}}
+                <tr>
+                    <td>{{.Title}}</td>
+                    <td>{{.Slug}}</td>
+                    <td>{{.ContentType}}</td>
+                    <td>{{if .Visible}}Yes{{else}}No{{end}}</td>
+                    <td class="actions">
+                        <a href="/admin/pages/{{.ID}}/edit" class="btn btn-edit">Edit</a>
+                        <a href="/admin/pages/{{.ID}}/delete" class="btn btn-delete">Delete</a>
+                        <a href="/pages/{{.Slug}}" class="btn btn-view" target="_blank">View</a>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty-state">
+            <p>No pages found. Get started by creating your first page!</p>
+            <a href="/admin/pages/create" class="btn btn-primary">Create Page</a>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{ template "admin_footer" . }}
