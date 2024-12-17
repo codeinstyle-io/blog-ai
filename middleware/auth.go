@@ -7,6 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
+// abort redirects the user to the login page
+// TODO: Pass the next page
 func abort(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     system.CookieName,

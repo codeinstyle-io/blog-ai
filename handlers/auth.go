@@ -70,6 +70,7 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 	}
 
 	sess.Set("loggedIn", true)
+	sess.Set("userID", user.ID)
 
 	if err := sess.Save(); err != nil {
 		return c.Status(http.StatusInternalServerError).Render("login", fiber.Map{

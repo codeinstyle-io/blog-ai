@@ -39,6 +39,7 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 	var adminStaticFS fs.FS
 	var staticFS fs.FS
 	themeName := cfg.Site.Theme
+	repositories := repository.NewRepositories(db)
 
 	// Load theme static files
 	if adminStaticFS, staticFS, err = setupStatics(themeName, embeddedFS); err != nil {
@@ -68,9 +69,14 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) *Server {
 
 	app.Use(recover.New())
 
+	app.Use(middleware.LoadMenuItems(repositories))
+	app.Use(middleware.LoadSettings(repositories))
+	app.Use(middleware.LoadVersion(repositories))
+	app.Use(middleware.LoadUserData(repositories))
+
 	return &Server{
 		app:        app,
-		repos:      repository.NewRepositories(db),
+		repos:      repositories,
 		config:     cfg,
 		embeddedFS: embeddedFS,
 	}

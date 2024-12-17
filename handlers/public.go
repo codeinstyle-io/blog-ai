@@ -14,7 +14,6 @@ import (
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/system"
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"
@@ -76,9 +75,9 @@ func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 
 	post, err := h.repos.Posts.FindBySlug(slug)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", h.addCommonData(c, fiber.Map{
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{
 			"title": "Post not found",
-		}))
+		})
 	}
 
 	// Render markdown content
@@ -91,10 +90,10 @@ func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 	}
 	post.PublishedAt = post.PublishedAt.In(loc)
 
-	return c.Render("post", h.addCommonData(c, fiber.Map{
+	return c.Render("post", fiber.Map{
 		"title": post.Title,
 		"post":  post,
-	}))
+	})
 }
 
 func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
@@ -108,7 +107,7 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 
 	posts, total, err := h.repos.Posts.FindVisible(page, settings.PostsPerPage)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{}))
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
@@ -116,12 +115,12 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 	processPostsContent(posts)
 	processPostsPublishedAt(posts)
 
-	return c.Render("posts", h.addCommonData(c, fiber.Map{
+	return c.Render("posts", fiber.Map{
 		"title":       "Latest Articles",
 		"posts":       posts,
 		"currentPage": page,
 		"totalPages":  totalPages,
-	}))
+	})
 }
 
 func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
@@ -135,16 +134,16 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 
 	tag, err := h.repos.Tags.FindBySlug(tagSlug)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("404", h.addCommonData(c, fiber.Map{
+		return c.Status(http.StatusInternalServerError).Render("404", fiber.Map{
 			"title": "Tag not found",
-		}))
+		})
 	}
 
 	posts, total, err := h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", h.addCommonData(c, fiber.Map{
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
 			"title": "Error",
-		}))
+		})
 	}
 
 	// Process posts
@@ -166,9 +165,9 @@ func (h *PublicHandlers) GetPageBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 	page, err := h.repos.Pages.FindBySlug(slug)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", h.addCommonData(c, fiber.Map{
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{
 			"title": "Page not found",
-		}))
+		})
 	}
 
 	// Render content based on type
@@ -176,31 +175,10 @@ func (h *PublicHandlers) GetPageBySlug(c *fiber.Ctx) error {
 		page.Content = renderMarkdown(page.Content)
 	}
 
-	return c.Render("page", h.addCommonData(c, fiber.Map{
+	return c.Render("page", fiber.Map{
 		"title": page.Title,
 		"page":  page,
-	}))
-}
-
-func (h *PublicHandlers) addCommonData(c *fiber.Ctx, data fiber.Map) fiber.Map {
-	// Get menu items
-	menuItems, _ := h.repos.MenuItems.FindAll()
-	settings, _ := h.repos.Settings.Get()
-
-	// Add menu items to the data
-	data["menuItems"] = menuItems
-
-	// Add site config from settings
-	data["config"] = fiber.Map{
-		"SiteTitle":    settings.Title,
-		"SiteSubtitle": settings.Subtitle,
-		"Theme":        settings.Theme,
-	}
-
-	// Add version information
-	data["version"] = system.Version
-
-	return data
+	})
 }
 
 func processPostsPublishedAt(posts []models.Post) {
