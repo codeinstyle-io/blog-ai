@@ -9,7 +9,7 @@
         docker-build test-e2e test-e2e-ui
 
 # Variables
-BINARY_NAME=dist/bin/captain-darwin-amd64
+BINARY_NAME=dist/bin/captain
 MAIN_FILE=main.go
 VERSION := $(shell grep 'Version = "' system/system.go | cut -d'"' -f2)
 COMMIT := $(shell git rev-parse --short HEAD)
@@ -28,11 +28,8 @@ clean:
 run: build
 	./$(BINARY_NAME) run
 
-run_dev: build
-	CAPTAIN_DEBUG=true ./$(BINARY_NAME) run
-
 dev:
-	go run $(MAIN_FILE) run
+	CAPTAIN_DEBUG=true air
 
 # Test commands
 test:
