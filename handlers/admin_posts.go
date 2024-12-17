@@ -124,8 +124,8 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
 func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	id := c.Params("id")
+	settings := c.Locals("settings").(*models.Settings)
 	tagID, err := utils.ParseUint(id)
-	publishedAt := c.FormValue("published_at")
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
@@ -136,11 +136,26 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
+	loc, err := time.LoadLocation(settings.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+
 	// Parse form data
-	if err := c.BodyParser(post); err != nil {
+	post.Title = c.FormValue("title")
+	post.Slug = c.FormValue("slug")
+	post.Content = c.FormValue("content")
+	excerpt := c.FormValue("excerpt")
+	post.PublishedAt, err = parseTime(c.FormValue("publishedAt"), loc)
+
+	if excerpt != "" {
+		post.Excerpt = &excerpt
+	}
+
+	if err != nil {
 		return c.Status(http.StatusBadRequest).Render("admin_edit_post", fiber.Map{
-			"error": "Invalid form data",
-			"post":  post,
+			"error": "Unable to parse form into post",
+			"post":  &post,
 		})
 	}
 
@@ -150,34 +165,6 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 			"error": "All fields are required",
 			"post":  post,
 		})
-	}
-
-	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("admin_edit_post", fiber.Map{
-			"error": "Failed to get settings",
-			"post":  post,
-		})
-	}
-
-	// Load timezone from settings
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	var parsedTime time.Time
-	if publishedAt != "" {
-		parsedTime = post.PublishedAt.In(loc)
-	} else {
-		parsedTime = time.Now().In(loc)
-	}
-	post.PublishedAt = parsedTime
-
-	// Update excerpt - set to nil if empty, otherwise update the value
-	if post.Excerpt == nil || *post.Excerpt == "" {
-		post.Excerpt = nil
 	}
 
 	// Handle tags
@@ -334,6 +321,7 @@ func postFromForm(form *multipart.Form, settings *models.Settings) (*models.Post
 		Title:   form.Value["title"][0],
 		Slug:    form.Value["slug"][0],
 		Content: form.Value["content"][0],
+		Excerpt: &form.Value["excerpt"][0],
 	}
 
 	if _, ok := form.Value["visible"]; ok {

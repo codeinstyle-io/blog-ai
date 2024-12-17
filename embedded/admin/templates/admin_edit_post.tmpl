@@ -14,7 +14,7 @@
     {{ end }}
 
     <div class="editor-container">
-        <form id="edit-post-form" method="POST" action="/admin/posts/{{.post.ID}}">
+        <form id="edit-post-form" method="POST" enctype="multipart/form-data" action="/admin/posts/{{.post.ID}}">
             <div class="form-group">
                 <label for="title">Title:</label>
                 <input type="text" id="title" name="title" class="form-control" value="{{.post.Title}}" required>
