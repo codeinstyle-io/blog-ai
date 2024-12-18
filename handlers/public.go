@@ -105,7 +105,19 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	posts, total, err := h.repos.Posts.FindVisible(page, settings.PostsPerPage)
+	// Get user from context
+	user := c.Locals("user")
+	var posts []models.Post
+	var total int64
+
+	if user != nil {
+		// Logged-in users can see all posts
+		posts, total, err = h.repos.Posts.FindAllPaginated(page, settings.PostsPerPage)
+	} else {
+		// Anonymous users can only see visible posts
+		posts, total, err = h.repos.Posts.FindVisiblePaginated(page, settings.PostsPerPage, settings.Timezone)
+	}
+
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
@@ -120,6 +132,8 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 		"posts":       posts,
 		"currentPage": page,
 		"totalPages":  totalPages,
+		"user":        user,
+		"settings":    settings,
 	})
 }
 
@@ -139,7 +153,19 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 		})
 	}
 
-	posts, total, err := h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
+	// Get user from context
+	user := c.Locals("user")
+	var posts []models.Post
+	var total int64
+
+	if user != nil {
+		// Logged-in users can see all posts with tag
+		posts, total, err = h.repos.Posts.FindAllByTag(tag.ID, page, settings.PostsPerPage)
+	} else {
+		// Anonymous users can only see visible posts with tag
+		posts, total, err = h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage, settings.Timezone)
+	}
+
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
 			"title": "Error",
@@ -158,6 +184,8 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 		"tag":        tag,
 		"page":       page,
 		"totalPages": totalPages,
+		"user":       user,
+		"settings":   settings,
 	}))
 }
 

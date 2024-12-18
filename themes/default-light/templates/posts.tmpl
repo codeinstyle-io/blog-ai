@@ -5,6 +5,16 @@
         <div class="meta">
             Posted on {{.PublishedAt.Format "January 2, 2006"}}
             {{if .Author}}by {{.Author.FirstName}} {{.Author.LastName}}{{end}}
+            {{ if not .Visible }}
+                <span class="draft-indicator">Draft</span>
+            {{ else if .IsScheduled $.settings.Timezone }}
+                <span class="scheduled-indicator">Scheduled</span>
+            {{ end }}
+            {{ if $.user }}
+                <a href="/admin/posts/{{ .ID }}/edit" class="edit-link" title="Edit Post">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            {{ end }}
         </div>
         <div class="content">
             {{.Excerpt | raw}}

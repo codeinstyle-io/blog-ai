@@ -3,11 +3,21 @@
     <h1>Posts tagged with #{{.tag}}</h1>
     {{if .posts}}
         {{range .posts}}
-        <article>
+        <article class="post-item {{ if not .Visible }}draft-post{{ else if .IsScheduled $.settings.Timezone }}scheduled-post{{ end }}">
             <h1 class="title"><a href="/posts/{{.Slug}}">{{.Title}}</a></h1>
             <div class="meta">
-                Posted on {{.PublishedAt.Format "January 2, 2006"}}
-                by {{.Author.FirstName}} {{.Author.LastName}}
+                <div class="post-date">{{.PublishedAt.Format "January 2, 2006"}}</div>
+                {{ if not .Visible }}
+                    <span class="draft-indicator">Draft</span>
+                {{ else if .IsScheduled $.settings.Timezone }}
+                    <span class="scheduled-indicator">Scheduled</span>
+                {{ end }}
+                {{ if $.user }}
+                    <a href="/admin/posts/{{ .ID }}/edit" class="edit-link" title="Edit Post">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                {{ end }}
+                Posted by {{.Author.FirstName}} {{.Author.LastName}}
             </div>
             {{if .Tags}}
             <div class="tags">

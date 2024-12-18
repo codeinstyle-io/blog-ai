@@ -2,34 +2,53 @@
 <main class="main-content">
     <section class="text-section centered-container">
         <h1 class="tag-title">Posts tagged with #{{ .tag.Name }}</h1>
-        {{ range .posts }}
-            <article class="post-item">
-                <div class="post-date">{{ .PublishedAt.Format "January 2006" }}</div>
-                <h2 class="post-title"><a href="/post/{{ .Slug }}">{{ .Title }}</a></h2>
-                {{ if .Excerpt }}
-                    <p class="post-excerpt">{{ raw .Excerpt }}</p>
-                {{ end }}
-                <div class="post-tags">
-                    {{ range .Tags }}
-                        <a href="/tags/{{ .Slug }}" class="post-tag">#{{ .Name }}</a>
+        {{ if .posts }}
+            {{ range .posts }}
+                <article class="post-item {{ if not .Visible }}draft-post{{ else if .IsScheduled $.settings.Timezone }}scheduled-post{{ end }}">
+                    <div class="post-meta">
+                        <div class="post-date">{{ .PublishedAt.Format "January 2, 2006" }}</div>
+                        {{ if not .Visible }}
+                            <span class="draft-indicator">Draft</span>
+                        {{ else if .IsScheduled $.settings.Timezone }}
+                            <span class="scheduled-indicator">Scheduled</span>
+                        {{ end }}
+                        {{ if $.user }}
+                            <a href="/admin/posts/{{ .ID }}/edit" class="edit-link" title="Edit Post">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        {{ end }}
+                    </div>
+                    <h2 class="post-title"><a href="/post/{{ .Slug }}">{{ .Title }}</a></h2>
+                    {{ if .Excerpt }}
+                        <p class="post-excerpt">{{ raw .Excerpt }}</p>
                     {{ end }}
-                </div>
-            </article>
-            <hr>
-        {{ end }}
+                    <div class="post-tags">
+                        {{ range .Tags }}
+                            <a href="/tags/{{ .Slug }}" class="post-tag">#{{ .Name }}</a>
+                        {{ end }}
+                    </div>
+                </article>
+                <hr>
+            {{ end }}
 
-        {{ if gt .totalPages 1 }}
-        <div class="pagination">
-            {{ if gt .currentPage 1 }}
-                <a href="/tags/{{ .tag.Slug }}?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+            {{ if gt .totalPages 1 }}
+            <div class="pagination">
+                {{ if gt .currentPage 1 }}
+                    <a href="/tags/{{ .tag.Slug }}?page={{ sub .currentPage 1 }}" class="pagination-link">&larr; Previous</a>
+                {{ end }}
+
+                <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
+
+                {{ if lt .currentPage .totalPages }}
+                    <a href="/tags/{{ .tag.Slug }}?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
+                {{ end }}
+            </div>
             {{ end }}
-            
-            <span class="pagination-info">Page {{ .currentPage }} of {{ .totalPages }}</span>
-            
-            {{ if lt .currentPage .totalPages }}
-                <a href="/tags/{{ .tag.Slug }}?page={{ add .currentPage 1 }}" class="pagination-link">Next &rarr;</a>
-            {{ end }}
-        </div>
+        {{ else }}
+            <div class="empty-state">
+                <h2>No Posts Found</h2>
+                <p>There are no posts with this tag yet.</p>
+            </div>
         {{ end }}
     </section>
 </main>

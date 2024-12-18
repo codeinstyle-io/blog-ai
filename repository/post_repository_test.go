@@ -111,7 +111,7 @@ func TestPostRepository_FindVisible(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	found, total, err := repo.FindVisible(1, 10)
+	found, total, err := repo.FindVisiblePaginated(1, 10, "UTC")
 	assert.NoError(t, err)
 	assert.Equal(t, int64(2), total) // Only visible posts
 	assert.Len(t, found, 2)
