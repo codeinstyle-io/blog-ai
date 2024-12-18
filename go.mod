@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.5
 	github.com/aws/smithy-go v1.19.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/fiber/v2 v2.52.1
 	github.com/gofiber/storage/sqlite3 v1.3.8
 	github.com/gofiber/template/html/v2 v2.1.0
 	github.com/gomarkdown/markdown v0.0.0-20241105142532-d03b89096d81
