@@ -235,6 +235,9 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator('a[href="?page=2"]')).toBeVisible();
             await expect(page.locator('text=Updated Title')).toBeVisible();
             await expect(page.locator('text=Updated Subtitle')).toBeVisible();
+            const title = await page.title();
+            await expect(title).toContain('Updated Title');
+
         });
     });
 });
