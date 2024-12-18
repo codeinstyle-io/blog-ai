@@ -223,8 +223,13 @@ test.describe('Admin Panel E2E Tests', () => {
             const publishedAt = await secondPost.locator('td').nth(2).textContent();
             expect(publishedAt).toContain('1985-10-26 19:00');
 
-            // Verify changes on public site
+        });
+
+        // Verify changes on public site
+        await test.step('Verify changes on public site', async () => {
+            // Test navigation back to public site
             await page.goto(rootURL);
+            await expect(page).toHaveURL(rootURL + '/');
 
             await expect(page.locator('.pagination')).toBeVisible();
             await expect(page.locator('a[href="?page=2"]')).toBeVisible();
