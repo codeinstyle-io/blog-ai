@@ -9,6 +9,7 @@ import (
 
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/handlers"
 	"codeinstyle.io/captain/middleware"
 	"codeinstyle.io/captain/repository"
@@ -103,6 +104,10 @@ func (s *Server) setupRouter(sessionStore *session.Store) error {
 	s.app.Use(middleware.LoadSettings(s.repos))
 	s.app.Use(middleware.LoadVersion(s.repos))
 	s.app.Use(middleware.LoadUserData(s.repos, sessionStore))
+
+	// Initialize flash messages
+	flash.Setup(sessionStore)
+	s.app.Use(flash.Middleware())
 
 	handlers.RegisterPublicRoutes(s.app, s.repos, s.config)
 	handlers.RegisterAuthRoutes(s.app, s.repos, s.config, sessionStore)

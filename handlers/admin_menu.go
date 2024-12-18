@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
 // ListMenuItems displays the menu items management page
@@ -30,49 +29,69 @@ func (h *AdminHandlers) ListMenuItems(c *fiber.Ctx) error {
 func (h *AdminHandlers) SaveMenuItems(c *fiber.Ctx) error {
 	var menuItems []models.MenuItem
 	if err := c.BodyParser(&menuItems); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	// Delete all existing menu items
 	if err := h.repos.MenuItems.DeleteAll(); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	// Create new menu items
 	if err := h.repos.MenuItems.CreateAll(menuItems); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	flash.Success(c, "Menu items saved successfully")
 	return c.JSON(fiber.Map{"message": "Menu items saved successfully"})
 }
 
-// DeleteMenuItem deletes a menu item
+// DeleteMenuItem handles menu item deletion
 func (h *AdminHandlers) DeleteMenuItem(c *fiber.Ctx) error {
-	menuItemID, err := strconv.ParseUint(c.Params("id"), 10, 64)
-
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid menu item ID"})
+		flash.Error(c, "Invalid menu item ID")
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":    "Invalid menu item ID",
+			"redirect": "/admin/menus",
+		})
 	}
 
-	menuItem, err := h.repos.MenuItems.FindByID(uint(menuItemID))
+	menuItem, err := h.repos.MenuItems.FindByID(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Menu item not found"})
-		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		flash.Error(c, "Menu item not found")
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error":    "Menu item not found",
+			"redirect": "/admin/menus",
+		})
 	}
 
-	// Delete the menu item
+	// Delete menu item
 	if err := h.repos.MenuItems.Delete(menuItem); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		flash.Error(c, "Failed to delete menu item")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error":    "Failed to delete menu item",
+			"redirect": "/admin/menus",
+		})
 	}
 
 	// Update positions of remaining items
 	if err := h.repos.MenuItems.UpdatePositions(menuItem.Position); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		flash.Error(c, err.Error())
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error":    err.Error(),
+			"redirect": "/admin/menus",
+		})
 	}
 
-	return c.JSON(fiber.Map{"message": "Menu item deleted successfully"})
+	flash.Success(c, "Menu item deleted successfully")
+	return c.JSON(fiber.Map{
+		"message":  "Menu item deleted successfully",
+		"redirect": "/admin/menus",
+	})
 }
 
 // ShowCreateMenuItem displays the menu item creation form
@@ -96,8 +115,8 @@ func (h *AdminHandlers) CreateMenuItem(c *fiber.Ctx) error {
 	pageID := c.FormValue("page_id")
 
 	if label == "" || (urlStr == "" && pageID == "") {
+		flash.Error(c, "Label and either URL or Page are required")
 		return c.Status(http.StatusBadRequest).Render("admin_create_menu_item", fiber.Map{
-			"error": "Label and either URL or Page are required",
 			"pages": []models.Page{},
 		})
 	}
@@ -119,14 +138,15 @@ func (h *AdminHandlers) CreateMenuItem(c *fiber.Ctx) error {
 		pages, err := h.repos.Pages.FindAll()
 
 		if err != nil {
+			flash.Error(c, "Failed to create menu item")
 			return c.Status(http.StatusInternalServerError).Render("admin_create_menu_item", fiber.Map{
-				"error": "Failed to create menu item",
 				"item":  menuItem,
 				"pages": pages,
 			})
 		}
 	}
 
+	flash.Success(c, "Menu item created successfully")
 	return c.Redirect("/admin/menus")
 }
 
@@ -137,13 +157,16 @@ func (h *AdminHandlers) MoveMenuItem(c *fiber.Ctx) error {
 
 	menuID, err := utils.ParseUint(id)
 	if err != nil {
+		flash.Error(c, "Invalid menu item ID")
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid menu item ID"})
 	}
 
 	if err := h.repos.MenuItems.Move(menuID, direction); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	flash.Success(c, "Menu item moved successfully")
 	return c.JSON(fiber.Map{"message": "Menu item moved successfully"})
 }
 
@@ -200,16 +223,19 @@ func (h *AdminHandlers) UpdateMenuItem(c *fiber.Ctx) error {
 
 	menuID, err := utils.ParseUint(id)
 	if err != nil {
+		flash.Error(c, "Invalid menu item ID")
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
 	pages, err := h.repos.Pages.FindAll()
 	if err != nil {
+		flash.Error(c, "Failed to fetch pages")
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
 	menuItem, err := h.repos.MenuItems.FindByID(menuID)
 	if err != nil {
+		flash.Error(c, "Menu item not found")
 		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
@@ -226,12 +252,13 @@ func (h *AdminHandlers) UpdateMenuItem(c *fiber.Ctx) error {
 	}
 
 	if err := h.repos.MenuItems.Update(menuItem); err != nil {
+		flash.Error(c, "Failed to update menu item")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_menu_item", fiber.Map{
-			"error": "Failed to update menu item",
 			"item":  menuItem,
 			"pages": pages,
 		})
 	}
 
+	flash.Success(c, "Menu item updated successfully")
 	return c.Redirect("/admin/menus")
 }

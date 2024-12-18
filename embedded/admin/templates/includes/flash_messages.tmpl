@@ -1,0 +1,12 @@
+{{if .flashMessages}}
+<div class="flash-messages">
+    {{range .flashMessages}}
+    <div class="flash-message flash-{{.Severity.String | lower}}" role="alert">
+        <span class="message-text">{{.Text}}</span>
+        <button type="button" class="dismiss-button" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    {{end}}
+</div>
+{{end}}

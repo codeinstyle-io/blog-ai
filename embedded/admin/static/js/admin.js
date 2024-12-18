@@ -1,18 +1,12 @@
 function deleteTag(id) {
     fetch(`/admin/tags/${id}`, {
         method: 'DELETE',
-    }).then((response) => {
-        if (response.ok) {
-            window.location.href = '/admin/tags';
-        } else {
-            response.json().then(data => {
-                showError(data.error || 'Failed to delete tag');
-            }).catch(() => {
-                showError('Failed to delete tag');
-            });
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
         }
     }).catch(error => {
-        showError('Failed to delete tag');
         console.error('Error:', error);
     });
 }
@@ -20,18 +14,12 @@ function deleteTag(id) {
 function deletePost(id) {
     fetch(`/admin/posts/${id}`, {
         method: 'DELETE',
-    }).then((response) => {
-        if (response.ok) {
-            window.location.href = '/admin/posts';
-        } else {
-            response.json().then(data => {
-                showError(data.error || 'Failed to delete post');
-            }).catch(() => {
-                showError('Failed to delete post');
-            });
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
         }
     }).catch(error => {
-        showError('Failed to delete post');
         console.error('Error:', error);
     });
 }
@@ -39,18 +27,12 @@ function deletePost(id) {
 function deletePage(id) {
     fetch(`/admin/pages/${id}`, {
         method: 'DELETE',
-    }).then(response => {
-        if (response.ok) {
-            window.location.href = '/admin/pages';
-        } else {
-            response.json().then(data => {
-                showError(data.error || 'Failed to delete page');
-            }).catch(() => {
-                showError('Failed to delete page');
-            });
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
         }
     }).catch(error => {
-        showError('Failed to delete page');
         console.error('Error:', error);
     });
 }
@@ -58,18 +40,12 @@ function deletePage(id) {
 function deleteMenuItem(id) {
     fetch(`/admin/menus/${id}`, {
         method: 'DELETE',
-    }).then(response => {
-        if (response.ok) {
-            window.location.href = '/admin/menus';
-        } else {
-            response.json().then(data => {
-                showError(data.error || 'Failed to delete menu item');
-            }).catch(() => {
-                showError('Failed to delete menu item');
-            });
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
         }
     }).catch(error => {
-        showError('Failed to delete menu item');
         console.error('Error:', error);
     });
 }
@@ -77,37 +53,27 @@ function deleteMenuItem(id) {
 function deleteMedia(id) {
     fetch(`/admin/media/${id}`, {
         method: 'DELETE',
-    }).then((response) => {
-        if (response.ok) {
-            window.location.href = '/admin/media';
-        } else {
-            response.json().then(data => {
-                showError(data.error || 'Failed to delete media');
-            }).catch(() => {
-                showError('Failed to delete media');
-            });
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
         }
     }).catch(error => {
-        showError('Failed to delete media');
         console.error('Error:', error);
     });
 }
 
-function showError(message) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-error';
-    errorDiv.textContent = message;
-    
-    // Insert at the top of the main content area
-    const mainContent = document.querySelector('main');
-    if (mainContent) {
-        mainContent.insertBefore(errorDiv, mainContent.firstChild);
-    }
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        errorDiv.remove();
-    }, 5000);
+function deleteUser(id) {
+    fetch(`/admin/users/${id}`, {
+        method: 'DELETE',
+    }).then((response) => response.json())
+    .then((data) => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 function initializeEditor() {
@@ -421,13 +387,13 @@ function moveItem(id, direction) {
             window.location.reload();
         } else {
             response.json().then(data => {
-                showError(data.error || 'Failed to move item');
+                console.error(data.error || 'Failed to move item');
             }).catch(() => {
-                showError('Failed to move item');
+                console.error('Failed to move item');
             });
         }
     }).catch(error => {
-        showError('Failed to move item');
+        console.error('Failed to move item');
         console.error('Error:', error);
     });
 }
