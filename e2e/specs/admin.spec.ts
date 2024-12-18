@@ -87,6 +87,9 @@ test.describe('Admin Panel E2E Tests', () => {
 
             await page.click('button:has-text("Create Post")');
             
+            // Verify flash message
+            await expect(page.locator('.flash-message.flash-success')).toBeVisible();
+            await expect(page.locator('.flash-message.flash-success')).toContainText('Post created successfully');
             
             // Verify post creation
             await expect(page.locator(`text=${postTitle}`)).toBeVisible();

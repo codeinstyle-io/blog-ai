@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
@@ -65,18 +66,17 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	// Get the logged in user
 	exists := c.Locals("user")
 	if exists == nil {
-		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
-			"error": "User session not found",
-		})
+		flash.Error(c, "User session not found")
+		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{})
 	}
 	user := exists.(*models.User)
 
 	// Parse multipart form
 	form, err := c.MultipartForm()
 	if err != nil {
+		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"error": "Invalid form data",
-			"post":  &models.Post{},
+			"post": &models.Post{},
 		})
 	}
 
@@ -86,17 +86,17 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
 	if err != nil {
 		fmt.Printf("Error parsing form: %v\n", err)
+		flash.Error(c, "Unable to parse form into post")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"error": "Unable to parse form into post",
-			"post":  &post,
+			"post": &post,
 		})
 	}
 
 	// Basic validation
 	if post.Title == "" || post.Slug == "" || post.Content == "" {
+		flash.Error(c, "Title, slug and content are required")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"error": "Title, slug and content are required",
-			"post":  &post,
+			"post": &post,
 		})
 	}
 
@@ -105,33 +105,34 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
 	// Create post with transaction to ensure atomic operation
 	if err := h.repos.Posts.Create(post); err != nil {
+		flash.Error(c, "Failed to create post")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
-			"error": "Failed to create post",
-			"post":  &post,
+			"post": &post,
 		})
 	}
 
 	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
 		fmt.Printf("Error associating tags: %v\n", err)
+		flash.Error(c, "Failed to associate tags")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
-			"error": "Failed to associate tags",
-			"post":  &post,
+			"post": &post,
 		})
 	}
 
+	flash.Success(c, "Post created successfully")
 	return c.Redirect("/admin/posts")
 }
 
 func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	id := c.Params("id")
 	settings := c.Locals("settings").(*models.Settings)
-	tagID, err := utils.ParseUint(id)
+	postID, err := utils.ParseUint(id)
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	post, err := h.repos.Posts.FindByID(tagID)
+	post, err := h.repos.Posts.FindByID(postID)
 	if err != nil {
 		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
@@ -253,31 +254,40 @@ func (h *AdminHandlers) ConfirmDeletePost(c *fiber.Ctx) error {
 	})
 }
 
-// DeletePost removes a post and its tag associations
+// DeletePost handles post deletion
 func (h *AdminHandlers) DeletePost(c *fiber.Ctx) error {
-	id := c.Params("id")
-	tagID, err := utils.ParseUint(id)
-
+	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
+		flash.Error(c, "Invalid post ID")
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid post ID",
+			"error":    "Invalid post ID",
+			"redirect": "/admin/posts",
 		})
 	}
 
-	post, err := h.repos.Posts.FindByID(tagID)
+	post, err := h.repos.Posts.FindByID(id)
 	if err != nil {
+		flash.Error(c, "Post not found")
 		return c.Status(http.StatusNotFound).JSON(fiber.Map{
-			"error": "Post not found",
+			"error":    "Post not found",
+			"redirect": "/admin/posts",
 		})
 	}
 
+	// Delete post
 	if err := h.repos.Posts.Delete(post); err != nil {
+		flash.Error(c, "Failed to delete post")
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete post",
+			"error":    "Failed to delete post",
+			"redirect": "/admin/posts",
 		})
 	}
 
-	return c.JSON(fiber.Map{"message": "Post deleted successfully"})
+	flash.Success(c, "Post deleted successfully")
+	return c.JSON(fiber.Map{
+		"message":  "Post deleted successfully",
+		"redirect": "/admin/posts",
+	})
 }
 
 func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {

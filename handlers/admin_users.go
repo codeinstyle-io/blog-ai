@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"codeinstyle.io/captain/cmd"
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
@@ -38,27 +39,27 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 
 	// Validate input
 	if err := cmd.ValidateFirstName(firstName); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": err.Error(),
+			"user": &models.User{},
 		})
 	}
 	if err := cmd.ValidateLastName(lastName); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": err.Error(),
+			"user": &models.User{},
 		})
 	}
 	if err := cmd.ValidateEmail(email); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": err.Error(),
+			"user": &models.User{},
 		})
 	}
 	if err := cmd.ValidatePassword(password); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": err.Error(),
+			"user": &models.User{},
 		})
 	}
 
@@ -66,24 +67,24 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	count, err := h.repos.Users.CountByEmail(email)
 
 	if err != nil {
+		flash.Error(c, "Failed to check email uniqueness")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": "Failed to check email uniqueness",
+			"user": &models.User{},
 		})
 	}
 	if count > 0 {
+		flash.Error(c, "Email already exists")
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": "Email already exists",
+			"user": &models.User{},
 		})
 	}
 
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
+		flash.Error(c, "Failed to hash password")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user":  &models.User{},
-			"error": "Failed to hash password",
+			"user": &models.User{},
 		})
 	}
 
@@ -96,12 +97,13 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	}
 
 	if err := h.repos.Users.Create(user); err != nil {
+		flash.Error(c, "Failed to create user")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user":  user,
-			"error": "Failed to create user",
+			"user": user,
 		})
 	}
 
+	flash.Success(c, "User created successfully")
 	return c.Redirect("/admin/users")
 }
 
@@ -135,29 +137,29 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&user); err != nil {
+		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": "Invalid form data",
+			"user": user,
 		})
 	}
 
 	// Validate input
 	if err := cmd.ValidateFirstName(user.FirstName); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": err.Error(),
+			"user": user,
 		})
 	}
 	if err := cmd.ValidateLastName(user.LastName); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": err.Error(),
+			"user": user,
 		})
 	}
 	if err := cmd.ValidateEmail(user.Email); err != nil {
+		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": err.Error(),
+			"user": user,
 		})
 	}
 
@@ -165,33 +167,33 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	count, err := h.repos.Users.CountByEmail(user.Email)
 
 	if err != nil {
+		flash.Error(c, "Failed to check email uniqueness")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": "Failed to check email uniqueness",
+			"user": user,
 		})
 	}
 
 	if count > 1 {
+		flash.Error(c, "Email already exists")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": "Email already exists",
+			"user": user,
 		})
 	}
 
 	// Update password if provided
 	if user.Password != "" {
 		if err := cmd.ValidatePassword(user.Password); err != nil {
+			flash.Error(c, err.Error())
 			return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-				"user":  user,
-				"error": err.Error(),
+				"user": user,
 			})
 		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
+			flash.Error(c, "Failed to hash password")
 			return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-				"user":  user,
-				"error": "Failed to hash password",
+				"user": user,
 			})
 		}
 		user.Password = string(hashedPassword)
@@ -199,12 +201,13 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 
 	// Update user
 	if err := h.repos.Users.Update(user); err != nil {
+		flash.Error(c, "Failed to update user")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-			"user":  user,
-			"error": "Failed to update user",
+			"user": user,
 		})
 	}
 
+	flash.Success(c, "User updated successfully")
 	return c.Redirect("/admin/users")
 }
 
@@ -229,18 +232,34 @@ func (h *AdminHandlers) ShowDeleteUser(c *fiber.Ctx) error {
 func (h *AdminHandlers) DeleteUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		flash.Error(c, "Invalid user ID")
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":    "Invalid user ID",
+			"redirect": "/admin/users",
+		})
 	}
 
 	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		flash.Error(c, "User not found")
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error":    "User not found",
+			"redirect": "/admin/users",
+		})
 	}
 
 	// Delete user
 	if err := h.repos.Users.Delete(user); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		flash.Error(c, "Failed to delete user")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error":    "Failed to delete user",
+			"redirect": "/admin/users",
+		})
 	}
 
-	return c.Redirect("/admin/users")
+	flash.Success(c, "User deleted successfully")
+	return c.JSON(fiber.Map{
+		"message":  "User deleted successfully",
+		"redirect": "/admin/users",
+	})
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
 )
@@ -12,6 +13,7 @@ import (
 func (h *AdminHandlers) ShowSettings(c *fiber.Ctx) error {
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
+		flash.Error(c, "Failed to load settings")
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
@@ -91,13 +93,15 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	}
 
 	if len(errors) > 0 {
+		for _, err := range errors {
+			flash.Error(c, err)
+		}
 		data := fiber.Map{
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
 			"theme":        form.Theme,
 			"postsPerPage": form.PostsPerPage,
-			"errors":       errors,
 		}
 		return c.Status(http.StatusBadRequest).Render("admin_settings", data)
 	}
@@ -117,18 +121,18 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	}
 
 	if err := h.repos.Settings.Update(form); err != nil {
-		errors = append(errors, "Failed to update settings")
+		flash.Error(c, "Failed to update settings")
 		data := fiber.Map{
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
 			"theme":        form.Theme,
 			"postsPerPage": form.PostsPerPage,
-			"errors":       errors,
 		}
 
 		return c.Status(http.StatusInternalServerError).Render("admin_settings", data)
 	}
 
+	flash.Success(c, "Settings updated successfully")
 	return c.Redirect("/admin/settings")
 }

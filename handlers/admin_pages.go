@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
@@ -31,20 +32,21 @@ func (h *AdminHandlers) ShowCreatePage(c *fiber.Ctx) error {
 func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
 	var page models.Page
 	if err := c.BodyParser(&page); err != nil {
+		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_create_page", fiber.Map{
-			"page":  &page,
-			"error": "Invalid form data",
+			"page": &page,
 		})
 	}
 
 	// Create page
 	if err := h.repos.Pages.Create(&page); err != nil {
+		flash.Error(c, "Failed to create page")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_page", fiber.Map{
-			"page":  &page,
-			"error": "Failed to create page",
+			"page": &page,
 		})
 	}
 
+	flash.Success(c, "Page created successfully")
 	return c.Redirect("/admin/pages")
 }
 
@@ -79,20 +81,21 @@ func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 
 	// Parse form data
 	if err := c.BodyParser(page); err != nil {
+		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_page", fiber.Map{
-			"page":  page,
-			"error": "Invalid form data",
+			"page": page,
 		})
 	}
 
 	// Update page
 	if err := h.repos.Pages.Update(page); err != nil {
+		flash.Error(c, "Failed to update page")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_page", fiber.Map{
-			"page":  page,
-			"error": "Failed to update page",
+			"page": page,
 		})
 	}
 
+	flash.Success(c, "Page updated successfully")
 	return c.Redirect("/admin/pages")
 }
 
@@ -117,12 +120,20 @@ func (h *AdminHandlers) ConfirmDeletePage(c *fiber.Ctx) error {
 func (h *AdminHandlers) DeletePage(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid page ID"})
+		flash.Error(c, "Invalid page ID")
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":    "Invalid page ID",
+			"redirect": "/admin/pages",
+		})
 	}
 
 	page, err := h.repos.Pages.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Page not found"})
+		flash.Error(c, "Page not found")
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{
+			"error":    "Page not found",
+			"redirect": "/admin/pages",
+		})
 	}
 
 	// Check if page is referenced by menu items
@@ -130,17 +141,33 @@ func (h *AdminHandlers) DeletePage(c *fiber.Ctx) error {
 	err = h.repos.Pages.CountRelatedMenuItems(page.ID, &menuItemCount)
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to count related menu items"})
+		flash.Error(c, "Failed to count related menu items")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error":    "Failed to count related menu items",
+			"redirect": "/admin/pages",
+		})
 	}
 
 	if menuItemCount > 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Page is referenced by menu items"})
+		flash.Error(c, "Page is referenced by menu items")
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":    "Page is referenced by menu items",
+			"redirect": "/admin/pages",
+		})
 	}
 
 	// Delete page
 	if err := h.repos.Pages.Delete(page); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete page"})
+		flash.Error(c, "Failed to delete page")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error":    "Failed to delete page",
+			"redirect": "/admin/pages",
+		})
 	}
 
-	return c.JSON(fiber.Map{"message": "Page deleted successfully"})
+	flash.Success(c, "Page deleted successfully")
+	return c.JSON(fiber.Map{
+		"message":  "Page deleted successfully",
+		"redirect": "/admin/pages",
+	})
 }
