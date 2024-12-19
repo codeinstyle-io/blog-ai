@@ -117,6 +117,7 @@ func (h *AdminHandlers) CreateMenuItem(c *fiber.Ctx) error {
 	if label == "" || (urlStr == "" && pageID == "") {
 		flash.Error(c, "Label and either URL or Page are required")
 		return c.Status(http.StatusBadRequest).Render("admin_create_menu_item", fiber.Map{
+			"title": "Menu Items",
 			"pages": []models.Page{},
 		})
 	}
@@ -140,6 +141,7 @@ func (h *AdminHandlers) CreateMenuItem(c *fiber.Ctx) error {
 		if err != nil {
 			flash.Error(c, "Failed to create menu item")
 			return c.Status(http.StatusInternalServerError).Render("admin_create_menu_item", fiber.Map{
+				"title": "Menu Items",
 				"item":  menuItem,
 				"pages": pages,
 			})
@@ -185,7 +187,7 @@ func (h *AdminHandlers) ConfirmDeleteMenuItem(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_menu_item", fiber.Map{
-		"title":    "Confirm Delete Menu Item",
+		"title":    "Confirm Menu Item deletion",
 		"menuItem": menuItem,
 	})
 }
@@ -254,6 +256,7 @@ func (h *AdminHandlers) UpdateMenuItem(c *fiber.Ctx) error {
 	if err := h.repos.MenuItems.Update(menuItem); err != nil {
 		flash.Error(c, "Failed to update menu item")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_menu_item", fiber.Map{
+			"title": "Menu Items",
 			"item":  menuItem,
 			"pages": pages,
 		})

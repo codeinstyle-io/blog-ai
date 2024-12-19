@@ -88,7 +88,7 @@ func (r *menuItemRepository) Move(id uint, direction string) error {
 
 func (r *menuItemRepository) FindAll() ([]*models.MenuItem, error) {
 	var menuItems []*models.MenuItem
-	err := r.db.Preload("Page").Order("position").Find(&menuItems).Error
+	err := r.db.Joins("Page").Order("position").Find(&menuItems).Error
 	return menuItems, err
 }
 

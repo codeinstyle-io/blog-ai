@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/middleware"
+	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
 	"github.com/gofiber/fiber/v2"
@@ -10,27 +10,36 @@ import (
 )
 
 // RegisterPublicRoutes registers all public routes
-func RegisterPublicRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config) {
+func RegisterPublicRoutes(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *fiber.App {
 	publicHandlers := NewPublicHandlers(repos, cfg)
-
-	// Add setup middleware
-	app.Use(middleware.RequireSetup(repos))
+	app := fiber.New()
 
 	// Public routes
 	app.Get("/", publicHandlers.ListPosts)
 	app.Get("/posts/:slug", publicHandlers.GetPostBySlug)
 	app.Get("/pages/:slug", publicHandlers.GetPageBySlug)
 	app.Get("/tags/:slug", publicHandlers.ListPostsByTag)
-	app.Get("/generated/css/chroma.css", publicHandlers.GetChromaCSS)
-	app.Get("/media/*", ServeMedia(repos, cfg))
+
+	return app
+}
+
+// RegisterDynamicRoutes registers all dynamic routes
+func RegisterDynamicRoutes(repos *repository.Repositories, cfg *config.Config) *fiber.App {
+	app := fiber.New()
+
+	app.Get("/chroma.css", GetChromaCSS)
+	app.Get("/*", ServeMedia(repos, cfg))
+
+	return app
 }
 
 // RegisterAuthRoutes registers all authentication routes
-func RegisterAuthRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) {
+func RegisterAuthRoutes(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *fiber.App {
+	app := fiber.New()
 	authHandlers := NewAuthHandlers(repos, cfg, sessionStore)
 
-	app.Get("/admin/setup", authHandlers.HandleSetup)
-	app.Post("/admin/setup", authHandlers.HandleSetup)
+	app.Get("/setup", authHandlers.HandleSetup)
+	app.Post("/setup", authHandlers.HandleSetup)
 
 	// Login routes
 	app.Get("/login", authHandlers.ShowLogin)
@@ -38,16 +47,19 @@ func RegisterAuthRoutes(app *fiber.App, repos *repository.Repositories, cfg *con
 
 	// Logout route
 	app.Get("/logout", authHandlers.Logout)
+
+	return app
 }
 
 // RegisterAdminRoutes registers all admin routes
-func RegisterAdminRoutes(app *fiber.App, repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) {
+func RegisterAdminRoutes(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *fiber.App {
 	storage := storage.NewStorage(cfg)
+	flash.Setup(sessionStore)
 	adminHandlers := NewAdminHandlers(repos, cfg)
 	adminMediaHandlers := NewAdminMediaHandlers(repos, cfg, storage)
 
+	app := fiber.New()
 	admin := app.Group("/admin")
-	admin.Use(middleware.AuthRequired(repos, sessionStore))
 
 	// Dashboard
 	admin.Get("/", adminHandlers.Index)
@@ -86,7 +98,7 @@ func RegisterAdminRoutes(app *fiber.App, repos *repository.Repositories, cfg *co
 	admin.Post("/users/create", adminHandlers.CreateUser)
 	admin.Get("/users/:id/edit", adminHandlers.ShowEditUser)
 	admin.Post("/users/:id/edit", adminHandlers.UpdateUser)
-	admin.Get("/users/:id/delete", adminHandlers.ShowDeleteUser)
+	admin.Get("/users/:id/delete", adminHandlers.ConfirmDeleteUser)
 	admin.Delete("/users/:id", adminHandlers.DeleteUser)
 
 	// Menus
@@ -111,6 +123,9 @@ func RegisterAdminRoutes(app *fiber.App, repos *repository.Repositories, cfg *co
 	admin.Post("/settings", adminHandlers.UpdateSettings)
 
 	// API routes
-	admin.Get("/api/tags", adminHandlers.GetTags)
-	admin.Get("/api/media", adminMediaHandlers.GetMediaList)
+	api := admin.Group("/api")
+	api.Get("/tags", adminHandlers.GetTags)
+	api.Get("/media", adminMediaHandlers.GetMediaList)
+
+	return app
 }

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"strings"
 
 	"codeinstyle.io/captain/repository"
 	"github.com/gofiber/fiber/v2"
@@ -10,9 +11,17 @@ import (
 	"codeinstyle.io/captain/system"
 )
 
+func IsAdminPath(c *fiber.Ctx) bool {
+	return strings.Index(c.Path(), "/admin") == 0
+}
+
 // LoadMenuItems loads menu items into the context
 func LoadMenuItems(repos *repository.Repositories) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		if IsAdminPath(c) {
+			return c.Next()
+		}
+
 		menuItems, err := repos.MenuItems.FindAll()
 		if err == nil {
 			err = c.Bind(fiber.Map{"menuItems": menuItems})
@@ -27,8 +36,14 @@ func LoadMenuItems(repos *repository.Repositories) fiber.Handler {
 
 func LoadSettings(repos *repository.Repositories) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		if c.Locals("settings") != nil {
+			return c.Next()
+		}
+
 		settings, err := repos.Settings.Get()
+
 		if err == nil {
+			c.Locals("settings", settings)
 			err = c.Bind(fiber.Map{"settings": settings})
 			if err != nil {
 				fmt.Printf("Error binding settings into context: %v\n", err)

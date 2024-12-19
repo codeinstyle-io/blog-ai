@@ -19,6 +19,7 @@ func (h *AdminHandlers) ListUsers(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_users", fiber.Map{
+		"title": "Users",
 		"users": users,
 	})
 }
@@ -26,7 +27,8 @@ func (h *AdminHandlers) ListUsers(c *fiber.Ctx) error {
 // ShowCreateUser displays the user creation form
 func (h *AdminHandlers) ShowCreateUser(c *fiber.Ctx) error {
 	return c.Render("admin_create_user", fiber.Map{
-		"user": &models.User{},
+		"title": "Create User",
+		"user":  &models.User{},
 	})
 }
 
@@ -41,25 +43,29 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	if err := cmd.ValidateFirstName(firstName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 	if err := cmd.ValidateLastName(lastName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 	if err := cmd.ValidateEmail(email); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 	if err := cmd.ValidatePassword(password); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 
@@ -69,13 +75,15 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	if err != nil {
 		flash.Error(c, "Failed to check email uniqueness")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 	if count > 0 {
 		flash.Error(c, "Email already exists")
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 
@@ -84,7 +92,8 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	if err != nil {
 		flash.Error(c, "Failed to hash password")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user": &models.User{},
+			"title": "Users",
+			"user":  &models.User{},
 		})
 	}
 
@@ -99,7 +108,8 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	if err := h.repos.Users.Create(user); err != nil {
 		flash.Error(c, "Failed to create user")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
@@ -120,7 +130,8 @@ func (h *AdminHandlers) ShowEditUser(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_edit_user", fiber.Map{
-		"user": user,
+		"title": "Edit User",
+		"user":  user,
 	})
 }
 
@@ -128,18 +139,21 @@ func (h *AdminHandlers) ShowEditUser(c *fiber.Ctx) error {
 func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
+		flash.Error(c, "Invalid user ID")
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
 	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
+		flash.Error(c, "User not found")
 		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
 	if err := c.BodyParser(&user); err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
@@ -147,19 +161,22 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	if err := cmd.ValidateFirstName(user.FirstName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 	if err := cmd.ValidateLastName(user.LastName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 	if err := cmd.ValidateEmail(user.Email); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
@@ -169,14 +186,16 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	if err != nil {
 		flash.Error(c, "Failed to check email uniqueness")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
 	if count > 1 {
 		flash.Error(c, "Email already exists")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
@@ -185,7 +204,8 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 		if err := cmd.ValidatePassword(user.Password); err != nil {
 			flash.Error(c, err.Error())
 			return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
-				"user": user,
+				"title": "Users",
+				"user":  user,
 			})
 		}
 
@@ -193,7 +213,8 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 		if err != nil {
 			flash.Error(c, "Failed to hash password")
 			return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-				"user": user,
+				"title": "Users",
+				"user":  user,
 			})
 		}
 		user.Password = string(hashedPassword)
@@ -203,7 +224,8 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	if err := h.repos.Users.Update(user); err != nil {
 		flash.Error(c, "Failed to update user")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_user", fiber.Map{
-			"user": user,
+			"title": "Users",
+			"user":  user,
 		})
 	}
 
@@ -211,8 +233,8 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	return c.Redirect("/admin/users")
 }
 
-// ShowDeleteUser displays the user deletion confirmation page
-func (h *AdminHandlers) ShowDeleteUser(c *fiber.Ctx) error {
+// ConfirmDeleteUser displays the user deletion confirmation page
+func (h *AdminHandlers) ConfirmDeleteUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
@@ -224,7 +246,8 @@ func (h *AdminHandlers) ShowDeleteUser(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_user", fiber.Map{
-		"user": user,
+		"title": "Confirm user deletion",
+		"user":  user,
 	})
 }
 

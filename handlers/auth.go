@@ -117,7 +117,7 @@ func (h *AuthHandlers) HandleSetup(c *fiber.Ctx) error {
 	}
 
 	if count > 0 {
-		return c.Redirect("/login?next=/admin")
+		return c.Redirect("/admin")
 	}
 
 	// Handle POST request
@@ -160,7 +160,7 @@ func (h *AuthHandlers) HandleSetup(c *fiber.Ctx) error {
 		}
 
 		// Redirect to admin login
-		return c.Redirect("/login")
+		return c.Redirect("/admin")
 	}
 
 	// Handle GET request

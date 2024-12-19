@@ -54,7 +54,9 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	file, err := c.FormFile("file")
 	if err != nil {
 		flash.Error(c, "No file uploaded")
-		return c.Status(http.StatusBadRequest).Render("admin_media_upload", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_media_upload", fiber.Map{
+			"title": "Media library",
+		})
 	}
 
 	description := c.FormValue("description")
@@ -63,7 +65,7 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	filename, err := h.storage.Save(file)
 	if err != nil {
 		flash.Error(c, fmt.Sprintf("Failed to save file: %v", err))
-		return c.Status(http.StatusInternalServerError).Render("admin_media_upload", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
 	}
 
 	// Create media record
@@ -79,11 +81,15 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 		// Clean up file if database insert fails
 		if err := h.storage.Delete(filename); err != nil {
 			flash.Error(c, fmt.Sprintf("Failed to delete file: %v", err))
-			return c.Status(http.StatusInternalServerError).Render("admin_media_upload", fiber.Map{})
+			return c.Status(http.StatusInternalServerError).Render("admin_media_upload", fiber.Map{
+				"title": "Media library",
+			})
 		}
 
 		flash.Error(c, fmt.Sprintf("Failed to save media record: %v", err))
-		return c.Status(http.StatusInternalServerError).Render("admin_media_upload", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("admin_media_upload", fiber.Map{
+			"title": "Media library",
+		})
 	}
 
 	flash.Success(c, "Media uploaded successfully")
@@ -159,7 +165,7 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_media", fiber.Map{
-		"title": "Delete Media",
+		"title": "Confirm Media deletion",
 		"media": media,
 	})
 }

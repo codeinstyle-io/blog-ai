@@ -17,6 +17,7 @@ func (h *AdminHandlers) ListPages(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_pages", fiber.Map{
+		"title": "Pages",
 		"pages": pages,
 	})
 }
@@ -24,7 +25,8 @@ func (h *AdminHandlers) ListPages(c *fiber.Ctx) error {
 // ShowCreatePage handles the GET /admin/pages/new route
 func (h *AdminHandlers) ShowCreatePage(c *fiber.Ctx) error {
 	return c.Render("admin_create_page", fiber.Map{
-		"page": &models.Page{},
+		"title": "Create Page",
+		"page":  &models.Page{},
 	})
 }
 
@@ -34,7 +36,8 @@ func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
 	if err := c.BodyParser(&page); err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_create_page", fiber.Map{
-			"page": &page,
+			"page":  &page,
+			"title": "Pages",
 		})
 	}
 
@@ -42,7 +45,8 @@ func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
 	if err := h.repos.Pages.Create(&page); err != nil {
 		flash.Error(c, "Failed to create page")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_page", fiber.Map{
-			"page": &page,
+			"page":  &page,
+			"title": "Pages",
 		})
 	}
 
@@ -63,7 +67,8 @@ func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_edit_page", fiber.Map{
-		"page": page,
+		"title": "Edit Page",
+		"page":  page,
 	})
 }
 
@@ -83,7 +88,8 @@ func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 	if err := c.BodyParser(page); err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_page", fiber.Map{
-			"page": page,
+			"page":  page,
+			"title": "Pages",
 		})
 	}
 
@@ -91,7 +97,8 @@ func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 	if err := h.repos.Pages.Update(page); err != nil {
 		flash.Error(c, "Failed to update page")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_page", fiber.Map{
-			"page": page,
+			"page":  page,
+			"title": "Pages",
 		})
 	}
 
@@ -112,7 +119,8 @@ func (h *AdminHandlers) ConfirmDeletePage(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_page", fiber.Map{
-		"page": page,
+		"title": "Confirm page deletion",
+		"page":  page,
 	})
 }
 
