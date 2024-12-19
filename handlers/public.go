@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"crypto/md5"
 	"fmt"
 	"io"
 	"math"
@@ -36,48 +35,13 @@ func NewPublicHandlers(repos *repository.Repositories, cfg *config.Config) *Publ
 	}
 }
 
-func (h *PublicHandlers) GetChromaCSS(c *fiber.Ctx) error {
-	// Generate ETag based on the chroma style name
-	settings, _ := h.repos.Settings.Get()
-
-	var chromaCSS string
-	etag := fmt.Sprintf("\"%x\"", md5.Sum([]byte(settings.ChromaStyle)))
-
-	// Check If-None-Match header first
-	if match := c.Get("If-None-Match"); match != "" {
-		if match == etag {
-			c.Status(http.StatusNotModified)
-			return nil
-		}
-	}
-
-	// Generate CSS
-	style := styles.Get(settings.ChromaStyle)
-	if style == nil {
-		style = styles.Fallback
-	}
-	formatter := html.New(html.WithClasses(true))
-	buf := new(bytes.Buffer)
-	if err := formatter.WriteCSS(buf, style); err != nil {
-		return c.Status(http.StatusInternalServerError).SendString("")
-	}
-	chromaCSS = buf.String()
-
-	// Set headers
-	c.Set("ETag", etag)
-	c.Set("Content-Type", "text/css")
-	return c.SendString(chromaCSS)
-}
-
 func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
-	settings, _ := h.repos.Settings.Get()
+	settings := c.Locals("settings").(*models.Settings)
 
 	post, err := h.repos.Posts.FindBySlug(slug)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{
-			"title": "Post not found",
-		})
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
 	// Render markdown content
@@ -97,7 +61,7 @@ func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 }
 
 func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
-	settings, _ := h.repos.Settings.Get()
+	settings := c.Locals("settings").(*models.Settings)
 
 	// Get page number from query params
 	page, err := strconv.Atoi(c.Query("page", "1"))
@@ -139,7 +103,7 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 
 func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 	tagSlug := c.Params("slug")
-	settings, _ := h.repos.Settings.Get()
+	settings := c.Locals("settings").(*models.Settings)
 
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil || page < 1 {
@@ -193,9 +157,7 @@ func (h *PublicHandlers) GetPageBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
 	page, err := h.repos.Pages.FindBySlug(slug)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{
-			"title": "Page not found",
-		})
+		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
 	}
 
 	// Render content based on type

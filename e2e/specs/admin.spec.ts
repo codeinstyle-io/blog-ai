@@ -6,13 +6,6 @@ import { login, logout } from '../helpers/auth';
 const randomTitle = faker.lorem.words(3);
 
 test.describe('Admin Panel E2E Tests', () => {
-    const SERVER_NUMBER = 1;
-
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/admin');
-    });
-
     test('complete admin workflow', async ({ page }) => {
         await logout(page);
 

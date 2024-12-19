@@ -26,17 +26,13 @@ import (
 
 // Server represents the HTTP server and its dependencies
 type Server struct {
-	app        *fiber.App
-	db         *gorm.DB
-	repos      *repository.Repositories
-	config     *config.Config
-	embeddedFS embed.FS
+	app    *fiber.App
+	db     *gorm.DB
+	config *config.Config
 }
 
 // New creates a new server instance
 func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) {
-	// Initialize template engine
-
 	var err error
 	var adminStaticFS fs.FS
 	var staticFS fs.FS
@@ -77,43 +73,36 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 		Browse: false, // TODO: Set to true for development
 	}))
 
-	s := &Server{
-		app:        app,
-		repos:      repositories,
-		config:     cfg,
-		embeddedFS: embeddedFS,
-	}
-
-	if err := s.setupRouter(sessionStore); err != nil {
-		return nil, fmt.Errorf("error setting up router: %v", err)
-	}
-
-	return s, nil
-
-}
-
-// setupRouter configures all routes and middleware
-func (s *Server) setupRouter(sessionStore *session.Store) error {
-	// Add middleware to load menu items
-	s.app.Use(recover.New(
+	app.Use(recover.New(
 		recover.Config{
-			EnableStackTrace: true,
+			EnableStackTrace: true, // TODO: Set to false for production
 		},
 	))
-	s.app.Use(middleware.LoadMenuItems(s.repos))
-	s.app.Use(middleware.LoadSettings(s.repos))
-	s.app.Use(middleware.LoadVersion(s.repos))
-	s.app.Use(middleware.LoadUserData(s.repos, sessionStore))
 
-	// Initialize flash messages
-	flash.Setup(sessionStore)
-	s.app.Use(flash.Middleware())
+	app.Use("/", middleware.RequireSetup(repositories))
+	app.Use("/", middleware.LoadMenuItems(repositories))
+	app.Use("/", middleware.LoadVersion(repositories))
+	app.Use("/", middleware.LoadSettings(repositories))
+	app.Use("/", middleware.LoadUserData(repositories, sessionStore))
+	app.Use("/admin", flash.Middleware())
+	app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
 
-	handlers.RegisterPublicRoutes(s.app, s.repos, s.config)
-	handlers.RegisterAuthRoutes(s.app, s.repos, s.config, sessionStore)
-	handlers.RegisterAdminRoutes(s.app, s.repos, s.config, sessionStore)
+	publicApp := handlers.RegisterPublicRoutes(repositories, cfg, sessionStore)
+	dynamicApp := handlers.RegisterDynamicRoutes(repositories, cfg)
+	authApp := handlers.RegisterAuthRoutes(repositories, cfg, sessionStore)
+	adminApp := handlers.RegisterAdminRoutes(repositories, cfg, sessionStore)
 
-	return nil
+	app.Mount("/media", dynamicApp)
+	app.Mount("/", adminApp)
+	app.Mount("/", authApp)
+	app.Mount("/", publicApp)
+
+	return &Server{
+		config: cfg,
+		db:     db,
+		app:    app,
+	}, nil
+
 }
 
 // setupStatics sets up static files

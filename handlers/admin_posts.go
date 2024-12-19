@@ -46,14 +46,8 @@ func (h *AdminHandlers) ListPosts(c *fiber.Ctx) error {
 
 // ShowCreatePost displays the post creation form
 func (h *AdminHandlers) ShowCreatePost(c *fiber.Ctx) error {
-	tags, err := h.repos.Tags.FindAll()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
-	}
-
 	return c.Render("admin_create_post", fiber.Map{
 		"title": "Create Post",
-		"tags":  tags,
 	})
 }
 
@@ -67,7 +61,9 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	exists := c.Locals("user")
 	if exists == nil {
 		flash.Error(c, "User session not found")
-		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
+			"title": "Posts",
+		})
 	}
 	user := exists.(*models.User)
 
@@ -76,7 +72,8 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	if err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"post": &models.Post{},
+			"title": "Posts",
+			"post":  &models.Post{},
 		})
 	}
 
@@ -88,7 +85,8 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 		fmt.Printf("Error parsing form: %v\n", err)
 		flash.Error(c, "Unable to parse form into post")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"post": &post,
+			"title": "Posts",
+			"post":  &post,
 		})
 	}
 
@@ -96,7 +94,8 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	if post.Title == "" || post.Slug == "" || post.Content == "" {
 		flash.Error(c, "Title, slug and content are required")
 		return c.Status(http.StatusBadRequest).Render("admin_create_post", fiber.Map{
-			"post": &post,
+			"title": "Posts",
+			"post":  &post,
 		})
 	}
 
@@ -115,7 +114,8 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 		fmt.Printf("Error associating tags: %v\n", err)
 		flash.Error(c, "Failed to associate tags")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_post", fiber.Map{
-			"post": &post,
+			"title": "Posts",
+			"post":  &post,
 		})
 	}
 
@@ -155,16 +155,18 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	}
 
 	if err != nil {
+		flash.Error(c, "Unable to parse form into post")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_post", fiber.Map{
-			"error": "Unable to parse form into post",
+			"title": "Posts",
 			"post":  &post,
 		})
 	}
 
 	// Basic validation
 	if post.Title == "" || post.Slug == "" || post.Content == "" {
+		flash.Error(c, "Title, slug and content are required")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_post", fiber.Map{
-			"error": "All fields are required",
+			"title": "Posts",
 			"post":  post,
 		})
 	}
@@ -174,15 +176,17 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 
 	// Update post with transaction to ensure atomic operation
 	if err := h.repos.Posts.Update(post); err != nil {
+		flash.Error(c, "Unable to update post")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_post", fiber.Map{
-			"error": "Failed to update post",
+			"title": "Posts",
 			"post":  post,
 		})
 	}
 
 	if err := h.repos.Posts.AssociateTags(post, tags); err != nil {
+		flash.Error(c, "Failed to associate tags")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_post", fiber.Map{
-			"error": "Failed to update tags",
+			"title": "Posts",
 			"post":  post,
 		})
 	}
@@ -250,7 +254,7 @@ func (h *AdminHandlers) ConfirmDeletePost(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_post", fiber.Map{
-		"title": "Confirm Delete Post",
+		"title": "Confirm Post deletion",
 		"post":  post,
 	})
 }

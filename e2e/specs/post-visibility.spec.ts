@@ -4,7 +4,6 @@ import { createPost } from '../helpers/posts';
 
 test.describe('Post Visibility', () => {
 
-  const SERVER_NUMBER = 2;
   const now = new Date('2024-12-18T22:30:12+01:00'); // Fixed time from context
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);

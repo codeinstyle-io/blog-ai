@@ -97,6 +97,7 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 			flash.Error(c, err)
 		}
 		data := fiber.Map{
+			"title":        "Site Settings",
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),
@@ -123,6 +124,7 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	if err := h.repos.Settings.Update(form); err != nil {
 		flash.Error(c, "Failed to update settings")
 		data := fiber.Map{
+			"title":        "Site Settings",
 			"settings":     form,
 			"timezones":    h.config.GetTimezones(),
 			"chromaStyles": h.config.GetChromaStyles(),

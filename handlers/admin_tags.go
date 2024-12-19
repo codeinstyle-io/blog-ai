@@ -96,7 +96,8 @@ func (h *AdminHandlers) ConfirmDeleteTag(c *fiber.Ctx) error {
 	}
 
 	return c.Render("admin_confirm_delete_tag", fiber.Map{
-		"tag": tag,
+		"title": "Confirm Tag deletion",
+		"tag":   tag,
 	})
 }
 
@@ -114,7 +115,8 @@ func (h *AdminHandlers) CreateTag(c *fiber.Ctx) error {
 	if err := c.BodyParser(tag); err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_create_tag", fiber.Map{
-			"tag": &tag,
+			"title": "Tags",
+			"tag":   &tag,
 		})
 	}
 
@@ -122,7 +124,8 @@ func (h *AdminHandlers) CreateTag(c *fiber.Ctx) error {
 	if err := h.repos.Tags.Create(tag); err != nil {
 		flash.Error(c, "Failed to create tag")
 		return c.Status(http.StatusInternalServerError).Render("admin_create_tag", fiber.Map{
-			"tag": &tag,
+			"title": "Tags",
+			"tag":   &tag,
 		})
 	}
 
@@ -166,7 +169,8 @@ func (h *AdminHandlers) UpdateTag(c *fiber.Ctx) error {
 	if err := c.BodyParser(&tag); err != nil {
 		flash.Error(c, "Invalid form data")
 		return c.Status(http.StatusBadRequest).Render("admin_edit_tag", fiber.Map{
-			"tag": tag,
+			"title": "Tags",
+			"tag":   tag,
 		})
 	}
 
@@ -174,7 +178,8 @@ func (h *AdminHandlers) UpdateTag(c *fiber.Ctx) error {
 	if err := h.repos.Tags.Update(tag); err != nil {
 		flash.Error(c, "Failed to update tag")
 		return c.Status(http.StatusInternalServerError).Render("admin_edit_tag", fiber.Map{
-			"tag": tag,
+			"title": "Tags",
+			"tag":   tag,
 		})
 	}
 
