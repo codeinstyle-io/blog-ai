@@ -45,7 +45,7 @@ jobs:
 
   e2e:
     timeout-minutes: 15
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
