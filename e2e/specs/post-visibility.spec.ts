@@ -1,23 +1,21 @@
 import { test, expect } from '@playwright/test';
-import { login } from '../helpers/auth';
+import { login, logout } from '../helpers/auth';
 import { createPost } from '../helpers/posts';
-import { setupAdmin } from '../helpers/setup';
 
 test.describe('Post Visibility', () => {
 
   const SERVER_NUMBER = 2;
-  const ROOT_URL = 'http://localhost:808' + SERVER_NUMBER;
   const now = new Date('2024-12-18T22:30:12+01:00'); // Fixed time from context
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   test('should handle draft and scheduled posts correctly', async ({ page }) => {
     // Setup admin account
-    await setupAdmin(page, SERVER_NUMBER);
+    await logout(page);
 
     // Create a draft post
-    await login(page, SERVER_NUMBER);
-    await createPost(page, SERVER_NUMBER, {
+    await login(page);
+    await createPost(page, {
       title: 'Draft Post',
       content: 'This is a draft post',
       visible: false,
@@ -25,7 +23,7 @@ test.describe('Post Visibility', () => {
     });
 
     // Create a scheduled post
-    await createPost(page, SERVER_NUMBER, {
+    await createPost(page, {
       title: 'Scheduled Post',
       content: 'This is a scheduled post',
       visible: true,
@@ -33,7 +31,7 @@ test.describe('Post Visibility', () => {
     });
 
     // Verify posts are visible and properly marked when logged in
-    await page.goto(ROOT_URL + '/');
+    await page.goto('/');
 
     // Check draft post
     const draftPost = page.locator('article:has-text("Draft Post")');
@@ -50,8 +48,8 @@ test.describe('Post Visibility', () => {
     await expect(scheduledPost.locator('.edit-link')).toBeVisible();
 
     // Logout and verify posts are not visible to anonymous users
-    await page.goto( ROOT_URL + '/logout');
-    await page.goto(ROOT_URL + '/');
+    await page.goto('/logout');
+    await page.goto('/');
 
     // Verify posts are not visible
     await expect(page.locator('article:has-text("Draft Post")')).not.toBeVisible();

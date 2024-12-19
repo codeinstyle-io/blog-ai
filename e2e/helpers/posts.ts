@@ -7,12 +7,9 @@ interface CreatePostOptions {
   publishedAt: string;
 }
 
-export async function createPost(page: Page, serverNumber: number, options: CreatePostOptions) {
-  const rootURL = 'http://localhost:808' + serverNumber;
-
-
+export async function createPost(page: Page, options: CreatePostOptions) {
   // Navigate to create post page
-  await page.goto(rootURL + '/admin/posts/create');
+  await page.goto('/admin/posts/create');
 
   // Fill in the form
   await page.fill('input[name="title"]', options.title);

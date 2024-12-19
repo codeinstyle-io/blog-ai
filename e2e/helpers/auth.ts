@@ -1,9 +1,8 @@
 import { ro } from '@faker-js/faker/.';
 import { Page } from '@playwright/test';
 
-export async function login(page: Page, serverNumber: number) {
-  const rootURL = 'http://localhost:808' + serverNumber;
-  await page.goto(rootURL + '/login?next=/admin');
+export async function login(page: Page) {
+  await page.goto('/login?next=/admin');
 
   // Fill in login form
   await page.fill('input[name="email"]', 'admin@example.com');
@@ -13,11 +12,10 @@ export async function login(page: Page, serverNumber: number) {
   await page.click('button[type="submit"]');
 
   // Wait for successful login and redirect
-  await page.waitForURL(rootURL + '/admin');
+  await page.waitForURL('/admin');
 }
 
-export async function logout(page: Page, serverNumber: number) {
-  const rootURL = 'http://localhost:808' + serverNumber;
-  await page.goto(rootURL + '/logout');
-  await page.waitForURL(rootURL + '/');
+export async function logout(page: Page) {
+  await page.goto('/logout');
+  await page.waitForURL('/login');
 }
