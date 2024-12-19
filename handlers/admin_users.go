@@ -15,7 +15,9 @@ import (
 func (h *AdminHandlers) ListUsers(c *fiber.Ctx) error {
 	users, err := h.repos.Users.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	return c.Render("admin_users", fiber.Map{
@@ -126,7 +128,7 @@ func (h *AdminHandlers) ShowEditUser(c *fiber.Ctx) error {
 
 	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_edit_user", fiber.Map{
@@ -146,7 +148,7 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
 		flash.Error(c, "User not found")
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	if err := c.BodyParser(&user); err != nil {
@@ -242,7 +244,7 @@ func (h *AdminHandlers) ConfirmDeleteUser(c *fiber.Ctx) error {
 
 	user, err := h.repos.Users.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_confirm_delete_user", fiber.Map{

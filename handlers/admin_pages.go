@@ -13,7 +13,9 @@ import (
 func (h *AdminHandlers) ListPages(c *fiber.Ctx) error {
 	pages, err := h.repos.Pages.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	return c.Render("admin_pages", fiber.Map{
@@ -44,7 +46,7 @@ func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
 	// Create page
 	if err := h.repos.Pages.Create(&page); err != nil {
 		flash.Error(c, "Failed to create page")
-		return c.Status(http.StatusInternalServerError).Render("admin_create_page", fiber.Map{
+		return c.Render("admin_create_page", fiber.Map{
 			"page":  &page,
 			"title": "Pages",
 		})
@@ -63,7 +65,7 @@ func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 
 	page, err := h.repos.Pages.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_edit_page", fiber.Map{
@@ -81,7 +83,7 @@ func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 
 	page, err := h.repos.Pages.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	// Parse form data
@@ -115,7 +117,7 @@ func (h *AdminHandlers) ConfirmDeletePage(c *fiber.Ctx) error {
 
 	page, err := h.repos.Pages.FindByID(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_confirm_delete_page", fiber.Map{

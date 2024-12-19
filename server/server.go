@@ -79,12 +79,12 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 		},
 	))
 
+	app.Use("/", flash.Middleware())
 	app.Use("/", middleware.RequireSetup(repositories))
 	app.Use("/", middleware.LoadMenuItems(repositories))
 	app.Use("/", middleware.LoadVersion(repositories))
 	app.Use("/", middleware.LoadSettings(repositories))
 	app.Use("/", middleware.LoadUserData(repositories, sessionStore))
-	app.Use("/admin", flash.Middleware())
 	app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
 
 	publicApp := handlers.RegisterPublicRoutes(repositories, cfg, sessionStore)

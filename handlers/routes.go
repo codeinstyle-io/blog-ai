@@ -122,6 +122,8 @@ func RegisterAdminRoutes(repos *repository.Repositories, cfg *config.Config, ses
 	admin.Get("/settings", adminHandlers.ShowSettings)
 	admin.Post("/settings", adminHandlers.UpdateSettings)
 
+	admin.Use("/", flash.Middleware())
+
 	// API routes
 	api := admin.Group("/api")
 	api.Get("/tags", adminHandlers.GetTags)
