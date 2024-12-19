@@ -8,6 +8,9 @@ dist/
 coverage.out
 coverage.html
 
+# Generated files
+/testdata/
+
 # Development and environment files
 .DS_Store
 *.db

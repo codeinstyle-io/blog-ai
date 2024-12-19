@@ -39,11 +39,14 @@ test-coverage:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 
+test-data-cleanup:
+	rm -f testdata/*
+
 # E2E test commands
-test-e2e:
+test-e2e: test-data-cleanup build
 	npx playwright test
 
-test-e2e-ui:
+test-e2e-ui: test-data-cleanup build
 	npx playwright test --ui
 
 # Code quality commands

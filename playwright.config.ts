@@ -1,17 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
 
 
+let portPrefix: string = "808";
+
+function buildCommand(serverNumber: number) {
+  const command = [
+    "CAPTAIN_DEBUG=1",
+    `CAPTAIN_DB_PATH=./testdata/test-${serverNumber}.db`,
+    `CAPTAIN_SERVER_PORT=808${serverNumber}`,
+    "./dist/bin/captain run",
+  ].join(' ');
+
+  console.log(command);
+
+  return command;
+}
+
+
 export default defineConfig({
+  timeout: 10000,
   testDir: './e2e/specs',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    baseURL: `http://localhost:${portPrefix}1`,
   },
   projects: [
     {
@@ -19,11 +36,20 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: `mkdir -p ./dist && rm -f ./dist/test.db && CAPTAIN_DEBUG=1 CAPTAIN_DB_PATH=./dist/test.db CAPTAIN_SERVER_PORT=8081 make run`,
-    url: 'http://localhost:8081',
-    reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  webServer: [
+    {
+      command: buildCommand(1),
+      url: `http://localhost:${portPrefix}1`,
+      reuseExistingServer: true,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: buildCommand(2),
+      url: `http://localhost:${portPrefix}2`,
+      reuseExistingServer: true,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+],
 });

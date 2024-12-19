@@ -83,7 +83,7 @@ func (r *PostRepository) FindByTag(tag string) ([]*models.Post, error) {
 	return posts, err
 }
 
-// FindVisible finds all visible posts with pagination
+// FindVisiblePaginated finds all visible posts with pagination
 func (r *PostRepository) FindVisiblePaginated(page, perPage int, timezone string) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64

@@ -72,11 +72,6 @@ jobs:
 
     - name: Run Playwright tests
       run: npx playwright test
-      env:
-        CI: true
-        CAPTAIN_DEBUG: 1
-        CAPTAIN_DB_PATH: ':memory:'
-        CAPTAIN_SERVER_PORT: 8081
 
     - name: Upload test results
       if: always()
