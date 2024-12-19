@@ -12,6 +12,7 @@ media
 /blob-report/
 /playwright/.cache/
 /e2e/.auth/
+/testdata/
 
 # Node
 node_modules/

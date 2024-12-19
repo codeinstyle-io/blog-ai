@@ -1,46 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { login, logout } from '../helpers/auth';
 
 
-const rootURL = 'http://localhost:8081'
 const randomTitle = faker.lorem.words(3);
 
 test.describe('Admin Panel E2E Tests', () => {
+    const SERVER_NUMBER = 1;
+
+
     test.beforeEach(async ({ page }) => {
-        await page.goto(rootURL + '/admin');
+        await page.goto('/admin');
     });
 
     test('complete admin workflow', async ({ page }) => {
-        // First Start Form
-        await test.step('Setup initial configuration - invalid password', async () => {
-            await page.fill('input[name="firstName"]', 'Admin');
-            await page.fill('input[name="lastName"]', 'User');
-            await page.fill('input[name="email"]', 'admin@example.com');
-            await page.fill('input[name="password"]', '123'); // Too short password
-            await page.click('button[type="submit"]');
-            
-            // Verify error message is displayed
-            const errorMessage = await page.locator('.error-message');
-            await expect(errorMessage).toBeVisible();
-            await expect(errorMessage).toHaveText('Password must be at least 8 characters');
-        });
-
-        await test.step('Setup initial configuration - valid password', async () => {
-            await page.fill('input[name="firstName"]', 'Admin');
-            await page.fill('input[name="lastName"]', 'User');
-            await page.fill('input[name="email"]', 'admin@example.com');
-            await page.fill('input[name="password"]', 'Password123!');
-            await page.click('button[type="submit"]');
-            
-            // Verify redirect to login
-            await expect(page).toHaveURL(/.*\/login/);
-        });
+        await logout(page);
 
         // Login
         await test.step('Login to admin panel', async () => {
-            await page.fill('input[name="email"]', 'admin@example.com');
-            await page.fill('input[name="password"]', 'Password123!');
-            await page.click('button[type="submit"]');
+            await login(page);
             
             // Verify successful login
             await expect(page).toHaveURL(/.*\/admin/);
@@ -174,14 +152,14 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.click('button:has-text("Create Menu Item")');
             
             // Verify menu items
-            await page.goto(rootURL);
+            await page.goto('/');
             await expect(page.locator('a[href="https://example.com"]')).toBeVisible();
             await expect(page.locator('a[href="/pages/test-page"]')).toBeVisible();
         });
 
         // Tags Management
         await test.step('Verify tags functionality', async () => {
-            await page.goto(rootURL);
+            await page.goto('/');
 
             // Verify tags are listed
             await expect(page.locator('.post-tag:has-text("test")').first()).toBeVisible();
@@ -194,15 +172,15 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator(`text=${randomTitle}`)).toBeVisible();
             
             // Check public tag page
-            await page.goto(rootURL + '/tags/e2e');
+            await page.goto('/tags/e2e');
             await expect(page.locator('text=New title')).toBeVisible();
-            await page.goto(rootURL + '/tags/another');
+            await page.goto('/tags/another');
             await expect(page.locator('text=New title')).not.toBeVisible();
         });
 
         // Settings Management
         await test.step('Modify and verify settings', async () => {
-            await page.goto(rootURL + '/admin/settings');
+            await page.goto('/admin/settings');
 
             // Change timezone
             await page.fill('input[name="title"]', 'Updated Title');
@@ -216,12 +194,9 @@ test.describe('Admin Panel E2E Tests', () => {
 
             const response = await settingsSaveResponse;
             await expect(response.status()).toBe(302);
-            
-            // Verify settings updated
 
-            
             // Verify post time updated
-            await page.goto(rootURL + '/admin/posts');
+            await page.goto('/admin/posts');
             const secondPost = page.locator('tr').nth(2);
             const publishedAt = await secondPost.locator('td').nth(2).textContent();
             expect(publishedAt).toContain('1985-10-26 19:00');
@@ -231,8 +206,8 @@ test.describe('Admin Panel E2E Tests', () => {
         // Verify changes on public site
         await test.step('Verify changes on public site', async () => {
             // Test navigation back to public site
-            await page.goto(rootURL);
-            await expect(page).toHaveURL(rootURL + '/');
+            await page.goto('/');
+            await expect(page).toHaveURL('/');
 
             await expect(page.locator('.pagination')).toBeVisible();
             await expect(page.locator('a[href="?page=2"]')).toBeVisible();

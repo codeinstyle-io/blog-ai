@@ -146,6 +146,7 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	post.Title = c.FormValue("title")
 	post.Slug = c.FormValue("slug")
 	post.Content = c.FormValue("content")
+	post.Visible = c.FormValue("visible") == "on"
 	excerpt := c.FormValue("excerpt")
 	post.PublishedAt, err = parseTime(c.FormValue("publishedAt"), loc)
 

@@ -18,3 +18,13 @@ type Post struct {
 	AuthorID    uint      `gorm:"not null" form:"authorId"`
 	Author      *User     `gorm:"foreignKey:AuthorID" form:"author"`
 }
+
+// IsScheduled returns true if the post is scheduled for future publication
+func (p *Post) IsScheduled(timezone string) bool {
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	now := time.Now().In(loc)
+	return p.Visible && p.PublishedAt.After(now)
+}

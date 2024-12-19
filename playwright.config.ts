@@ -2,28 +2,40 @@ import { defineConfig, devices } from '@playwright/test';
 
 
 export default defineConfig({
+  globalSetup: require.resolve('./e2e/global.setup.ts'),
+  timeout: 10000,
   testDir: './e2e/specs',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 2,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    baseURL: `http://localhost:8081`,
   },
   projects: [
     {
+      name: 'setup user',
+      testMatch: 'setup.spec.ts',
+    },
+    {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    
     },
   ],
   webServer: {
-    command: `mkdir -p ./dist && rm -f ./dist/test.db && CAPTAIN_DEBUG=1 CAPTAIN_DB_PATH=./dist/test.db CAPTAIN_SERVER_PORT=8081 make run`,
-    url: 'http://localhost:8081',
-    reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+      command: [
+        "CAPTAIN_DEBUG=1",
+        `CAPTAIN_DB_PATH=./testdata/test.db`,
+        `CAPTAIN_SERVER_PORT=8081`,
+        "./dist/bin/captain run",
+      ].join(' '),
+      url: `http://localhost:8081`,
+      reuseExistingServer: false,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    }
 });

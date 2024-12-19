@@ -2,6 +2,7 @@ package repository
 
 import (
 	"strings"
+	"time"
 
 	"codeinstyle.io/captain/models"
 	"gorm.io/gorm"
@@ -82,19 +83,27 @@ func (r *PostRepository) FindByTag(tag string) ([]*models.Post, error) {
 	return posts, err
 }
 
-// FindVisible finds all visible posts with pagination
-func (r *PostRepository) FindVisible(page, perPage int) ([]models.Post, int64, error) {
+// FindVisiblePaginated finds all visible posts with pagination
+func (r *PostRepository) FindVisiblePaginated(page, perPage int, timezone string) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64
 
 	offset := (page - 1) * perPage
 
-	query := r.db.Model(&models.Post{}).Where("visible = ?", true)
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	now := time.Now().In(loc)
+
+	query := r.db.Model(&models.Post{}).
+		Where("visible = ? AND published_at <= ?", true, now)
+
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err := query.Preload("Tags").Preload("Author").
+	err = query.Preload("Tags").Preload("Author").
 		Order("published_at desc").
 		Offset(offset).
 		Limit(perPage).
@@ -104,21 +113,27 @@ func (r *PostRepository) FindVisible(page, perPage int) ([]models.Post, int64, e
 }
 
 // FindVisibleByTag finds all visible posts with a specific tag
-func (r *PostRepository) FindVisibleByTag(tagID uint, page, perPage int) ([]models.Post, int64, error) {
+func (r *PostRepository) FindVisibleByTag(tagID uint, page, perPage int, timezone string) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64
 
 	offset := (page - 1) * perPage
 
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	now := time.Now().In(loc)
+
 	query := r.db.Model(&models.Post{}).
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Where("post_tags.tag_id = ? AND visible = ?", tagID, true)
+		Where("post_tags.tag_id = ? AND visible = ? AND published_at <= ?", tagID, true, now)
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err := query.Preload("Tags").Preload("Author").
+	err = query.Preload("Tags").Preload("Author").
 		Order("published_at desc").
 		Offset(offset).
 		Limit(perPage).
@@ -144,6 +159,51 @@ func (r *PostRepository) FindRecent(limit int) ([]*models.Post, error) {
 		Limit(limit).
 		Find(&posts).Error
 	return posts, err
+}
+
+// FindAllPaginated finds all posts with pagination
+func (r *PostRepository) FindAllPaginated(page, perPage int) ([]models.Post, int64, error) {
+	var posts []models.Post
+	var total int64
+
+	offset := (page - 1) * perPage
+
+	query := r.db.Model(&models.Post{})
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := query.Preload("Tags").Preload("Author").
+		Order("published_at desc").
+		Offset(offset).
+		Limit(perPage).
+		Find(&posts).Error
+
+	return posts, total, err
+}
+
+// FindAllByTag finds all posts with a specific tag (including non-visible)
+func (r *PostRepository) FindAllByTag(tagID uint, page, perPage int) ([]models.Post, int64, error) {
+	var posts []models.Post
+	var total int64
+
+	offset := (page - 1) * perPage
+
+	query := r.db.Model(&models.Post{}).
+		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
+		Where("post_tags.tag_id = ?", tagID)
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := query.Preload("Tags").Preload("Author").
+		Order("published_at desc").
+		Offset(offset).
+		Limit(perPage).
+		Find(&posts).Error
+
+	return posts, total, err
 }
 
 // AssociateTags associates tags with a post
