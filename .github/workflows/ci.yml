@@ -71,7 +71,7 @@ jobs:
       run: go build -o ./dist/bin/captain ./main.go
 
     - name: Run Playwright tests
-      run: npx playwright test
+      run: mkdir -p ./testdata && npx playwright test
 
     - name: Upload test results
       if: always()
