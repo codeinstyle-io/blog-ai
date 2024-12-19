@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/viper"
 	"gorm.io/gorm/logger"
 )
@@ -166,9 +167,9 @@ func InitConfig() (*Config, error) {
 	configFile := viper.ConfigFileUsed()
 
 	if configFile != "" {
-		fmt.Printf("Loaded config from %s\n", configFile)
+		log.Infof("Loaded config from %s\n", configFile)
 	} else {
-		fmt.Println("Using default config")
+		log.Debug("Using default config")
 	}
 
 	return &cfg, nil

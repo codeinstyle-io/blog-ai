@@ -1,9 +1,8 @@
 package flash
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
@@ -44,14 +43,14 @@ func Setup(s *session.Store) {
 // AddMessage adds a flash message to the session
 func AddMessage(c *fiber.Ctx, severity Severity, text string) *fiber.Ctx {
 	if store == nil {
-		// TODO: Log this
-		fmt.Println("flash message system not initialized")
+		log.Warn("flash message system not initialized")
+		return c
 	}
 
 	sess, err := store.Get(c)
 	if err != nil {
-		// TODO: Log this
-		fmt.Printf("Error getting session: %v\n", err)
+		log.Errorf("Error getting session: %v\n", err)
+		return c
 	}
 
 	messages := getMessages(sess)
@@ -64,8 +63,7 @@ func AddMessage(c *fiber.Ctx, severity Severity, text string) *fiber.Ctx {
 	err = sess.Save()
 
 	if err != nil {
-		// TODO: Log this
-		fmt.Printf("Error saving session: %v\n", err)
+		log.Errorf("Error saving session: %v\n", err)
 	}
 
 	return c

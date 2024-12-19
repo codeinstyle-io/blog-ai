@@ -3,14 +3,13 @@ package main
 import (
 	"embed"
 	"fmt"
-	"log"
-	"os"
 
 	"codeinstyle.io/captain/cmd"
 	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/db"
 	"codeinstyle.io/captain/server"
 	"codeinstyle.io/captain/system"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/cobra"
 )
 
@@ -78,8 +77,7 @@ func main() {
 	rootCmd.AddCommand(runCmd, userCmd, versionCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalf("Error: %v", err)
 	}
 }
 
