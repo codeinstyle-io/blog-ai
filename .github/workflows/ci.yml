@@ -45,7 +45,7 @@ jobs:
 
   e2e:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
 
@@ -68,7 +68,7 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: Build application
-      run: make build
+      run: go build -o ./dist/bin/captain ./main.go
 
     - name: Run Playwright tests
       run: npx playwright test
