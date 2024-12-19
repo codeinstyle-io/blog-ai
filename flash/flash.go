@@ -7,8 +7,20 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
+var store *session.Store
+
 // Severity represents the severity level of a flash message
 type Severity string
+
+// Message represents a flash message
+type Message struct {
+	Text     string   `json:"text"`
+	Severity Severity `json:"severity"`
+}
+
+type Callback func(*fiber.Ctx)
+
+const flashKey = "flash_messages"
 
 const (
 	DEBUG   Severity = "DEBUG"
@@ -23,16 +35,6 @@ func (s Severity) String() string {
 	return string(s)
 }
 
-// Message represents a flash message
-type Message struct {
-	Text     string   `json:"text"`
-	Severity Severity `json:"severity"`
-}
-
-const flashKey = "flash_messages"
-
-var store *session.Store
-
 // Setup initializes the flash message system with a session store
 func Setup(s *session.Store) {
 	store = s
@@ -40,7 +42,7 @@ func Setup(s *session.Store) {
 }
 
 // AddMessage adds a flash message to the session
-func AddMessage(c *fiber.Ctx, severity Severity, text string) {
+func AddMessage(c *fiber.Ctx, severity Severity, text string) *fiber.Ctx {
 	if store == nil {
 		// TODO: Log this
 		fmt.Println("flash message system not initialized")
@@ -50,7 +52,6 @@ func AddMessage(c *fiber.Ctx, severity Severity, text string) {
 	if err != nil {
 		// TODO: Log this
 		fmt.Printf("Error getting session: %v\n", err)
-		return
 	}
 
 	messages := getMessages(sess)
@@ -66,6 +67,8 @@ func AddMessage(c *fiber.Ctx, severity Severity, text string) {
 		// TODO: Log this
 		fmt.Printf("Error saving session: %v\n", err)
 	}
+
+	return c
 }
 
 // getMessages retrieves flash messages from the session

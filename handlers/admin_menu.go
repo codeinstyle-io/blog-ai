@@ -13,7 +13,9 @@ import (
 func (h *AdminHandlers) ListMenuItems(c *fiber.Ctx) error {
 	menuItems, err := h.repos.MenuItems.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	lastPosition := len(menuItems)
@@ -99,7 +101,9 @@ func (h *AdminHandlers) ShowCreateMenuItem(c *fiber.Ctx) error {
 	pages, err := h.repos.Pages.FindAll()
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	return c.Render("admin_create_menu_item", fiber.Map{
@@ -183,7 +187,7 @@ func (h *AdminHandlers) ConfirmDeleteMenuItem(c *fiber.Ctx) error {
 
 	menuItem, err := h.repos.MenuItems.FindByID(menuID)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_confirm_delete_menu_item", fiber.Map{
@@ -203,13 +207,15 @@ func (h *AdminHandlers) EditMenuItem(c *fiber.Ctx) error {
 	}
 
 	if menuItem, err = h.repos.MenuItems.FindByID(menuID); err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	pages, err := h.repos.Pages.FindAll()
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	return c.Render("admin_edit_menu_item", fiber.Map{
@@ -238,7 +244,7 @@ func (h *AdminHandlers) UpdateMenuItem(c *fiber.Ctx) error {
 	menuItem, err := h.repos.MenuItems.FindByID(menuID)
 	if err != nil {
 		flash.Error(c, "Menu item not found")
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	menuItem.Label = c.FormValue("label")

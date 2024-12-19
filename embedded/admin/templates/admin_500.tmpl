@@ -1,0 +1,54 @@
+{{ template "admin_header" . }}
+<div class="error-container">
+    <h1>500 - Internal Server Error</h1>
+    <p>Something went wrong on our end.</p>
+    {{if .Error}}
+    <div class="error-details">
+        <pre>{{.Error}}</pre>
+    </div>
+    {{end}}
+    <div class="error-actions">
+        <a href="/admin" class="btn btn-primary">
+            <i class="fas fa-home"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<style>
+.error-container {
+    text-align: center;
+    padding: 40px 0;
+}
+
+.error-container h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.error-container p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.error-details {
+    max-width: 800px;
+    margin: 0 auto 30px;
+    padding: 15px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    text-align: left;
+}
+
+.error-details pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: #d32f2f;
+}
+
+.error-actions {
+    margin-top: 20px;
+}
+</style>
+{{ template "admin_footer" . }}

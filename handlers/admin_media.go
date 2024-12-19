@@ -33,7 +33,9 @@ func NewAdminMediaHandlers(repos *repository.Repositories, config *config.Config
 func (h *AdminMediaHandlers) ListMedia(c *fiber.Ctx) error {
 	media, err := h.mediaRepo.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	return c.Render("admin_media_list", fiber.Map{
@@ -65,7 +67,9 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	filename, err := h.storage.Save(file)
 	if err != nil {
 		flash.Error(c, fmt.Sprintf("Failed to save file: %v", err))
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
 	}
 
 	// Create media record
@@ -161,7 +165,7 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 
 	media, err := h.mediaRepo.FindByID(mediaID)
 	if err != nil {
-		return c.Status(http.StatusNotFound).Render("404", fiber.Map{})
+		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
 	return c.Render("admin_confirm_delete_media", fiber.Map{
