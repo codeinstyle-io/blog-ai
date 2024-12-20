@@ -83,7 +83,7 @@ func TestPostRepository_FindVisible(t *testing.T) {
 	repo := NewPostRepository(db)
 
 	// Use a fixed time for testing
-	timezone := "Europe/Paris"
+	timezone := "America/New_York"
 	loc, err := time.LoadLocation(timezone)
 	require.NoError(t, err)
 
