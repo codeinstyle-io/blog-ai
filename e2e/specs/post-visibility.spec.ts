@@ -4,12 +4,11 @@ import { createPost } from '../helpers/posts';
 
 test.describe('Post Visibility', () => {
 
-  const now = new Date('2024-12-18T22:30:12+01:00'); // Fixed time from context
+  const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   test('should handle draft and scheduled posts correctly', async ({ page }) => {
-    // Setup admin account
     await logout(page);
 
     // Create a draft post
