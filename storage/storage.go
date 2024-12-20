@@ -3,15 +3,14 @@ package storage
 import (
 	"fmt"
 	"io"
-	"mime/multipart"
 
 	"codeinstyle.io/captain/config"
 )
 
 // Provider defines the interface for storage providers
 type Provider interface {
-	// Save stores a file and returns its path and any error
-	Save(file *multipart.FileHeader) (string, error)
+	// Save stores a file from a reader and returns its path and any error
+	Save(filename string, reader io.Reader) (string, error)
 
 	// Delete removes a file and returns any error
 	Delete(path string) error
@@ -20,12 +19,13 @@ type Provider interface {
 	Get(path string) (io.ReadCloser, error)
 }
 
+// Storage wraps a Provider with its name
 type Storage struct {
 	name string
 	Provider
 }
 
-func NewStorage(cfg *config.Config) *Storage {
+func NewStorage(cfg *config.Config) (*Storage, error) {
 	var provider Provider
 	var err error
 	name := cfg.Storage.Provider
@@ -38,11 +38,11 @@ func NewStorage(cfg *config.Config) *Storage {
 	}
 
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
+		return nil, fmt.Errorf("failed to initialize storage provider: %w", err)
 	}
 
 	return &Storage{
 		name:     name,
 		Provider: provider,
-	}
+	}, nil
 }

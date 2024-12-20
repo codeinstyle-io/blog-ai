@@ -1,22 +1,26 @@
 package models
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"mime"
 	"path/filepath"
 	"strings"
 
+	"codeinstyle.io/captain/storage"
 	"gorm.io/gorm"
 )
 
 // Media represents a media file in the system
 type Media struct {
 	gorm.Model
-	Name        string `gorm:"not null" form:"name"`
-	Path        string `gorm:"not null;unique" form:"path"`
-	MimeType    string `gorm:"not null" form:"mimeType"`
-	Size        int64  `gorm:"not null" form:"size"`
-	Description string `gorm:"type:text" form:"description"`
+	Name        string    `gorm:"not null" form:"name"`
+	Path        string    `gorm:"not null;unique" form:"path"`
+	MimeType    string    `gorm:"not null" form:"mimeType"`
+	Size        int64     `gorm:"not null" form:"size"`
+	Description string    `gorm:"type:text" form:"description"`
+	File        io.Reader `gorm:"-" form:"-"`
 }
 
 // BeforeCreate hook to ensure media has a mime type
@@ -50,4 +54,19 @@ func (m *Media) GetMarkdownTag() string {
 	}
 	// Otherwise return a link
 	return fmt.Sprintf("[%s](/media/%s)", m.Name, m.Path)
+}
+
+func (m *Media) FetchFile(storage storage.Provider) error {
+	file, err := storage.Get(m.Path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	m.File = bytes.NewReader(data)
+	return nil
 }

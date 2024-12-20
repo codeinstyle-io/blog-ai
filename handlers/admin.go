@@ -3,22 +3,22 @@ package handlers
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/storage"
 	"github.com/gofiber/fiber/v2"
 )
 
 // AdminHandlers contains handlers for admin routes
 type AdminHandlers struct {
-	repos  *repository.Repositories
-	config *config.Config
+	repos   *repository.Repositories
+	storage storage.Provider
 }
 
 // NewAdminHandlers creates a new AdminHandlers instance
-func NewAdminHandlers(repos *repository.Repositories, cfg *config.Config) *AdminHandlers {
+func NewAdminHandlers(repos *repository.Repositories, storage storage.Provider) *AdminHandlers {
 	return &AdminHandlers{
-		repos:  repos,
-		config: cfg,
+		repos:   repos,
+		storage: storage,
 	}
 }
 

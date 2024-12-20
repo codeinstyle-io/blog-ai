@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
-	"codeinstyle.io/captain/flash"
-	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
+
+	"codeinstyle.io/captain/config"
+	"codeinstyle.io/captain/flash"
+	"codeinstyle.io/captain/models"
 )
 
 // ShowSettings handles the GET /admin/settings route
@@ -19,11 +22,17 @@ func (h *AdminHandlers) ShowSettings(c *fiber.Ctx) error {
 		})
 	}
 
+	var logo *models.Media
+	if settings.LogoID != nil {
+		logo, _ = h.repos.Media.FindByID(*settings.LogoID)
+	}
+
 	data := fiber.Map{
 		"title":        "Site Settings",
 		"settings":     settings,
-		"timezones":    h.config.GetTimezones(),
-		"chromaStyles": h.config.GetChromaStyles(),
+		"logo":         logo,
+		"timezones":    config.GetTimezones(),
+		"chromaStyles": config.GetChromaStyles(),
 	}
 
 	return c.Render("admin_settings", data)
@@ -41,6 +50,8 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	form.ChromaStyle = c.FormValue("chroma_style")
 	form.Theme = c.FormValue("theme")
 	postsPerPage := c.FormValue("posts_per_page")
+	logoID := c.FormValue("logo_id")
+	useFavicon := c.FormValue("use_favicon") == "on"
 
 	// Validate required fields
 	if form.Title == "" {
@@ -50,91 +61,52 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 		errors = append(errors, "Subtitle is required")
 	}
 
-	// Validate timezone
-	if form.Timezone != "" {
-		valid := false
-		for _, tz := range h.config.GetTimezones() {
-			if tz == form.Timezone {
-				valid = true
-				break
-			}
-		}
-		if !valid {
-			errors = append(errors, "Invalid timezone selected")
-		}
+	// Parse posts per page
+	if pp, err := strconv.Atoi(postsPerPage); err == nil {
+		form.PostsPerPage = pp
+	} else {
+		errors = append(errors, "Posts per page must be a number")
 	}
 
-	// Validate chroma style
-	if form.ChromaStyle != "" {
-		valid := false
-		for _, style := range h.config.GetChromaStyles() {
-			if style == form.ChromaStyle {
-				valid = true
-				break
-			}
+	// Handle logo
+	if logoID != "" {
+		if id, err := strconv.ParseUint(logoID, 10, 32); err == nil {
+			uid := uint(id)
+			form.LogoID = &uid
 		}
-		if !valid {
-			errors = append(errors, "Invalid syntax highlighting theme selected")
-		}
+	} else {
+		form.LogoID = nil
 	}
-
-	// Validate theme
-	if form.Theme != "" && form.Theme != "light" && form.Theme != "dark" {
-		errors = append(errors, "Invalid theme selected")
-	}
-
-	// Parse and validate posts per page
-	if postsPerPage != "" {
-		if pp, err := strconv.Atoi(postsPerPage); err != nil {
-			errors = append(errors, "Posts per page must be a number")
-		} else if pp < 1 || pp > 50 {
-			errors = append(errors, "Posts per page must be between 1 and 50")
-		} else {
-			form.PostsPerPage = pp
-		}
-	}
+	form.UseFavicon = useFavicon
 
 	if len(errors) > 0 {
 		for _, err := range errors {
 			flash.Error(c, err)
 		}
-		data := fiber.Map{
-			"title":        "Site Settings",
-			"settings":     form,
-			"timezones":    h.config.GetTimezones(),
-			"chromaStyles": h.config.GetChromaStyles(),
-			"theme":        form.Theme,
-			"postsPerPage": form.PostsPerPage,
-		}
-		return c.Status(http.StatusBadRequest).Render("admin_settings", data)
-	}
-
-	// Set defaults for optional fields if not provided
-	if form.Timezone == "" {
-		form.Timezone = system.DefaultTimezone
-	}
-	if form.ChromaStyle == "" {
-		form.ChromaStyle = system.DefaultChromaStyle
-	}
-	if form.Theme == "" {
-		form.Theme = system.DefaultTheme
-	}
-	if form.PostsPerPage == 0 {
-		form.PostsPerPage = system.DefaultPostsPerPage
+		return c.Redirect("/admin/settings")
 	}
 
 	if err := h.repos.Settings.Update(form); err != nil {
-		flash.Error(c, "Failed to update settings")
-		data := fiber.Map{
-			"title":        "Site Settings",
-			"settings":     form,
-			"timezones":    h.config.GetTimezones(),
-			"chromaStyles": h.config.GetChromaStyles(),
-			"theme":        form.Theme,
-			"postsPerPage": form.PostsPerPage,
+		flash.Error(c, "Failed to save settings")
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"err": err.Error(),
+		})
+	}
+
+	// Generate favicons if enabled and logo is set
+	if form.UseFavicon && form.LogoID != nil {
+		logo, err := h.repos.Media.FindByID(*form.LogoID)
+		if err != nil {
+			return fmt.Errorf("failed to get logo: %w", err)
 		}
 
-		return c.Status(http.StatusInternalServerError).Render("admin_settings", data)
+		if err := GenerateFavicons(logo, h.storage); err != nil {
+			flash.Error(c, "Failed to generate favicons")
+			fmt.Printf("Failed to generate favicons: %v\n", err)
+			return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+				"err": err.Error(),
+			})
+		}
 	}
 
 	flash.Success(c, "Settings updated successfully")

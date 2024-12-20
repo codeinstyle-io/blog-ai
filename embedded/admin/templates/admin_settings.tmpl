@@ -1,4 +1,5 @@
 {{ template "admin_header" . }}
+{{ template "media_selector" . }}
 
 <div class="admin-page">
     <div class="page-header">
@@ -24,6 +25,31 @@
         <div class="form-group">
             <label for="subtitle">Site Subtitle</label>
             <input type="text" id="subtitle" name="subtitle" value="{{ .settings.Subtitle }}" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="logo_id">Site Logo</label>
+            <div class="media-selector">
+                <input type="hidden" id="logo_id" name="logo_id" value="{{ if .settings.LogoID }}{{ .settings.LogoID }}{{ end }}">
+                <div class="image-preview">
+                    {{ if .logo }}
+                        <img src="/media/{{ .logo.Path }}" alt="Current logo">
+                    {{ else }}
+                        <span class="no-image">No logo selected</span>
+                    {{ end }}
+                </div>
+                <p class="form-help">
+                    Hint: Size should be at least 300x300, preferrably square. Image format should be JPEG or PNG
+                </p>
+                <button type="button" class="btn btn-secondary" onclick="openLogoMediaSelector()">Select Logo</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="use_favicon" {{ if .settings.UseFavicon }}checked{{ end }}>
+                Use logo as favicon (will generate favicon.ico and touch icons)
+            </label>
         </div>
 
         <div class="form-group">
@@ -64,5 +90,29 @@
         </div>
     </form>
 </div>
+
+<script>
+function openMediaLibrary(targetField) {
+    window.open('/admin/media?select=true&target=' + targetField, 'media_library', 'width=800,height=600');
+}
+
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'media_selected') {
+        document.getElementById(event.data.target).value = event.data.id;
+        // Optionally refresh the preview
+        if (event.data.url) {
+            const container = document.getElementById(event.data.target).closest('.media-selector');
+            let img = container.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.className = 'current-logo';
+                container.insertBefore(img, container.firstChild);
+            }
+            img.src = event.data.url;
+            img.alt = 'Current logo';
+        }
+    }
+});
+</script>
 
 {{ template "admin_footer" . }}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/flash"
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
@@ -13,19 +12,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// AdminMediaHandlers handles media routes
+// AdminMediaHandlers handles admin media routes
 type AdminMediaHandlers struct {
-	*BaseHandlers
 	storage   storage.Provider
 	mediaRepo models.MediaRepository
 }
 
 // NewAdminMediaHandlers creates a new AdminMediaHandlers instance
-func NewAdminMediaHandlers(repos *repository.Repositories, config *config.Config, storage storage.Provider) *AdminMediaHandlers {
+func NewAdminMediaHandlers(repos *repository.Repositories, storage storage.Provider) *AdminMediaHandlers {
 	return &AdminMediaHandlers{
-		BaseHandlers: NewBaseHandlers(repos, config),
-		storage:      storage,
-		mediaRepo:    repos.Media,
+		storage:   storage,
+		mediaRepo: repos.Media,
 	}
 }
 
@@ -54,6 +51,8 @@ func (h *AdminMediaHandlers) ShowUploadMedia(c *fiber.Ctx) error {
 // UploadMedia handles media file upload
 func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	file, err := c.FormFile("file")
+	description := c.FormValue("description")
+
 	if err != nil {
 		flash.Error(c, "No file uploaded")
 		return c.Status(http.StatusBadRequest).Render("admin_media_upload", fiber.Map{
@@ -61,10 +60,16 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 		})
 	}
 
-	description := c.FormValue("description")
+	multipartFile, err := file.Open()
+	if err != nil {
+		flash.Error(c, fmt.Sprintf("Failed to open file: %v", err))
+		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
+			"err": err.Error(),
+		})
+	}
 
 	// Save file using storage provider
-	filename, err := h.storage.Save(file)
+	filename, err := h.storage.Save(file.Filename, multipartFile)
 	if err != nil {
 		flash.Error(c, fmt.Sprintf("Failed to save file: %v", err))
 		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
@@ -163,7 +168,7 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
 	}
 
-	media, err := h.mediaRepo.FindByID(mediaID)
+	media, err := h.mediaRepo.FindByID(uint(mediaID))
 	if err != nil {
 		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}

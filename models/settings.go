@@ -13,4 +13,6 @@ type Settings struct {
 	ChromaStyle  string `gorm:"not null" form:"chroma_style"`
 	Theme        string `gorm:"not null" form:"theme"`
 	PostsPerPage int    `gorm:"not null" form:"posts_per_page"`
+	LogoID       *uint  `gorm:"" form:"logo_id"`
+	UseFavicon   bool   `gorm:"not null;default:false" form:"use_favicon"`
 }

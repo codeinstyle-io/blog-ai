@@ -1,34 +1,26 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"net/http"
 	"strings"
 
-	"codeinstyle.io/captain/config"
+	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
+	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
+	"github.com/nfnt/resize"
+
 	"gorm.io/gorm"
 )
 
 // ServeMedia serves media files from the configured storage provider
-func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber.Handler {
-	// Initialize storage provider
-	var provider storage.Provider
-	var err error
-
-	switch cfg.Storage.Provider {
-	case "s3":
-		provider, err = storage.NewS3Provider(cfg.Storage.S3.Bucket, cfg.Storage.S3.Region, cfg.Storage.S3.Endpoint, cfg.Storage.S3.AccessKey, cfg.Storage.S3.SecretKey)
-	default: // "local"
-		provider, err = storage.NewLocalProvider(cfg.Storage.LocalPath)
-	}
-
-	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
-	}
+func ServeMedia(repositories *repository.Repositories, storageProvider storage.Provider) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		// Get path and trim leading slash if present
@@ -60,7 +52,7 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber
 		}
 
 		// Get file from storage provider
-		file, err := provider.Get(path)
+		file, err := storageProvider.Get(path)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).SendString("Error retrieving media file")
 		}
@@ -82,4 +74,52 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber
 
 		return nil
 	}
+}
+
+// GenerateFavicons generates favicon files from a media file
+func GenerateFavicons(media *models.Media, storage storage.Provider) error {
+	err := media.FetchFile(storage)
+	if err != nil {
+		return fmt.Errorf("failed to fetch logo file: %w", err)
+	}
+
+	// Decode the original image
+	origImg, _, err := image.Decode(media.File)
+	if err != nil {
+		return fmt.Errorf("failed to decode logo file: %w", err)
+	}
+
+	// Generate favicon.ico (32x32)
+	err = uploadResizedImage(origImg, system.FaviconSize, storage, system.FaviconFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate favicon.ico: %w", err)
+	}
+
+	// Generate apple-touch-icon.png (180x180)
+	err = uploadResizedImage(origImg, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate apple-touch-icon.png: %w", err)
+	}
+
+	// Generate icon.png (300x300)
+	err = uploadResizedImage(origImg, system.IconSize, storage, system.FaviconPngFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate favicon.png: %w", err)
+	}
+
+	return nil
+}
+
+func uploadResizedImage(img image.Image, width int, storage storage.Provider, filename string) error {
+	x, y := width, width
+
+	resized := resize.Resize(uint(x), uint(y), img, resize.Lanczos3)
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, resized); err != nil {
+		return err
+	}
+
+	_, err := storage.Save(filename, bytes.NewReader(buf.Bytes()))
+
+	return err
 }
