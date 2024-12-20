@@ -10,7 +10,7 @@ import (
 )
 
 // RegisterPublicRoutes registers all public routes
-func RegisterPublicRoutes(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *fiber.App {
+func RegisterPublicRoutes(repos *repository.Repositories, cfg *config.Config) *fiber.App {
 	publicHandlers := NewPublicHandlers(repos, cfg)
 	app := fiber.New()
 
@@ -24,11 +24,11 @@ func RegisterPublicRoutes(repos *repository.Repositories, cfg *config.Config, se
 }
 
 // RegisterDynamicRoutes registers all dynamic routes
-func RegisterDynamicRoutes(repos *repository.Repositories, cfg *config.Config) *fiber.App {
+func RegisterDynamicRoutes(repos *repository.Repositories, storageProvider storage.Provider) *fiber.App {
 	app := fiber.New()
 
 	app.Get("/chroma.css", GetChromaCSS)
-	app.Get("/*", ServeMedia(repos, cfg))
+	app.Get("/*", ServeMedia(repos, storageProvider))
 
 	return app
 }
@@ -52,11 +52,11 @@ func RegisterAuthRoutes(repos *repository.Repositories, cfg *config.Config, sess
 }
 
 // RegisterAdminRoutes registers all admin routes
-func RegisterAdminRoutes(repos *repository.Repositories, cfg *config.Config, sessionStore *session.Store) *fiber.App {
-	storage := storage.NewStorage(cfg)
+func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provider, sessionStore *session.Store) *fiber.App {
+
 	flash.Setup(sessionStore)
-	adminHandlers := NewAdminHandlers(repos, cfg)
-	adminMediaHandlers := NewAdminMediaHandlers(repos, cfg, storage)
+	adminHandlers := NewAdminHandlers(repos, storage)
+	adminMediaHandlers := NewAdminMediaHandlers(repos, storage)
 
 	app := fiber.New()
 	admin := app.Group("/admin")

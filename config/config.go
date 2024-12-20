@@ -195,16 +195,6 @@ func (c *Config) GetGormLogLevel() logger.LogLevel {
 	}
 }
 
-// GetTimezones returns the list of available timezones
-func (c *Config) GetTimezones() []string {
-	return timezones
-}
-
-// GetChromaStyles returns the list of available syntax highlighting themes
-func (c *Config) GetChromaStyles() []string {
-	return chromaStyles
-}
-
 // ValidateS3Config validates S3 configuration if S3 provider is selected
 func (c *Config) ValidateS3Config() error {
 	if c.Storage.Provider != "s3" {
@@ -231,4 +221,14 @@ func (c *Config) ValidateS3Config() error {
 	}
 
 	return nil
+}
+
+// GetTimezones returns the list of available timezones
+func GetTimezones() []string {
+	return timezones
+}
+
+// GetChromaStyles returns the list of available syntax highlighting themes
+func GetChromaStyles() []string {
+	return chromaStyles
 }

@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{if .title}}{{.title}} - {{end}}Captain Admin</title>
+    <title>{{ if .title }}{{ .title }} - {{ end }}Captain Admin - {{ .settings.Title }}</title>
+    {{ if .faviconHTML }}{{ .faviconHTML | raw }}{{ end }}
     <link rel="stylesheet" href="/admin/static/css/fontawesome.min.css">
     <link rel="stylesheet" href="/admin/static/css/admin.css">
 </head>

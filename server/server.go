@@ -13,6 +13,7 @@ import (
 	"codeinstyle.io/captain/handlers"
 	"codeinstyle.io/captain/middleware"
 	"codeinstyle.io/captain/repository"
+	"codeinstyle.io/captain/storage"
 	"codeinstyle.io/captain/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -47,15 +48,22 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 		CookieSecure:   cfg.Site.SecureCookie,
 	})
 
+	// Initialize storage provider
+	storageProvider, err := storage.NewStorage(cfg)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize storage provider: %w", err)
+	}
+
 	// Load theme static files
 	if adminStaticFS, staticFS, err = setupStatics(themeName, embeddedFS); err != nil {
-		panic(fmt.Errorf("error setting up static files: %v", err))
+		return nil, fmt.Errorf("error setting up static files: %v", err)
 	}
 
 	// Load theme templates
 	viewEngine, err := setupTemplates(themeName, embeddedFS)
 	if err != nil {
-		panic(fmt.Errorf("error setting up templates: %v", err))
+		return nil, fmt.Errorf("error setting up templates: %v", err)
 	}
 
 	// Create Fiber app with template engine
@@ -79,18 +87,20 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 		},
 	))
 
-	app.Use("/", flash.Middleware())
-	app.Use("/", middleware.RequireSetup(repositories))
-	app.Use("/", middleware.LoadMenuItems(repositories))
-	app.Use("/", middleware.LoadVersion(repositories))
-	app.Use("/", middleware.LoadSettings(repositories))
-	app.Use("/", middleware.LoadUserData(repositories, sessionStore))
+	app.Use(flash.Middleware())
+	app.Use(middleware.RequireSetup(repositories))
+	app.Use(middleware.LoadMenuItems(repositories))
+	app.Use(middleware.LoadVersion(repositories))
+	app.Use(middleware.LoadSettings(repositories))
+	app.Use(middleware.LoadUserData(repositories, sessionStore))
+	app.Use(middleware.ServeFavicon(storageProvider))
+	app.Use(middleware.InjectFavicon(repositories))
 	app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
 
-	publicApp := handlers.RegisterPublicRoutes(repositories, cfg, sessionStore)
-	dynamicApp := handlers.RegisterDynamicRoutes(repositories, cfg)
+	publicApp := handlers.RegisterPublicRoutes(repositories, cfg)
+	dynamicApp := handlers.RegisterDynamicRoutes(repositories, storageProvider)
 	authApp := handlers.RegisterAuthRoutes(repositories, cfg, sessionStore)
-	adminApp := handlers.RegisterAdminRoutes(repositories, cfg, sessionStore)
+	adminApp := handlers.RegisterAdminRoutes(repositories, storageProvider, sessionStore)
 
 	app.Mount("/media", dynamicApp)
 	app.Mount("/", adminApp)

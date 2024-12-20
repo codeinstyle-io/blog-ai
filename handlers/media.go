@@ -1,34 +1,24 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"net/http"
 	"strings"
 
-	"codeinstyle.io/captain/config"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
+	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
+	"github.com/nfnt/resize"
 	"gorm.io/gorm"
 )
 
 // ServeMedia serves media files from the configured storage provider
-func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber.Handler {
-	// Initialize storage provider
-	var provider storage.Provider
-	var err error
-
-	switch cfg.Storage.Provider {
-	case "s3":
-		provider, err = storage.NewS3Provider(cfg.Storage.S3.Bucket, cfg.Storage.S3.Region, cfg.Storage.S3.Endpoint, cfg.Storage.S3.AccessKey, cfg.Storage.S3.SecretKey)
-	default: // "local"
-		provider, err = storage.NewLocalProvider(cfg.Storage.LocalPath)
-	}
-
-	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize storage provider: %v", err))
-	}
+func ServeMedia(repositories *repository.Repositories, storageProvider storage.Provider) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
 		// Get path and trim leading slash if present
@@ -60,7 +50,7 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber
 		}
 
 		// Get file from storage provider
-		file, err := provider.Get(path)
+		file, err := storageProvider.Get(path)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).SendString("Error retrieving media file")
 		}
@@ -82,4 +72,82 @@ func ServeMedia(repositories *repository.Repositories, cfg *config.Config) fiber
 
 		return nil
 	}
+}
+
+// GenerateFavicons generates favicon files from a media file
+func GenerateFavicons(repositories *repository.Repositories, storage storage.Provider, logoID uint) error {
+
+	logo, err := repositories.Media.FindByID(logoID)
+	if err != nil {
+		return fmt.Errorf("failed to get logo: %w", err)
+	}
+
+	// Read the original image
+	origFile, err := storage.Get(logo.Path)
+	if err != nil {
+		return fmt.Errorf("failed to read logo file: %w", err)
+	}
+
+	// Decode the original image
+	origImg, _, err := image.Decode(origFile)
+	if err != nil {
+		return fmt.Errorf("failed to decode logo file: %w", err)
+	}
+
+	// Generate favicon.ico (32x32)
+	err = uploadResizedImage(origImg, system.FaviconSize, system.FaviconSize, storage, system.FaviconFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate favicon.ico: %w", err)
+	}
+
+	// Generate apple-touch-icon.png (180x180)
+	err = uploadResizedImage(origImg, system.AppleTouchIconSize, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate apple-touch-icon.png: %w", err)
+	}
+
+	// // If the original is SVG, copy it directly
+	// if filepath.Ext(logo.Path) == ".svg" {
+	// 	origData, err := storage.Get(logo.Path)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to read original SVG: %w", err)
+	// 	}
+	// 	if _, err := storage.Save(svgFilename, origData); err != nil {
+	// 		return fmt.Errorf("failed to save icon.svg: %w", err)
+	// 	}
+	// } else {
+	// 	// Convert to SVG
+	// 	icon, err := oksvg.ReadIconStream(origFile)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to convert to SVG: %w", err)
+	// 	}
+
+	// 	w, h := int(icon.ViewBox.W), int(icon.ViewBox.H)
+	// 	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	// 	scanner := rasterx.NewScannerGV(w, h, img, img.Bounds())
+	// 	raster := rasterx.NewDasher(w, h, scanner)
+	// 	icon.Draw(raster, 1.0)
+
+	// 	var svgBuf bytes.Buffer
+	// 	if err := png.Encode(&svgBuf, img); err != nil {
+	// 		return fmt.Errorf("failed to encode SVG: %w", err)
+	// 	}
+	// 	if _, err := storage.Save(svgFilename, bytes.NewReader(svgBuf.Bytes())); err != nil {
+	// 		return fmt.Errorf("failed to save icon.svg: %w", err)
+	// 	}
+	// }
+
+	return nil
+}
+
+func uploadResizedImage(img image.Image, width, height int, storage storage.Provider, filename string) error {
+	resized := resize.Resize(uint(width), uint(height), img, resize.Lanczos3)
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, resized); err != nil {
+		return err
+	}
+
+	_, err := storage.Save(filename, bytes.NewReader(buf.Bytes()))
+
+	return err
 }

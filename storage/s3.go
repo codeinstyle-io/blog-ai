@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"path/filepath"
 	"time"
 
@@ -61,25 +60,17 @@ func NewS3Provider(bucket, region, endpoint, access_key, secret_key string) (*S3
 }
 
 // Save implements Provider.Save
-func (p *S3Provider) Save(file *multipart.FileHeader) (string, error) {
+func (p *S3Provider) Save(filename string, reader io.Reader) (string, error) {
 	// Generate unique filename with slugified name
-	ext := filepath.Ext(file.Filename)
-	name := file.Filename[:len(file.Filename)-len(ext)]
-	filename := fmt.Sprintf("%d-%s%s", time.Now().Unix(), slugify(name), ext)
-
-	// Open source file
-	src, err := file.Open()
-	if err != nil {
-		fmt.Printf("Failed to open source file %s: %v\n", file.Filename, err)
-		return "", fmt.Errorf("failed to open source file: %v", err)
-	}
-	defer src.Close()
+	ext := filepath.Ext(filename)
+	name := filename[:len(filename)-len(ext)]
+	filename = fmt.Sprintf("%d-%s%s", time.Now().Unix(), slugify(name), ext)
 
 	// Upload to S3
-	_, err = p.client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err := p.client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(p.bucket),
 		Key:    aws.String(filename),
-		Body:   src,
+		Body:   reader,
 	})
 	if err != nil {
 		var ae smithy.APIError

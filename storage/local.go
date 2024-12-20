@@ -3,10 +3,8 @@ package storage
 import (
 	"fmt"
 	"io"
-	"mime/multipart"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 // LocalProvider implements Provider interface for local filesystem storage
@@ -24,30 +22,24 @@ func NewLocalProvider(baseDir string) (*LocalProvider, error) {
 }
 
 // Save implements Provider.Save
-func (p *LocalProvider) Save(file *multipart.FileHeader) (string, error) {
+func (p *LocalProvider) Save(filename string, reader io.Reader) (string, error) {
 	// Generate unique filename with slugified name
-	ext := filepath.Ext(file.Filename)
-	name := file.Filename[:len(file.Filename)-len(ext)]
-	filename := fmt.Sprintf("%d-%s%s", time.Now().Unix(), slugify(name), ext)
-	filepath := filepath.Join(p.baseDir, filename)
-
-	// Open source file
-	src, err := file.Open()
-	if err != nil {
-		return "", fmt.Errorf("failed to open source file: %v", err)
+	// ext := filepath.Ext(filename)
+	// name := filename[:len(filename)-len(ext)]
+	// filename := fmt.Sprintf("%d-%s%s", time.Now().Unix(), slugify(name), ext)
+	path := filepath.Join(p.baseDir, filename)
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return "", fmt.Errorf("failed to create directories: %w", err)
 	}
-	defer src.Close()
 
-	// Create destination file
-	dst, err := os.Create(filepath)
+	dst, err := os.Create(path)
 	if err != nil {
-		return "", fmt.Errorf("failed to create destination file: %v", err)
+		return "", fmt.Errorf("failed to create file: %w", err)
 	}
 	defer dst.Close()
 
-	// Copy file contents
-	if _, err = io.Copy(dst, src); err != nil {
-		return "", fmt.Errorf("failed to copy file: %v", err)
+	if _, err := io.Copy(dst, reader); err != nil {
+		return "", fmt.Errorf("failed to copy file: %w", err)
 	}
 
 	return filename, nil
@@ -57,7 +49,7 @@ func (p *LocalProvider) Save(file *multipart.FileHeader) (string, error) {
 func (p *LocalProvider) Delete(path string) error {
 	fullPath := filepath.Join(p.baseDir, path)
 	if err := os.Remove(fullPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("failed to delete file: %v", err)
+		return fmt.Errorf("failed to delete file: %w", err)
 	}
 	return nil
 }
@@ -67,7 +59,7 @@ func (p *LocalProvider) Get(path string) (io.ReadCloser, error) {
 	fullPath := filepath.Join(p.baseDir, path)
 	file, err := os.Open(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %v", err)
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	return file, nil
 }
