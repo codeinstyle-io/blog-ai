@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"strings"
 
+	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
 	"codeinstyle.io/captain/storage"
 	"codeinstyle.io/captain/system"
 	"github.com/gofiber/fiber/v2"
 	"github.com/nfnt/resize"
+
 	"gorm.io/gorm"
 )
 
@@ -75,73 +77,43 @@ func ServeMedia(repositories *repository.Repositories, storageProvider storage.P
 }
 
 // GenerateFavicons generates favicon files from a media file
-func GenerateFavicons(repositories *repository.Repositories, storage storage.Provider, logoID uint) error {
-
-	logo, err := repositories.Media.FindByID(logoID)
+func GenerateFavicons(media *models.Media, storage storage.Provider) error {
+	err := media.FetchFile(storage)
 	if err != nil {
-		return fmt.Errorf("failed to get logo: %w", err)
-	}
-
-	// Read the original image
-	origFile, err := storage.Get(logo.Path)
-	if err != nil {
-		return fmt.Errorf("failed to read logo file: %w", err)
+		return fmt.Errorf("failed to fetch logo file: %w", err)
 	}
 
 	// Decode the original image
-	origImg, _, err := image.Decode(origFile)
+	origImg, _, err := image.Decode(media.File)
 	if err != nil {
 		return fmt.Errorf("failed to decode logo file: %w", err)
 	}
 
 	// Generate favicon.ico (32x32)
-	err = uploadResizedImage(origImg, system.FaviconSize, system.FaviconSize, storage, system.FaviconFilename)
+	err = uploadResizedImage(origImg, system.FaviconSize, storage, system.FaviconFilename)
 	if err != nil {
 		return fmt.Errorf("failed to generate favicon.ico: %w", err)
 	}
 
 	// Generate apple-touch-icon.png (180x180)
-	err = uploadResizedImage(origImg, system.AppleTouchIconSize, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
+	err = uploadResizedImage(origImg, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
 	if err != nil {
 		return fmt.Errorf("failed to generate apple-touch-icon.png: %w", err)
 	}
 
-	// // If the original is SVG, copy it directly
-	// if filepath.Ext(logo.Path) == ".svg" {
-	// 	origData, err := storage.Get(logo.Path)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to read original SVG: %w", err)
-	// 	}
-	// 	if _, err := storage.Save(svgFilename, origData); err != nil {
-	// 		return fmt.Errorf("failed to save icon.svg: %w", err)
-	// 	}
-	// } else {
-	// 	// Convert to SVG
-	// 	icon, err := oksvg.ReadIconStream(origFile)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to convert to SVG: %w", err)
-	// 	}
-
-	// 	w, h := int(icon.ViewBox.W), int(icon.ViewBox.H)
-	// 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	// 	scanner := rasterx.NewScannerGV(w, h, img, img.Bounds())
-	// 	raster := rasterx.NewDasher(w, h, scanner)
-	// 	icon.Draw(raster, 1.0)
-
-	// 	var svgBuf bytes.Buffer
-	// 	if err := png.Encode(&svgBuf, img); err != nil {
-	// 		return fmt.Errorf("failed to encode SVG: %w", err)
-	// 	}
-	// 	if _, err := storage.Save(svgFilename, bytes.NewReader(svgBuf.Bytes())); err != nil {
-	// 		return fmt.Errorf("failed to save icon.svg: %w", err)
-	// 	}
-	// }
+	// Generate icon.png (300x300)
+	err = uploadResizedImage(origImg, system.IconSize, storage, system.FaviconPngFilename)
+	if err != nil {
+		return fmt.Errorf("failed to generate favicon.png: %w", err)
+	}
 
 	return nil
 }
 
-func uploadResizedImage(img image.Image, width, height int, storage storage.Provider, filename string) error {
-	resized := resize.Resize(uint(width), uint(height), img, resize.Lanczos3)
+func uploadResizedImage(img image.Image, width int, storage storage.Provider, filename string) error {
+	x, y := width, width
+
+	resized := resize.Resize(uint(x), uint(y), img, resize.Lanczos3)
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, resized); err != nil {
 		return err

@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"codeinstyle.io/captain/models"
 	"codeinstyle.io/captain/repository"
@@ -12,10 +13,10 @@ import (
 )
 
 func generateFaviconHTML() string {
-	return fmt.Sprintf(`<link rel="icon" href="/%s" sizes="32x32"><link rel="icon" href="/media/%s" type="image/svg+xml"><link rel="apple-touch-icon" href="/media/%s">`,
+	return fmt.Sprintf(`<link rel="icon" href="/%s" sizes="32x32"><link rel="apple-touch-icon" href="/%s"><link rel="icon" href="/%s" sizes="300x300">`,
 		system.FaviconFilename,
-		system.FaviconSvgFilename,
 		system.AppleTouchIconFilename,
+		system.FaviconPngFilename,
 	)
 }
 
@@ -62,8 +63,9 @@ func ServeFavicon(storage storage.Provider) fiber.Handler {
 		}
 
 		// Serve other favicon files
-		if c.Path() == "/media/"+system.FaviconSvgFilename || c.Path() == "/media/"+system.AppleTouchIconFilename {
-			file, err := storage.Get(c.Path()[1:]) // Remove leading slash
+		if c.Path() == "/"+system.FaviconPngFilename || c.Path() == "/media/"+system.AppleTouchIconFilename {
+			filename := strings.Replace(c.Path(), "/media/", "", 1)
+			file, err := storage.Get(filename) // Remove leading slash
 			if err != nil {
 				return c.Next()
 			}
@@ -74,11 +76,7 @@ func ServeFavicon(storage storage.Provider) fiber.Handler {
 				return c.Next()
 			}
 
-			if c.Path() == "/media/"+system.FaviconSvgFilename {
-				c.Set("Content-Type", "image/svg+xml")
-			} else {
-				c.Set("Content-Type", "image/png")
-			}
+			c.Set("Content-Type", "image/png")
 			return c.Send(data)
 		}
 

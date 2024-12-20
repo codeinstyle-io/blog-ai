@@ -95,7 +95,12 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 
 	// Generate favicons if enabled and logo is set
 	if form.UseFavicon && form.LogoID != nil {
-		if err := GenerateFavicons(h.repos, h.storage, *form.LogoID); err != nil {
+		logo, err := h.repos.Media.FindByID(*form.LogoID)
+		if err != nil {
+			return fmt.Errorf("failed to get logo: %w", err)
+		}
+
+		if err := GenerateFavicons(logo, h.storage); err != nil {
 			flash.Error(c, "Failed to generate favicons")
 			fmt.Printf("Failed to generate favicons: %v\n", err)
 			return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{

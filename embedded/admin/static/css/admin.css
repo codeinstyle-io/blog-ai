@@ -976,8 +976,8 @@ a:hover {
 
 .image-preview {
     max-width: 100%;
-    min-height: 1000px;
-    max-height: 60px;
+    min-height: 300px;
+    max-height: 300px;
     object-fit: contain;
     border: 2px dashed var(--admin-border);
     border-radius: 4px;
@@ -990,6 +990,7 @@ a:hover {
 }
 
 .image-preview img {
+    width: 300px;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;

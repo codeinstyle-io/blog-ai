@@ -17,19 +17,13 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
-	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c
-	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/term v0.27.0
 	gorm.io/gorm v1.25.12
 )
 
-require (
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
-	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
-	golang.org/x/net v0.23.0 // indirect
-)
+require github.com/mattn/go-sqlite3 v1.14.17 // indirect
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
