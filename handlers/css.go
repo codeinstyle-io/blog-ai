@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/models"
+
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/styles"
 	"github.com/gofiber/fiber/v2"

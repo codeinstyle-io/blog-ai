@@ -3,8 +3,9 @@ package db
 import (
 	"fmt"
 
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/config"
+	"captain-corp/captain/models"
+
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

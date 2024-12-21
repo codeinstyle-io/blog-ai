@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/flash"
-	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/storage"
+	"captain-corp/captain/config"
+	"captain-corp/captain/flash"
+	"captain-corp/captain/repository"
+	"captain-corp/captain/storage"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )

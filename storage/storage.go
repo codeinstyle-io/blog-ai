@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"codeinstyle.io/captain/config"
+	"captain-corp/captain/config"
 )
 
 // Provider defines the interface for storage providers

@@ -7,7 +7,8 @@ import (
 	"os"
 	"time"
 
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/models"
+
 	"gorm.io/gorm"
 )
 

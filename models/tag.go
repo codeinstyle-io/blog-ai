@@ -1,7 +1,7 @@
 package models
 
 import (
-	"codeinstyle.io/captain/utils"
+	"captain-corp/captain/utils"
 
 	"gorm.io/gorm"
 )

@@ -3,11 +3,12 @@ package handlers
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/cmd"
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/utils"
+	"captain-corp/captain/cmd"
+	"captain-corp/captain/config"
+	"captain-corp/captain/models"
+	"captain-corp/captain/repository"
+	"captain-corp/captain/utils"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )

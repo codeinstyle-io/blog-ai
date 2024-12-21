@@ -1,4 +1,4 @@
-module codeinstyle.io/captain
+module captain-corp/captain
 
 go 1.23
 

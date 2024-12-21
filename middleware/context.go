@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"codeinstyle.io/captain/repository"
+	"captain-corp/captain/repository"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 
-	"codeinstyle.io/captain/system"
+	"captain-corp/captain/system"
 )
 
 func IsAdminPath(c *fiber.Ctx) bool {

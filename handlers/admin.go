@@ -3,8 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/storage"
+	"captain-corp/captain/repository"
+	"captain-corp/captain/storage"
+
 	"github.com/gofiber/fiber/v2"
 )
 
