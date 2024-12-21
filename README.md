@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="https://raw.githubusercontent.com/shinuza/captain/main/logo.png" alt="Captain Logo">
+   <img src="https://raw.githubusercontent.com/captain-corp/captain/main/logo.png" alt="Captain Logo">
    <h1 align="center">Captain</h1>
 </p>
 
@@ -8,17 +8,17 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shinuza/captain/actions/workflows/release.yml">
-    <img src="https://github.com/shinuza/captain/actions/workflows/release.yml/badge.svg" alt="Release status">
+  <a href="https://github.com/captain-corp/captain/actions/workflows/release.yml">
+    <img src="https://github.com/captain-corp/captain/actions/workflows/release.yml/badge.svg" alt="Release status">
   </a>
-     <a href="https://github.com/shinuza/captain/actions/workflows/ci.yml">
-    <img src="https://github.com/shinuza/captain/actions/workflows/ci.yml/badge.svg" alt="CI status">
+     <a href="https://github.com/captain-corp/captain/actions/workflows/ci.yml">
+    <img src="https://github.com/captain-corp/captain/actions/workflows/ci.yml/badge.svg" alt="CI status">
   </a>
-  <a href="https://github.com/shinuza/captain/blob/main/LICENSE">
+  <a href="https://github.com/captain-corp/captain/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" title="MIT License" />
   </a>
-  <a href="https://github.com/shinuza/captain/releases">
-    <img src="https://img.shields.io/github/v/release/shinuza/captain" alt="Releases" title="Releases" />
+  <a href="https://github.com/captain-corp/captain/releases">
+    <img src="https://img.shields.io/github/v/release/captain-corp/captain" alt="Releases" title="Releases" />
   </a>
 </p>
 
@@ -35,13 +35,13 @@
 
 ## Trivia
 
-Captain is an experimental blog engine entirely written by AI models. This project explores the possibilities and limitations of AI-generated software by creating a fully functional blogging platform. Every line of code, from the architecture decisions to the implementation details, has been crafted through AI assistance.
+Captain is an experimental blog engine ~~entirely~~ mostly written by AI models. This project explores the possibilities and limitations of AI-generated software by creating a fully functional blogging platform.
 
 ## Project Structure
 
 Captain is written in Go and uses:
 - Sqlite for data storage
-- [Gin framework](https://gin-gonic.com) as a web server
+- [Fiber framework](https://github.com/gofiber/fiber) as a web server
 - [html/template](https://pkg.go.dev/html/template) for HTML templates
 
 
@@ -51,13 +51,13 @@ Captain is written in Go and uses:
 
 1. Pull the Docker image:
    ```sh
-   docker pull ghcr.io/shinuza/captain:latest
+   docker pull ghcr.io/captain-corp/captain:latest
    ```
 2. Run the Docker container with default settings:
    ```sh
-   docker run --name captain -p 8080:8080 ghcr.io/shinuza/captain:latest
+   docker run --name captain -p 8080:8080 ghcr.io/captain-corp/captain:latest
    ```
-3. Access the admin interface at [http://localhost:8080/admin](http://localhost:8080/admin)
+3. Access the admin interface at [http://localhost:8080/setup](http://localhost:8080/setup)
 
 ### Docker Compose
 
@@ -67,7 +67,7 @@ Captain is written in Go and uses:
 
    services:
      captain:
-       image: ghcr.io/shinuza/captain:latest
+       image: ghcr.io/captain-corp/captain:latest
        ports:
          - "8080:8080"
        volumes:
@@ -77,7 +77,7 @@ Captain is written in Go and uses:
    ```sh
    docker-compose up -d
    ```
-3. Access the admin interface at [http://localhost:8080/admin](http://localhost:8080/admin)
+3. Access the admin interface at [http://localhost:8080/setup](http://localhost:8080/setup)
 
 For more details, refer to the [Docker documentation](docs/docker.md).
 
@@ -85,7 +85,7 @@ For more details, refer to the [Docker documentation](docs/docker.md).
 
 ### From Binary Releases
 
-1. Download the latest release for your platform from the [releases page](https://github.com/shinuza/captain/releases)
+1. Download the latest release for your platform from the [releases page](https://github.com/captain-corp/captain/releases)
 2. Extract the archive:
    ```sh
    unzip captain-<platform>.zip
@@ -104,7 +104,7 @@ For more details, refer to the [Docker documentation](docs/docker.md).
 1. Ensure you have Go 1.21 or later installed
 2. Clone the repository:
    ```sh
-   git clone https://github.com/shinuza/captain.git
+   git clone https://github.com/captain-corp/captain.git
    cd captain
    ```
 3. Build and install:
