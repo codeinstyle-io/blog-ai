@@ -4,11 +4,12 @@ import (
 	"embed"
 	"fmt"
 
-	"codeinstyle.io/captain/cmd"
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/db"
-	"codeinstyle.io/captain/server"
-	"codeinstyle.io/captain/system"
+	"captain-corp/captain/cmd"
+	"captain-corp/captain/config"
+	"captain-corp/captain/db"
+	"captain-corp/captain/server"
+	"captain-corp/captain/system"
+
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/cobra"
 )

@@ -9,10 +9,11 @@ import (
 	"net/http"
 	"strings"
 
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/repository"
-	"codeinstyle.io/captain/storage"
-	"codeinstyle.io/captain/system"
+	"captain-corp/captain/models"
+	"captain-corp/captain/repository"
+	"captain-corp/captain/storage"
+	"captain-corp/captain/system"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/nfnt/resize"
 

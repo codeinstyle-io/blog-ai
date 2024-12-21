@@ -10,9 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/repository"
+	"captain-corp/captain/config"
+	"captain-corp/captain/models"
+	"captain-corp/captain/repository"
+
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"
 	"github.com/alecthomas/chroma/styles"

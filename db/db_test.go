@@ -4,7 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/models"
+
 	"github.com/stretchr/testify/assert"
 )
 

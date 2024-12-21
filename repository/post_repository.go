@@ -4,10 +4,11 @@ import (
 	"strings"
 	"time"
 
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/models"
+
 	"gorm.io/gorm"
 
-	"codeinstyle.io/captain/utils"
+	"captain-corp/captain/utils"
 )
 
 // PostRepository handles database operations for posts

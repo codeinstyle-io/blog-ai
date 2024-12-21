@@ -3,10 +3,11 @@ package handlers
 import (
 	"net/http"
 
-	"codeinstyle.io/captain/cmd"
-	"codeinstyle.io/captain/flash"
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/utils"
+	"captain-corp/captain/cmd"
+	"captain-corp/captain/flash"
+	"captain-corp/captain/models"
+	"captain-corp/captain/utils"
+
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )

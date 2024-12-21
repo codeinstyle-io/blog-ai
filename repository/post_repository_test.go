@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"codeinstyle.io/captain/db"
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/db"
+	"captain-corp/captain/models"
+
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

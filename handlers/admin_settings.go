@@ -7,9 +7,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/flash"
-	"codeinstyle.io/captain/models"
+	"captain-corp/captain/config"
+	"captain-corp/captain/flash"
+	"captain-corp/captain/models"
 )
 
 // ShowSettings handles the GET /admin/settings route

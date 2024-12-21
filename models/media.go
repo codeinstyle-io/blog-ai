@@ -8,7 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"codeinstyle.io/captain/storage"
+	"captain-corp/captain/storage"
+
 	"gorm.io/gorm"
 )
 

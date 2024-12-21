@@ -3,8 +3,9 @@ package repository
 import (
 	"errors"
 
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/system"
+	"captain-corp/captain/models"
+	"captain-corp/captain/system"
+
 	"gorm.io/gorm"
 )
 

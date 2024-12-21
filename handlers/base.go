@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"codeinstyle.io/captain/config"
-	"codeinstyle.io/captain/models"
-	"codeinstyle.io/captain/repository"
+	"captain-corp/captain/config"
+	"captain-corp/captain/models"
+	"captain-corp/captain/repository"
+
 	"github.com/gofiber/fiber/v2"
 )
 
