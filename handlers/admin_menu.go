@@ -14,8 +14,8 @@ import (
 func (h *AdminHandlers) ListMenuItems(c *fiber.Ctx) error {
 	menuItems, err := h.repos.MenuItems.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -102,8 +102,8 @@ func (h *AdminHandlers) ShowCreateMenuItem(c *fiber.Ctx) error {
 	pages, err := h.repos.Pages.FindAll()
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -183,7 +183,9 @@ func (h *AdminHandlers) ConfirmDeleteMenuItem(c *fiber.Ctx) error {
 
 	menuID, err := utils.ParseUint(id)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	menuItem, err := h.repos.MenuItems.FindByID(menuID)
@@ -204,7 +206,9 @@ func (h *AdminHandlers) EditMenuItem(c *fiber.Ctx) error {
 	menuID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	if menuItem, err = h.repos.MenuItems.FindByID(menuID); err != nil {
@@ -214,8 +218,8 @@ func (h *AdminHandlers) EditMenuItem(c *fiber.Ctx) error {
 	pages, err := h.repos.Pages.FindAll()
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -233,13 +237,17 @@ func (h *AdminHandlers) UpdateMenuItem(c *fiber.Ctx) error {
 	menuID, err := utils.ParseUint(id)
 	if err != nil {
 		flash.Error(c, "Invalid menu item ID")
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	pages, err := h.repos.Pages.FindAll()
 	if err != nil {
 		flash.Error(c, "Failed to fetch pages")
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	menuItem, err := h.repos.MenuItems.FindByID(menuID)

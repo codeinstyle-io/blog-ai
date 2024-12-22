@@ -14,8 +14,8 @@ import (
 func (h *AdminHandlers) ListPages(c *fiber.Ctx) error {
 	pages, err := h.repos.Pages.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -61,7 +61,9 @@ func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
 func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	page, err := h.repos.Pages.FindByID(id)
@@ -79,7 +81,9 @@ func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	page, err := h.repos.Pages.FindByID(id)
@@ -113,7 +117,9 @@ func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
 func (h *AdminHandlers) ConfirmDeletePage(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	page, err := h.repos.Pages.FindByID(id)

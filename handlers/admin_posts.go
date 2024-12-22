@@ -19,16 +19,16 @@ import (
 func (h *AdminHandlers) ListPosts(c *fiber.Ctx) error {
 	posts, err := h.repos.Posts.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -134,7 +134,9 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	postID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	post, err := h.repos.Posts.FindByID(postID)
@@ -206,7 +208,9 @@ func (h *AdminHandlers) ListPostsByTag(c *fiber.Ctx) error {
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	// Find the tag
@@ -217,16 +221,16 @@ func (h *AdminHandlers) ListPostsByTag(c *fiber.Ctx) error {
 
 	posts, err := h.repos.Posts.FindByTag(tag.Slug)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -254,7 +258,9 @@ func (h *AdminHandlers) ConfirmDeletePost(c *fiber.Ctx) error {
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	post, err := h.repos.Posts.FindByID(tagID)
@@ -310,7 +316,9 @@ func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {
 	tagID, err := utils.ParseUint(id)
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	post, err := h.repos.Posts.FindByID(tagID)
@@ -320,16 +328,16 @@ func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {
 
 	allTags, err = h.repos.Tags.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
 	// Get settings for timezone
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 

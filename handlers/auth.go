@@ -99,11 +99,15 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 func (h *AuthHandlers) Logout(c *fiber.Ctx) error {
 	sess, err := h.sessionStore.Get(c)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	if err := sess.Destroy(); err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	return c.Redirect("/login")

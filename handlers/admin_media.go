@@ -166,7 +166,9 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 	mediaID, err := utils.ParseUint(c.Params("id"))
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	media, err := h.mediaRepo.FindByID(uint(mediaID))

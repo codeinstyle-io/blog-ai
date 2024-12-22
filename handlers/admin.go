@@ -27,24 +27,24 @@ func NewAdminHandlers(repos *repository.Repositories, storage storage.Provider) 
 func (h *AdminHandlers) Index(c *fiber.Ctx) error {
 	posts, err := h.repos.Posts.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 	postCount := int64(len(posts))
 
 	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 	tagCount := int64(len(tags))
 
 	users, err := h.repos.Users.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 	userCount := int64(len(users))
@@ -52,8 +52,8 @@ func (h *AdminHandlers) Index(c *fiber.Ctx) error {
 	// Get 5 most recent posts
 	recentPosts, err := h.repos.Posts.FindRecent(5)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
