@@ -6,7 +6,7 @@ This document provides examples of how to use Docker and Docker Compose to run C
 
 1. **Pull the Docker image:**
     ```sh
-    docker pull ghcr.io/captain-corp/captain:latest
+    docker pull ghcr.io/github.com/captain-corp/captain:latest
     ```
 
 2. **Run the Docker container with environment variables:**
@@ -26,7 +26,7 @@ This document provides examples of how to use Docker and Docker Compose to run C
       -e CAPTAIN_S3_ACCESS_KEY=your-access-key \
       -e CAPTAIN_S3_SECRET_KEY=your-secret-key \
       -p 8080:8080 \
-      ghcr.io/captain-corp/captain:latest
+      ghcr.io/github.com/captain-corp/captain:latest
     ```
 
 ## Docker Compose
@@ -38,7 +38,7 @@ version: '3.8'
 
 services:
   captain:
-     image: ghcr.io/captain-corp/captain:latest
+     image: ghcr.io/github.com/captain-corp/captain:latest
      container_name: captain
      environment:
         - CAPTAIN_SERVER_HOST=0.0.0.0

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"captain-corp/captain/db"
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/db"
+	"github.com/captain-corp/captain/models"
 
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"

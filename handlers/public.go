@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"captain-corp/captain/config"
-	"captain-corp/captain/models"
-	"captain-corp/captain/repository"
+	"github.com/captain-corp/captain/config"
+	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/repository"
 
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/lexers"

@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"strings"
 
-	"captain-corp/captain/models"
-	"captain-corp/captain/repository"
-	"captain-corp/captain/storage"
-	"captain-corp/captain/system"
+	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/repository"
+	"github.com/captain-corp/captain/storage"
+	"github.com/captain-corp/captain/system"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nfnt/resize"

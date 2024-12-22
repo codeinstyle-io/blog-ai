@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"captain-corp/captain/repository"
+	"github.com/captain-corp/captain/repository"
 
 	"github.com/gofiber/fiber/v2"
 )

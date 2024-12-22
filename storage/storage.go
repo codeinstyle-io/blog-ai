@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"captain-corp/captain/config"
+	"github.com/captain-corp/captain/config"
 )
 
 // Provider defines the interface for storage providers

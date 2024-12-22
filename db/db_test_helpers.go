@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/models"
 
 	"gorm.io/gorm"
 )

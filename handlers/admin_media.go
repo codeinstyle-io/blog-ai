@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"captain-corp/captain/flash"
-	"captain-corp/captain/models"
-	"captain-corp/captain/repository"
-	"captain-corp/captain/storage"
-	"captain-corp/captain/utils"
+	"github.com/captain-corp/captain/flash"
+	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/repository"
+	"github.com/captain-corp/captain/storage"
+	"github.com/captain-corp/captain/utils"
 
 	"github.com/gofiber/fiber/v2"
 )

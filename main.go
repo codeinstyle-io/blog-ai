@@ -4,11 +4,11 @@ import (
 	"embed"
 	"fmt"
 
-	"captain-corp/captain/cmd"
-	"captain-corp/captain/config"
-	"captain-corp/captain/db"
-	"captain-corp/captain/server"
-	"captain-corp/captain/system"
+	"github.com/captain-corp/captain/cmd"
+	"github.com/captain-corp/captain/config"
+	"github.com/captain-corp/captain/db"
+	"github.com/captain-corp/captain/server"
+	"github.com/captain-corp/captain/system"
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/cobra"

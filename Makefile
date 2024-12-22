@@ -61,42 +61,42 @@ quality: fmt lint test test-e2e
 # Release commands for each platform
 release-darwin-arm64:
 	mkdir -p dist/bin
-	GOOS=darwin GOARCH=arm64 \
+	GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-darwin-arm64" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-darwin-arm64.zip" "captain-darwin-arm64"
 
 release-darwin-amd64:
 	mkdir -p dist/bin
-	GOOS=darwin GOARCH=amd64 \
+	GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-darwin-amd64" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-darwin-amd64.zip" "captain-darwin-amd64"
 
 release-linux-arm64:
 	mkdir -p dist/bin
-	GOOS=linux GOARCH=arm64 \
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-linux-arm64" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-linux-arm64.zip" "captain-linux-arm64"
 
 release-linux-amd64:
 	mkdir -p dist/bin
-	GOOS=linux GOARCH=amd64 \
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-linux-amd64" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-linux-amd64.zip" "captain-linux-amd64"
 
 release-windows-arm64:
 	mkdir -p dist/bin
-	GOOS=windows GOARCH=arm64 \
+	GOOS=windows GOARCH=arm64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-windows-arm64.exe" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-windows-arm64.zip" "captain-windows-arm64.exe"
 
 release-windows-amd64:
 	mkdir -p dist/bin
-	GOOS=windows GOARCH=amd64 \
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
 		go build -v -o "dist/bin/captain-windows-amd64.exe" .
 	mkdir -p dist/zip
 	cd dist/bin && zip -r "../zip/captain-windows-amd64.zip" "captain-windows-amd64.exe"

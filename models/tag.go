@@ -1,7 +1,7 @@
 package models
 
 import (
-	"captain-corp/captain/utils"
+	"github.com/captain-corp/captain/utils"
 
 	"gorm.io/gorm"
 )

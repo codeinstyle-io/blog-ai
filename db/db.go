@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 
-	"captain-corp/captain/config"
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/config"
+	"github.com/captain-corp/captain/models"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"

@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"captain-corp/captain/repository"
-	"captain-corp/captain/storage"
+	"github.com/captain-corp/captain/repository"
+	"github.com/captain-corp/captain/storage"
 
 	"github.com/gofiber/fiber/v2"
 )

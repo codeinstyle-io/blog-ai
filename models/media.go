@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"captain-corp/captain/storage"
+	"github.com/captain-corp/captain/storage"
 
 	"gorm.io/gorm"
 )
