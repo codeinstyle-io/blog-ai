@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/models"
 
 	"github.com/stretchr/testify/assert"
 )

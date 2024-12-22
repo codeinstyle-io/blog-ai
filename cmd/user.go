@@ -5,11 +5,11 @@ import (
 	"os"
 	"syscall"
 
-	"captain-corp/captain/config"
-	"captain-corp/captain/db"
-	"captain-corp/captain/models"
-	"captain-corp/captain/repository"
-	"captain-corp/captain/utils"
+	"github.com/captain-corp/captain/config"
+	"github.com/captain-corp/captain/db"
+	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/repository"
+	"github.com/captain-corp/captain/utils"
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/spf13/cobra"

@@ -3,8 +3,8 @@ package repository
 import (
 	"errors"
 
-	"captain-corp/captain/models"
-	"captain-corp/captain/system"
+	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/system"
 
 	"gorm.io/gorm"
 )

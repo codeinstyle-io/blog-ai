@@ -4,11 +4,11 @@ import (
 	"strings"
 	"time"
 
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/models"
 
 	"gorm.io/gorm"
 
-	"captain-corp/captain/utils"
+	"github.com/captain-corp/captain/utils"
 )
 
 // PostRepository handles database operations for posts

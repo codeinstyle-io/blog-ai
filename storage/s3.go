@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"
+	smithyendpoints "github.com/aws/smithy-go/endpoints"
 )
 
 // S3Provider implements Provider interface for AWS S3 storage
@@ -21,37 +22,33 @@ type S3Provider struct {
 	bucket string
 }
 
+type resolverV2 struct{}
+
+func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
+	smithyendpoints.Endpoint, error,
+) {
+	// s3.Options.BaseEndpoint is accessible here:
+	fmt.Printf("The endpoint provided in config is %s\n", *params.Endpoint)
+
+	// fallback to default
+	return s3.NewDefaultEndpointResolverV2().ResolveEndpoint(ctx, params)
+}
+
 // NewS3Provider creates a new S3Provider
 func NewS3Provider(bucket, region, endpoint, access_key, secret_key string) (*S3Provider, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(access_key, secret_key, "")))
+
 	// Create custom resolver for endpoint if provided
-	var endpointResolver aws.EndpointResolverWithOptions
-	if endpoint != "" {
-		endpointResolver = aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{
-				URL: endpoint,
-			}, nil
-		})
-	}
 
-	// Create config options
-	opts := []func(*config.LoadOptions) error{
-		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(access_key, secret_key, "")),
-	}
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(endpoint)
+		o.EndpointResolverV2 = &resolverV2{}
+	})
 
-	// Add endpoint resolver if custom endpoint is provided
-	if endpointResolver != nil {
-		opts = append(opts, config.WithEndpointResolverWithOptions(endpointResolver))
-	}
-
-	// Load AWS configuration with options
-	cfg, err := config.LoadDefaultConfig(context.TODO(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load AWS config: %v", err)
 	}
-
-	// Create S3 client
-	client := s3.NewFromConfig(cfg)
 
 	return &S3Provider{
 		client: client,

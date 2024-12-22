@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"captain-corp/captain/models"
+	"github.com/captain-corp/captain/models"
 
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/alecthomas/chroma/styles"
