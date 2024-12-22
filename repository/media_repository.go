@@ -45,8 +45,21 @@ func (r *mediaRepository) FindByPath(path string) (*models.Media, error) {
 	return &media, nil
 }
 
+func (r *mediaRepository) FindByFilename(filename string) (*models.Media, error) {
+	var media models.Media
+	err := r.db.Where("name = ?", filename).First(&media).Error
+	if err != nil {
+		return nil, err
+	}
+	return &media, nil
+}
+
 func (r *mediaRepository) FindAll() ([]*models.Media, error) {
 	var media []*models.Media
 	err := r.db.Order("created_at desc").Find(&media).Error
 	return media, err
+}
+
+func (r *mediaRepository) SaveAll(media []*models.Media) error {
+	return r.db.Save(media).Error
 }

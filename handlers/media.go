@@ -78,7 +78,10 @@ func ServeMedia(repositories *repository.Repositories, storageProvider storage.P
 }
 
 // GenerateFavicons generates favicon files from a media file
-func GenerateFavicons(media *models.Media, storage storage.Provider) error {
+func GenerateFavicons(repositories *repository.Repositories, media *models.Media, storage storage.Provider) error {
+	var filename string
+	var icons []*models.Media
+
 	err := media.FetchFile(storage)
 	if err != nil {
 		return fmt.Errorf("failed to fetch logo file: %w", err)
@@ -91,36 +94,59 @@ func GenerateFavicons(media *models.Media, storage storage.Provider) error {
 	}
 
 	// Generate favicon.ico (32x32)
-	err = uploadResizedImage(origImg, system.FaviconSize, storage, system.FaviconFilename)
+	filename, err = uploadResizedImage(origImg, system.FaviconSize, storage, system.FaviconFilename)
 	if err != nil {
 		return fmt.Errorf("failed to generate favicon.ico: %w", err)
 	}
+	icons = append(icons, &models.Media{
+		Name:     system.FaviconFilename,
+		Path:     filename,
+		Size:     0,
+		MimeType: "image/x-icon",
+	})
 
 	// Generate apple-touch-icon.png (180x180)
-	err = uploadResizedImage(origImg, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
+	filename, err = uploadResizedImage(origImg, system.AppleTouchIconSize, storage, system.AppleTouchIconFilename)
 	if err != nil {
 		return fmt.Errorf("failed to generate apple-touch-icon.png: %w", err)
 	}
+	icons = append(icons, &models.Media{
+		Name:     system.AppleTouchIconFilename,
+		Path:     filename,
+		Size:     0,
+		MimeType: "image/png",
+	})
 
 	// Generate icon.png (300x300)
-	err = uploadResizedImage(origImg, system.IconSize, storage, system.FaviconPngFilename)
+	filename, err = uploadResizedImage(origImg, system.IconSize, storage, system.FaviconPngFilename)
 	if err != nil {
 		return fmt.Errorf("failed to generate favicon.png: %w", err)
+	}
+	icons = append(icons, &models.Media{
+		Name:     system.FaviconPngFilename,
+		Path:     filename,
+		Size:     0,
+		MimeType: "image/png",
+	})
+
+	// Save icons to the database
+	err = repositories.Media.SaveAll(icons)
+	if err != nil {
+		return fmt.Errorf("failed to save icons: %w", err)
 	}
 
 	return nil
 }
 
-func uploadResizedImage(img image.Image, width int, storage storage.Provider, filename string) error {
+func uploadResizedImage(img image.Image, width int, storage storage.Provider, filename string) (string, error) {
 	x, y := width, width
 
 	resized := resize.Resize(uint(x), uint(y), img, resize.Lanczos3)
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, resized); err != nil {
-		return err
+		return "", err
 	}
 
-	_, err := storage.Save(filename, bytes.NewReader(buf.Bytes()))
-
-	return err
+	filename, err := storage.Save(filename, bytes.NewReader(buf.Bytes()))
+	return filename, err
 }

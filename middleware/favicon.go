@@ -44,43 +44,57 @@ func InjectFavicon(repositories *repository.Repositories) fiber.Handler {
 }
 
 // ServeFavicon middleware serves favicon files from storage
-func ServeFavicon(storage storage.Provider) fiber.Handler {
+func ServeFavicon(repositories *repository.Repositories, storage storage.Provider) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Serve favicon.ico directly
+		var err error
+		var data []byte
+
 		if c.Path() == "/"+system.FaviconFilename {
-			file, err := storage.Get(system.FaviconFilename)
-			if err != nil {
-				return c.Next()
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
-				return c.Next()
-			}
-
-			c.Set("Content-Type", "image/x-icon")
-			return c.Send(data)
-		}
-
-		// Serve other favicon files
-		if c.Path() == "/"+system.FaviconPngFilename || c.Path() == "/media/"+system.AppleTouchIconFilename {
+			data, err = readFromStorage(repositories, storage, system.FaviconFilename)
+		} else if c.Path() == "/"+system.FaviconPngFilename || c.Path() == "/media/"+system.AppleTouchIconFilename {
 			filename := strings.Replace(c.Path(), "/media/", "", 1)
-			file, err := storage.Get(filename) // Remove leading slash
-			if err != nil {
-				return c.Next()
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
-				return c.Next()
-			}
-
-			c.Set("Content-Type", "image/png")
-			return c.Send(data)
+			data, err = readFromStorage(repositories, storage, filename)
+		} else {
+			return c.Next()
 		}
 
-		return c.Next()
+		if err != nil {
+			// TODO: Log error
+			return c.Next()
+		} else {
+			if strings.Contains(c.Path(), "favicon.ico") {
+				c.Set("Content-Type", "image/x-icon")
+			} else {
+				c.Set("Content-Type", "image/png")
+			}
+
+			c.Set("Cache-Control", "public, max-age=21600")
+
+			return c.Send(data)
+		}
 	}
+}
+
+func readFromStorage(repositories *repository.Repositories, storage storage.Provider, filename string) ([]byte, error) {
+	f, err := repositories.Media.FindByFilename(filename)
+	fmt.Printf("Favicon: %v\n", f)
+	fmt.Printf("Name: %v\n", filename)
+
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := storage.Get(f.Path) // Remove leading slash
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
