@@ -88,7 +88,9 @@ func (h *AdminHandlers) DeleteTag(c *fiber.Ctx) error {
 func (h *AdminHandlers) ConfirmDeleteTag(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	tag, err := h.repos.Tags.FindByID(id)
@@ -158,7 +160,9 @@ func (h *AdminHandlers) ShowEditTag(c *fiber.Ctx) error {
 func (h *AdminHandlers) UpdateTag(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	tag, err := h.repos.Tags.FindByID(id)

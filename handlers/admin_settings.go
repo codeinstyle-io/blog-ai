@@ -17,8 +17,8 @@ func (h *AdminHandlers) ShowSettings(c *fiber.Ctx) error {
 	settings, err := h.repos.Settings.Get()
 	if err != nil {
 		flash.Error(c, "Failed to load settings")
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -89,7 +89,7 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	if err := h.repos.Settings.Update(form); err != nil {
 		flash.Error(c, "Failed to save settings")
 		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
-			"err": err.Error(),
+			"error": err.Error(),
 		})
 	}
 
@@ -104,7 +104,7 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 			flash.Error(c, "Failed to generate favicons")
 			fmt.Printf("Failed to generate favicons: %v\n", err)
 			return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
-				"err": err.Error(),
+				"error": err.Error(),
 			})
 		}
 	}

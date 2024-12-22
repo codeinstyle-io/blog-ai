@@ -84,7 +84,9 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 	}
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{})
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(settings.PostsPerPage)))
@@ -132,8 +134,8 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 	}
 
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"title": "Error",
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 

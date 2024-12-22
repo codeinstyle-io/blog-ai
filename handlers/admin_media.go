@@ -31,8 +31,8 @@ func NewAdminMediaHandlers(repos *repository.Repositories, storage storage.Provi
 func (h *AdminMediaHandlers) ListMedia(c *fiber.Ctx) error {
 	media, err := h.mediaRepo.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -64,8 +64,8 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	multipartFile, err := file.Open()
 	if err != nil {
 		flash.Error(c, fmt.Sprintf("Failed to open file: %v", err))
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -73,8 +73,8 @@ func (h *AdminMediaHandlers) UploadMedia(c *fiber.Ctx) error {
 	filename, err := h.storage.Save(file.Filename, multipartFile)
 	if err != nil {
 		flash.Error(c, fmt.Sprintf("Failed to save file: %v", err))
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -166,7 +166,9 @@ func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 	mediaID, err := utils.ParseUint(c.Params("id"))
 
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	media, err := h.mediaRepo.FindByID(uint(mediaID))

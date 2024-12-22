@@ -16,8 +16,8 @@ import (
 func (h *AdminHandlers) ListUsers(c *fiber.Ctx) error {
 	users, err := h.repos.Users.FindAll()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("500", fiber.Map{
-			"err": err.Error(),
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
@@ -124,7 +124,9 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 func (h *AdminHandlers) ShowEditUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	user, err := h.repos.Users.FindByID(id)
@@ -143,7 +145,9 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
 		flash.Error(c, "Invalid user ID")
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	user, err := h.repos.Users.FindByID(id)
@@ -240,7 +244,9 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 func (h *AdminHandlers) ConfirmDeleteUser(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("500", fiber.Map{})
+		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
 	user, err := h.repos.Users.FindByID(id)
