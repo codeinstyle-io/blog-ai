@@ -85,5 +85,7 @@ type MediaRepository interface {
 	Delete(media *Media) error
 	FindByPath(path string) (*Media, error)
 	FindByID(id uint) (*Media, error)
+	FindByFilename(filename string) (*Media, error)
 	FindAll() ([]*Media, error)
+	SaveAll(media []*Media) error
 }

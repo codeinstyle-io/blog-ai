@@ -94,7 +94,7 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 	app.Use(middleware.LoadVersion(repositories))
 	app.Use(middleware.LoadSettings(repositories))
 	app.Use(middleware.LoadUserData(repositories, sessionStore))
-	app.Use(middleware.ServeFavicon(storageProvider))
+	app.Use(middleware.ServeFavicon(repositories, storageProvider))
 	app.Use(middleware.InjectFavicon(repositories))
 	app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
 

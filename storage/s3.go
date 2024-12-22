@@ -27,8 +27,7 @@ type resolverV2 struct{}
 func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParameters) (
 	smithyendpoints.Endpoint, error,
 ) {
-	// s3.Options.BaseEndpoint is accessible here:
-	fmt.Printf("The endpoint provided in config is %s\n", *params.Endpoint)
+	// TODO: Logo endpoint
 
 	// fallback to default
 	return s3.NewDefaultEndpointResolverV2().ResolveEndpoint(ctx, params)
@@ -37,7 +36,9 @@ func (*resolverV2) ResolveEndpoint(ctx context.Context, params s3.EndpointParame
 // NewS3Provider creates a new S3Provider
 func NewS3Provider(bucket, region, endpoint, access_key, secret_key string) (*S3Provider, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(access_key, secret_key, "")))
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(access_key, secret_key, "")),
+		config.WithRegion(region),
+	)
 
 	// Create custom resolver for endpoint if provided
 
