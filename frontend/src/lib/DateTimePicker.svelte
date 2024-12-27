@@ -29,7 +29,7 @@
 
 <div class="mt-4">
     <div class="flex mb-4">
-        <div class="grow">
+        <div class="grow text-black dark:text-white">
             <Datepicker inline bind:value={value} on:select={updateDate} />
         </div>
         <div class="mx-2">
