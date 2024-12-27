@@ -5,7 +5,7 @@ export  interface Posts {
     tags?: string[];
     excerpt?: string;
     content?: string;
-    publish?: string;
     visible?: boolean;
     publishDate?: Date;
+    onSubmit?: (data: any) => void;
   }

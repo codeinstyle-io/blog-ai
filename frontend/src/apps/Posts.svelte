@@ -5,31 +5,36 @@
   import Tags from '../lib/Tags.svelte';
   import DateTimePicker from '../lib/DateTimePicker.svelte';
 
-  import { type Posts } from '../utils/posts';
+  import { type Posts } from '../utils/types/posts';
   import { slugify } from '../utils/text';
 
   let protectedSlug = $state(false);
-  let protectedSlugEdition = $state(false);
+  let protectedSlugViolation = $state(false);
+  let publish = $state('immediately');
 
   let {
     title = '', 
     tags = [], 
     excerpt = '', 
     content = '', 
-    publish = 'immediately', 
     visible = false, 
-    publishDate = new Date(),
+    publishDate = null,
     slug = '',
+    onSubmit = (data: any) => {}
  }: Posts = $props();
 
   const publishOptions = [
     {value: 'immediately', name: 'Immediately'},
     {value: 'scheduled', name: 'Scheduled'}
-  ]
+  ];
 
   onMount(() => {
     if (slug !== '') {
         protectedSlug = true;
+    }
+
+    if (publishDate !== null) {
+        publish = 'scheduled';
     }
   });
 
@@ -42,11 +47,21 @@
 
   function onSlugChange(e: Event) {
     const target = e.target as HTMLInputElement;
-    protectedSlugEdition = (target.value !== slug) && protectedSlug;
+    protectedSlugViolation = (target.value !== slug) && protectedSlug;
   }
 
   function handleSubmit(e: Event) {
     e.preventDefault();
+
+    onSubmit({
+        title,
+        tags,
+        excerpt,
+        content,
+        visible,
+        publishDate,
+        slug
+    });
   }
 </script>
 
@@ -74,7 +89,7 @@
         onkeyup={onSlugChange}
         required
       />
-      {#if protectedSlugEdition}
+      {#if protectedSlugViolation}
         <Alert color="red" class="mt-2">
             <span class="font-medium">Changing the slug may break links.</span>
         </Alert>

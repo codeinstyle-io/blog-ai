@@ -1,9 +1,17 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { Datepicker } from 'flowbite-svelte';
     import Timepicker from './Timepicker.svelte';
 
-    let { value = $bindable(new Date()) } = $props();
-    let timeValue = $state(`${value.getHours()}:${value.getMinutes()}`);
+    let { value = $bindable(new Date()) }: {value: Date} = $props();
+    let timeValue = $state('00:00');
+
+    onMount(() => {
+        if (!(value instanceof Date)) {
+            value = new Date();
+        }
+        timeValue = `${value.getHours()}:${value.getMinutes()}`;
+    })
 
     const updateDate = (e: CustomEvent) => {
         const selectedDate: Date = e.detail;
@@ -19,8 +27,8 @@
         const time: string = (e.target as HTMLInputElement).value;
         const [hours, minutes] = time.split(':');
 
-        value.setHours(hours);
-        value.setMinutes(minutes);
+        value.setHours(parseInt(hours));
+        value.setMinutes(parseInt(minutes));
 
         timeValue = time;
         value = new Date(value);
