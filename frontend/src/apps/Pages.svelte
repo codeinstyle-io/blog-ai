@@ -1,9 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { Alert, Input, Label, Textarea, Button, Toggle, Select } from 'flowbite-svelte';
+    import { Alert, Input, Label, Textarea, Toggle, Select } from 'flowbite-svelte';
 
     import { type Pages } from '../utils/types/pages';
     import { slugify } from '../utils/text';
+    import SubmitButton from '../lib/SubmitButton.svelte';
   
     let protectedSlug = $state(false);
     let protectedSlugViolation = $state(false);
@@ -13,6 +14,7 @@
       content = '', 
       visible = false, 
       slug = '',
+      savingState = 'draft',
       contentType = '',
       onSubmit = (data: any) => {}
    }: Pages = $props();
@@ -112,12 +114,7 @@
       
       <!-- Submit Button -->
       <div class="flex justify-end">
-        <Button
-          type="submit"
-          class="bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          Save
-        </Button>
+        <SubmitButton savingState={savingState} />
       </div>
     </form>
   </div>

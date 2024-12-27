@@ -1,26 +1,31 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Alert, Input, Label, Textarea, Button, Toggle, Select } from 'flowbite-svelte';
+  import { Alert, Input, Label, Textarea, Toggle, Select } from 'flowbite-svelte';
 
   import Tags from '../lib/Tags.svelte';
   import DateTimePicker from '../lib/DateTimePicker.svelte';
+  import SubmitButton from '../lib/SubmitButton.svelte';
 
   import { type Posts } from '../utils/types/posts';
   import { slugify } from '../utils/text';
+    import type { SavingStates } from '../utils/types/common';
 
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
   let publish = $state('immediately');
 
   let {
-    title = '', 
-    tags = [], 
-    excerpt = '', 
-    content = '', 
-    visible = false, 
+    title = '',
+    tags = [],
+    excerpt = '',
+    content = '',
+    visible = false,
     publishDate = null,
     slug = '',
-    onSubmit = (data: any) => {}
+    savingState = 'draft',
+    onSubmit = (data: any, done: (savingState: SavingStates) => void) => {
+        done('saved');
+    }
  }: Posts = $props();
 
   const publishOptions = [
@@ -61,6 +66,8 @@
         visible,
         publishDate,
         slug
+    }, (newSavingState: SavingStates) => {
+        savingState = newSavingState;
     });
   }
 </script>
@@ -149,12 +156,7 @@
     
     <!-- Submit Button -->
     <div class="flex justify-end">
-      <Button
-        type="submit"
-        class="bg-indigo-600 py-2 px-4 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      >
-        Save
-      </Button>
+      <SubmitButton savingState={savingState} />
     </div>
   </form>
 </div>

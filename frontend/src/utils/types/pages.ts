@@ -1,3 +1,4 @@
+import { type SavingStates } from "./common";
 
 export  interface Pages {
     title?: string;
@@ -5,5 +6,6 @@ export  interface Pages {
     content?: string;
     visible?: boolean;
     contentType?: string;
-    onSubmit?: (data: any) => void;
+    savingState?: SavingStates;
+    onSubmit?: (data: any, done: (savingState: SavingStates) => void) => void;
   }

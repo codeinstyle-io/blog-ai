@@ -7,7 +7,21 @@
     <title>Vite + Svelte</title>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    
+<div class="max-w-5xl mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-4 text-gray-900">Posts</h1>
+  <div x-inity="posts" x-props='{
+      "savingState": "saved",
+      "title": "My First Post",
+      "slug": "my-first-post",
+      "excerpt": "This is my first post.",
+      "content": "Hello, world!",
+      "tags": ["tag1", "tag2", "tag3"],
+      "visible": true
+    }'></div>
+  </div>
+
+  <hr>
+  <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

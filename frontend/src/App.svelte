@@ -12,8 +12,10 @@ import Pages from './apps/Pages.svelte'
     content="Hello, world!"
     tags={["tag1", "tag2", "tag3"]}
     visible={true}
-    onSubmit={(data) => {
+    savingState="saved"
+    onSubmit={(data, done) => {
       console.log('Submitted post data:', data)
+      done('saved');
     }}
   />
 </div>
@@ -28,8 +30,10 @@ import Pages from './apps/Pages.svelte'
     contentType="markdown"
     content="Hello, world!"
     visible={true}
-    onSubmit={(data) => {
+    savingState="saving"
+    onSubmit={(data, done) => {
       console.log('Submitted page data:', data)
+      done('saved');
     }}
   />
 </div>
