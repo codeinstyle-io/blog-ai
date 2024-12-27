@@ -1,6 +1,7 @@
 {
   "version": "4",
   "specifiers": {
+    "npm:@sindresorhus/slugify@^2.2.1": "2.2.1",
     "npm:@sveltejs/vite-plugin-svelte@^5.0.3": "5.0.3_svelte@5.16.0__acorn@8.14.0_vite@6.0.6",
     "npm:@tailwindcss/typography@~0.5.14": "0.5.15_tailwindcss@3.4.17__postcss@8.4.49",
     "npm:autoprefixer@^10.4.20": "10.4.20_postcss@8.4.49",
@@ -246,6 +247,19 @@
     "@rollup/rollup-win32-x64-msvc@4.29.1": {
       "integrity": "sha512-+10CMg9vt1MoHj6x1pxyjPSMjHTIlqs8/tBztXvPAx24SKs9jwVnKqHJumlH/IzhaPUaj3T6T6wfZr8okdXaIg=="
     },
+    "@sindresorhus/slugify@2.2.1": {
+      "integrity": "sha512-MkngSCRZ8JdSOCHRaYd+D01XhvU3Hjy6MGl06zhOk614hp9EOAp5gIkBeQg7wtmxpitU6eAL4kdiRMcJa2dlrw==",
+      "dependencies": [
+        "@sindresorhus/transliterate",
+        "escape-string-regexp"
+      ]
+    },
+    "@sindresorhus/transliterate@1.6.0": {
+      "integrity": "sha512-doH1gimEu3A46VX6aVxpHTeHrytJAG6HgdxntYnCFiIFHEM/ZGpG8KiZGBChchjQmG0XFIBL552kBTjVcMZXwQ==",
+      "dependencies": [
+        "escape-string-regexp"
+      ]
+    },
     "@sveltejs/vite-plugin-svelte-inspector@4.0.1_@sveltejs+vite-plugin-svelte@5.0.3__svelte@5.16.0___acorn@8.14.0__vite@6.0.6_svelte@5.16.0__acorn@8.14.0_vite@6.0.6": {
       "integrity": "sha512-J/Nmb2Q2y7mck2hyCX4ckVHcR5tu2J+MtBEQqpDrrgELZ2uvraQcK/ioCV61AqkdXFgriksOKIceDcQmqnGhVw==",
       "dependencies": [
@@ -485,6 +499,9 @@
     },
     "escalade@3.2.0": {
       "integrity": "sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA=="
+    },
+    "escape-string-regexp@5.0.0": {
+      "integrity": "sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw=="
     },
     "esm-env@1.2.1": {
       "integrity": "sha512-U9JedYYjCnadUlXk7e1Kr+aENQhtUaoaV9+gZm1T8LC/YBAPJx3NSPIAurFOC0U5vrdSevnUJS2/wUVxGwPhng=="
@@ -1105,6 +1122,7 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@sindresorhus/slugify@^2.2.1",
         "npm:@sveltejs/vite-plugin-svelte@^5.0.3",
         "npm:@tailwindcss/typography@~0.5.14",
         "npm:autoprefixer@^10.4.20",

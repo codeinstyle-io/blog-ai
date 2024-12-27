@@ -1,69 +1,95 @@
 <script lang="ts">
-  import { Input, Label, Textarea, Button, Toggle, Select } from 'flowbite-svelte';
+  import { onMount } from 'svelte';
+  import { Alert, Input, Label, Textarea, Button, Toggle, Select } from 'flowbite-svelte';
+
   import Tags from '../lib/Tags.svelte';
   import DateTimePicker from '../lib/DateTimePicker.svelte';
 
-  let title: string = '';
-  let slug: string = '';
-  let tags: string[] = [];
-  let excerpt: string = '';
-  let content: string = '';
-  let publish: string = 'immediately';
-  let visible: boolean = false;
+  import { type Posts } from '../utils/posts';
+  import { slugify } from '../utils/text';
 
+  let protectedSlug = $state(false);
+  let protectedSlugEdition = $state(false);
+
+  let {
+    title = '', 
+    tags = [], 
+    excerpt = '', 
+    content = '', 
+    publish = 'immediately', 
+    visible = false, 
+    publishDate = new Date(),
+    slug = '',
+ }: Posts = $props();
 
   const publishOptions = [
     {value: 'immediately', name: 'Immediately'},
     {value: 'scheduled', name: 'Scheduled'}
   ]
 
-  function handleSubmit() {
-    // Handle form submission
-    console.log({
-      title,
-      slug,
-      tags,
-      excerpt,
-      content,
-      publish,
-      visible
-    });
+  onMount(() => {
+    if (slug !== '') {
+        protectedSlug = true;
+    }
+  });
+
+  function updateSlug() {
+    if (protectedSlug) {
+        return;
+    }
+    slug = slugify(title);
+  }
+
+  function onSlugChange(e: Event) {
+    const target = e.target as HTMLInputElement;
+    protectedSlugEdition = (target.value !== slug) && protectedSlug;
+  }
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
   }
 </script>
 
 <div>
-  <form on:submit|preventDefault={handleSubmit} class="space-y-6">
+  <form onsubmit={handleSubmit} class="space-y-6">
     <!-- Title -->
     <div>
-      <Label for="title" class="block text-sm text-gray-700 font-bold">Title</Label>
+      <Label for="title" class="block text-sm font-bold text-gray-700 mb-2">Title</Label>
       <Input
         type="text"
         id="title"
         bind:value={title}
+        onkeyup={updateSlug}
         required
       />
     </div>
 
     <!-- Slug -->
     <div>
-      <Label for="slug" class="block text-sm font-bold text-gray-700">Slug</Label>
+      <Label for="slug" class="block text-sm font-bold text-gray-700 mb-2">Slug</Label>
       <Input
         type="text"
         id="slug"
-        bind:value={slug}
+        value={slug}
+        onkeyup={onSlugChange}
         required
       />
+      {#if protectedSlugEdition}
+        <Alert color="red" class="mt-2">
+            <span class="font-medium">Changing the slug may break links.</span>
+        </Alert>
+       {/if}
     </div>
 
     <!-- Tags -->
     <div>
-      <Label for="tags" class="block text-sm font-bold text-gray-700">Tags</Label>
+      <Label for="tags" class="block text-sm font-bold text-gray-700 mb-2">Tags</Label>
       <Tags bind:tags={tags} />
     </div>
 
     <!-- Excerpt -->
     <div>
-      <Label for="excerpt" class="block text-sm font-bold text-gray-700">Excerpt</Label>
+      <Label for="excerpt" class="block text-sm font-bold text-gray-700 mb-2">Excerpt</Label>
       <Textarea
         id="excerpt"
         bind:value={excerpt}
@@ -73,7 +99,7 @@
 
     <!-- Content -->
     <div>
-      <Label for="content" class="block text-sm font-bold text-gray-700">Content</Label>
+      <Label for="content" class="block text-sm font-bold text-gray-700 mb-2">Content</Label>
       <Textarea
         id="content"
         bind:value={content}
@@ -85,17 +111,24 @@
         <!-- Visibility Toggle -->
         <div>
             <Label for="visible" class="block text-sm font-bold text-gray-700 mb-4">Visibility</Label>
-            <Toggle bind:checked={visible}>
+            <Toggle id="visible" bind:checked={visible}>
                 <svelte:fragment slot="offLabel">Hidden</svelte:fragment>
                 <span>Visible</span>
             </Toggle>
         </div>
         <!-- Publish Status -->
         <div>
-            <Label for="publish" class="block text-sm font-bold text-gray-700">Publish</Label>
+            <Label for="publish" class="block text-sm font-bold text-gray-700 mb-2">Publish</Label>
             <Select id="publish" bind:value={publish} items={publishOptions}></Select>
 
-            <DateTimePicker />
+            {#if publish === 'scheduled'}
+                <div class="mt-4">
+                    <span class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Select date and time of publication:
+                    </span>
+                    <DateTimePicker bind:value={publishDate} />
+                </div>
+            {/if}
         </div>
     </div>
     
