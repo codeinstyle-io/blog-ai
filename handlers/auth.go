@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/captain-corp/captain/cmd"
 	"github.com/captain-corp/captain/config"
 	"github.com/captain-corp/captain/models"
 	"github.com/captain-corp/captain/repository"
@@ -43,7 +42,7 @@ func (h *AuthHandlers) PostLogin(c *fiber.Ctx) error {
 		next = "/admin"
 	}
 
-	if err := cmd.ValidateEmail(email); err != nil {
+	if err := utils.ValidateEmail(email); err != nil {
 		return c.Status(http.StatusBadRequest).Render("login", fiber.Map{
 			"error": "Invalid form data",
 			"email": email,
@@ -133,16 +132,16 @@ func (h *AuthHandlers) HandleSetup(c *fiber.Ctx) error {
 		lastName := c.FormValue("lastName")
 
 		// Validate input
-		if err := cmd.ValidateEmail(email); err != nil {
+		if err := utils.ValidateEmail(email); err != nil {
 			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": "Invalid email address"})
 		}
-		if err := cmd.ValidatePassword(password); err != nil {
+		if err := utils.ValidatePassword(password); err != nil {
 			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": "Password must be at least 8 characters"})
 		}
-		if err := cmd.ValidateFirstName(firstName); err != nil {
+		if err := utils.ValidateFirstName(firstName); err != nil {
 			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": err.Error()})
 		}
-		if err := cmd.ValidateLastName(lastName); err != nil {
+		if err := utils.ValidateLastName(lastName); err != nil {
 			return c.Status(http.StatusBadRequest).Render("setup", fiber.Map{"Error": err.Error()})
 		}
 

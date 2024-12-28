@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/captain-corp/captain/cmd"
 	"github.com/captain-corp/captain/flash"
 	"github.com/captain-corp/captain/models"
 	"github.com/captain-corp/captain/utils"
@@ -43,28 +42,28 @@ func (h *AdminHandlers) CreateUser(c *fiber.Ctx) error {
 	password := c.FormValue("password")
 
 	// Validate input
-	if err := cmd.ValidateFirstName(firstName); err != nil {
+	if err := utils.ValidateFirstName(firstName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
 			"title": "Users",
 			"user":  &models.User{},
 		})
 	}
-	if err := cmd.ValidateLastName(lastName); err != nil {
+	if err := utils.ValidateLastName(lastName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
 			"title": "Users",
 			"user":  &models.User{},
 		})
 	}
-	if err := cmd.ValidateEmail(email); err != nil {
+	if err := utils.ValidateEmail(email); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
 			"title": "Users",
 			"user":  &models.User{},
 		})
 	}
-	if err := cmd.ValidatePassword(password); err != nil {
+	if err := utils.ValidatePassword(password); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_create_user", fiber.Map{
 			"title": "Users",
@@ -165,21 +164,21 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 	}
 
 	// Validate input
-	if err := cmd.ValidateFirstName(user.FirstName); err != nil {
+	if err := utils.ValidateFirstName(user.FirstName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"title": "Users",
 			"user":  user,
 		})
 	}
-	if err := cmd.ValidateLastName(user.LastName); err != nil {
+	if err := utils.ValidateLastName(user.LastName); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"title": "Users",
 			"user":  user,
 		})
 	}
-	if err := cmd.ValidateEmail(user.Email); err != nil {
+	if err := utils.ValidateEmail(user.Email); err != nil {
 		flash.Error(c, err.Error())
 		return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 			"title": "Users",
@@ -208,7 +207,7 @@ func (h *AdminHandlers) UpdateUser(c *fiber.Ctx) error {
 
 	// Update password if provided
 	if user.Password != "" {
-		if err := cmd.ValidatePassword(user.Password); err != nil {
+		if err := utils.ValidatePassword(user.Password); err != nil {
 			flash.Error(c, err.Error())
 			return c.Status(http.StatusBadRequest).Render("admin_edit_user", fiber.Map{
 				"title": "Users",

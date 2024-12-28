@@ -127,8 +127,16 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 
 	// API routes
 	api := admin.Group("/api")
-	api.Get("/tags", adminHandlers.GetTags)
-	api.Get("/media", adminMediaHandlers.GetMediaList)
+	api.Get("/tags", adminHandlers.ApiGetTags)
+	api.Get("/media", adminMediaHandlers.ApiGetMediaList)
+
+	// Posts API routes
+	api.Post("/posts", adminHandlers.ApiCreatePost)
+	api.Post("/posts/:id", adminHandlers.ApiUpdatePost)
+
+	// Pages API routes
+	api.Post("/pages", adminHandlers.ApiCreatePage)
+	api.Post("/pages/:id", adminHandlers.ApiUpdatePage)
 
 	return app
 }

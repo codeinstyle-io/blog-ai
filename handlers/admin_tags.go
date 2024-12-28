@@ -10,12 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// tagResponse struct for API responses
-type tagResponse struct {
-	Id   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
 // ListTags handles the GET /admin/tags route
 func (h *AdminHandlers) ListTags(c *fiber.Ctx) error {
 	tags, err := h.repos.Tags.FindPostsAndCount()
@@ -190,24 +184,4 @@ func (h *AdminHandlers) UpdateTag(c *fiber.Ctx) error {
 
 	flash.Success(c, "Tag updated successfully")
 	return c.Redirect("/admin/tags")
-}
-
-// GetTags returns a list of tags for API consumption
-func (h *AdminHandlers) GetTags(c *fiber.Ctx) error {
-	tags, err := h.repos.Tags.FindAll()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to load tags",
-		})
-	}
-
-	var response []tagResponse
-	for _, tag := range tags {
-		response = append(response, tagResponse{
-			Id:   tag.ID,
-			Name: tag.Name,
-		})
-	}
-
-	return c.JSON(response)
 }
