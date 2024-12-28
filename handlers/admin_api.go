@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/captain-corp/captain/models"
 	"github.com/gofiber/fiber/v2"
@@ -13,17 +15,77 @@ type tagResponse struct {
 	Name string `json:"name"`
 }
 
+type postRequest struct {
+	Title       string   `json:"title"`
+	Slug        string   `json:"slug"`
+	Content     string   `json:"content"`
+	Excerpt     string   `json:"excerpt"`
+	Tags        []string `json:"tags"`
+	Visible     bool     `json:"visible"`
+	PublishedAt *string  `json:"publishedAt"`
+}
+
+func parseTime(date *string, timezone string) (*time.Time, error) {
+	var parsedTime time.Time
+
+	loc, err := time.LoadLocation(timezone)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if date != nil {
+		time, err := time.Parse(time.RFC3339, *date)
+		if err != nil {
+			// TODO: Log error
+			return nil, err
+		}
+		parsedTime = time
+	} else {
+		parsedTime = time.Now()
+	}
+
+	parsedTime = parsedTime.In(loc)
+
+	return &parsedTime, nil
+}
+
 func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
-	post := new(models.Post)
+	post := new(postRequest)
+	settings := c.Locals("settings").(*models.Settings)
 
 	if err := c.BodyParser(post); err != nil {
 		// TODO: Log error
+		fmt.Println(err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	if err := h.repos.Posts.Create(post); err != nil {
+	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
+	if err != nil {
 		// TODO: Log error
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publishedAt"})
+	}
+
+	newPost := &models.Post{
+		Title:       post.Title,
+		Slug:        post.Slug,
+		Content:     post.Content,
+		Excerpt:     &post.Excerpt,
+		Visible:     post.Visible,
+		PublishedAt: *publishedAt,
+		AuthorID:    1, //TODO: Get logged in user
+	}
+
+	if err := h.repos.Posts.Create(newPost); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error creating post: %v\n", err)
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create post"})
+	}
+
+	if err := h.repos.Posts.AssociateTags(newPost, post.Tags); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error associating tags: %v\n", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to associate tags"})
 	}
 
 	return c.JSON(fiber.Map{"message": "Post created successfully"})

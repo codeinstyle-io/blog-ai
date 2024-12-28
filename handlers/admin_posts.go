@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -59,9 +58,6 @@ func (h *AdminHandlers) ShowCreatePost(c *fiber.Ctx) error {
 // CreatePost handles post creation
 func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
-	// Get settings for timezone
-	settings := c.Locals("settings").(*models.Settings)
-
 	// Get the logged in user
 	exists := c.Locals("user")
 	if exists == nil {
@@ -83,7 +79,7 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 	}
 
 	// Parse form data
-	post, err := postFromForm(form, settings)
+	post, err := postFromForm(form)
 	post.AuthorID = user.ID
 
 	if err != nil {
@@ -130,7 +126,6 @@ func (h *AdminHandlers) CreatePost(c *fiber.Ctx) error {
 
 func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 	id := c.Params("id")
-	settings := c.Locals("settings").(*models.Settings)
 	postID, err := utils.ParseUint(id)
 
 	if err != nil {
@@ -144,18 +139,12 @@ func (h *AdminHandlers) UpdatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
 	}
 
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
 	// Parse form data
 	post.Title = c.FormValue("title")
 	post.Slug = c.FormValue("slug")
 	post.Content = c.FormValue("content")
 	post.Visible = c.FormValue("visible") == "on"
 	excerpt := c.FormValue("excerpt")
-	post.PublishedAt, err = parseTime(c.FormValue("publishedAt"), loc)
 
 	if excerpt != "" {
 		post.Excerpt = &excerpt
@@ -358,7 +347,7 @@ func (h *AdminHandlers) EditPost(c *fiber.Ctx) error {
 	})
 }
 
-func postFromForm(form *multipart.Form, settings *models.Settings) (*models.Post, error) {
+func postFromForm(form *multipart.Form) (*models.Post, error) {
 	post := &models.Post{
 		Title:   form.Value["title"][0],
 		Slug:    form.Value["slug"][0],
@@ -366,34 +355,7 @@ func postFromForm(form *multipart.Form, settings *models.Settings) (*models.Post
 		Excerpt: &form.Value["excerpt"][0],
 	}
 
-	if _, ok := form.Value["visible"]; ok {
-		post.Visible = true
-	}
-
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	publishedAt := form.Value["publishedAt"][0]
-	parsedTime, err := parseTime(publishedAt, loc)
-	post.PublishedAt = parsedTime
+	var err error
 
 	return post, err
-}
-
-func parseTime(publishedAt string, loc *time.Location) (time.Time, error) {
-	var err error
-	var parsedTime time.Time
-
-	if publishedAt != "" {
-		// 2024-12-17T23:30
-		parsedTime, err = time.ParseInLocation("2006-01-02T15:04", publishedAt, loc)
-		if err != nil {
-			return time.Time{}, errors.New("invalid date format")
-		}
-	} else {
-		parsedTime = time.Now().In(loc)
-	}
-
-	return parsedTime, nil
 }
