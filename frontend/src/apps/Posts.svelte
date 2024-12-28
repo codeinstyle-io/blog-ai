@@ -10,6 +10,7 @@
   import { slugify } from '../utils/text';
     import type { SavingStates } from '../utils/types/common';
 
+  let originalSlug = $state('');
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
   let publish = $state('immediately');
@@ -36,6 +37,7 @@
   onMount(() => {
     if (slug !== '') {
         protectedSlug = true;
+        originalSlug = slug;
     }
 
     if (publishDate !== null) {
@@ -52,7 +54,7 @@
 
   function onSlugChange(e: Event) {
     const target = e.target as HTMLInputElement;
-    protectedSlugViolation = (target.value !== slug) && protectedSlug;
+    protectedSlugViolation = (target.value !== originalSlug) && protectedSlug;
   }
 
   function handleSubmit(e: Event) {
@@ -92,7 +94,7 @@
       <Input
         type="text"
         id="slug"
-        value={slug}
+        bind:value={slug}
         onkeyup={onSlugChange}
         required
       />
