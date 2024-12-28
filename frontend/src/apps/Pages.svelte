@@ -46,10 +46,13 @@
       e.preventDefault();
   
       onSubmit({
+          contentType,
           title,
           content,
           visible,
           slug
+      }, (savingState) => {
+          savingState = savingState;
       });
     }
   </script>

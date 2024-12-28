@@ -20,7 +20,7 @@ export const Inity = {
     attach(): void {
       for (const [name, entry] of Object.entries(this.data)) {
         const elements = document.querySelectorAll(`[x-inity="${name}"]`)
-        const { Component, props } = entry as InityProps
+        const { Component } = entry as InityProps
 
         elements.forEach((element) => {
           let props = element.getAttribute('x-props');
@@ -35,6 +35,12 @@ export const Inity = {
 
           if (props) {
             Object.assign(props, this.data[name].props);
+          }
+
+          for (const [key, value] of Object.entries(this.data[name].props)) {
+            if(value instanceof Function) {
+              props[key] = value.bind(undefined, element);
+            }
           }
 
           mount(Component, {target: element, props})
