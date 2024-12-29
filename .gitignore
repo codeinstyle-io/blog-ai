@@ -27,3 +27,8 @@ yarn-error.log*
 
 # Build
 build/
+frontend/dist
+
+# Built admin assets
+embedded/admin/static/css/app.css
+embedded/admin/static/js/app.js

@@ -16,7 +16,10 @@ COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
 # Build commands
-build:
+frontend-build:
+	cd frontend && $(MAKE) build
+
+build: frontend-build
 	mkdir -p dist/bin
 	go build -o $(BINARY_NAME) $(MAIN_FILE)
 

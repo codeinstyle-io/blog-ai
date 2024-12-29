@@ -961,19 +961,6 @@ a:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.slug-warning {
-    margin-top: 0.5rem;
-    padding: 0.75rem 1rem;
-    background-color: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    border-radius: 4px;
-    color: var(--warning-text);
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
 .image-preview {
     max-width: 100%;
     min-height: 300px;
@@ -994,10 +981,6 @@ a:hover {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-}
-
-.slug-warning::before {
-    content: "⚠️";
 }
 
 /* Flash Messages */

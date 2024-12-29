@@ -76,45 +76,6 @@ function deleteUser(id) {
     });
 }
 
-function initializeEditor() {
-    const editor = document.getElementById('content');
-    const preview = document.getElementById('preview-area');
-    const editBtn = document.getElementById('edit-mode');
-    const previewBtn = document.getElementById('preview-mode');
-
-    if (!editor) return;
-
-    // Configure marked options
-    marked.setOptions({
-        gfm: true,
-        breaks: true,
-        highlight: function(code) {
-            return code;
-        }
-    });
-
-    // Live preview
-    editor.addEventListener('input', () => {
-        preview.innerHTML = marked.parse(editor.value);
-    });
-
-    // Toggle preview mode
-    editBtn.addEventListener('click', () => {
-        editor.style.display = 'block';
-        preview.style.display = 'none';
-        editBtn.classList.add('active');
-        previewBtn.classList.remove('active');
-    });
-
-    previewBtn.addEventListener('click', () => {
-        editor.style.display = 'none';
-        preview.style.display = 'block';
-        editBtn.classList.remove('active');
-        previewBtn.classList.add('active');
-        preview.innerHTML = marked.parse(editor.value);
-    });
-}
-
 // static/js/admin.js - Update tag handling
 function initializeTags() {
     const tagInput = document.getElementById('tag-input');
@@ -202,89 +163,6 @@ function initializeTags() {
     });
 }
 
-// Unified slug generation function
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-// Initialize slug handling for both create and edit forms
-function initializeSlugHandling() {
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-    const form = document.querySelector('form');
-
-    if (!titleInput || !slugInput || !form) return;
-
-    const isEditForm = form.id === 'edit-post-form' || form.id === 'edit-page-form';
-    const originalSlug = slugInput.value;
-
-    // Auto-generate slug from title only in create forms
-    if (!isEditForm) {
-        titleInput.addEventListener('input', () => {
-            slugInput.value = generateSlug(titleInput.value);
-        });
-    }
-
-    // Show warning when slug is modified in edit forms
-    if (isEditForm) {
-        slugInput.addEventListener('input', () => {
-            const warning = document.getElementById('slug-warning');
-            const hasChanged = slugInput.value !== originalSlug;
-
-            if (hasChanged) {
-                if (!warning) {
-                    const warningDiv = document.createElement('div');
-                    warningDiv.id = 'slug-warning';
-                    warningDiv.className = 'warning-message';
-                    warningDiv.textContent = 'Warning: Changing the slug will break existing links to this content';
-                    slugInput.parentNode.appendChild(warningDiv);
-                }
-            } else if (warning) {
-                warning.remove();
-            }
-        });
-    }
-
-    // Validate slug format for both forms
-    slugInput.addEventListener('input', () => {
-        const isValidSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugInput.value);
-        if (!isValidSlug && slugInput.value) {
-            slugInput.setCustomValidity('Slug can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.');
-        } else {
-            slugInput.setCustomValidity('');
-        }
-    });
-}
-
-function initializePublishDateToggle() {
-    const publishType = document.getElementById('publishType');
-    const publishDateGroup = document.getElementById('publishDateGroup');
-    const publishedAtInput = document.getElementById('publishedAt');
-
-    if (!publishType || !publishDateGroup || !publishedAtInput) return;
-
-    function updatePublishDate() {
-        if (publishType.value === 'immediately') {
-            publishDateGroup.style.display = 'none';
-            publishedAtInput.removeAttribute('required');
-        } else {
-            publishDateGroup.style.display = 'block';
-            publishedAtInput.setAttribute('required', 'required');
-        }
-    }
-
-    publishType.addEventListener('change', updatePublishDate);
-
-    // Initial state
-    if (publishedAtInput.value) {
-        publishType.value = 'scheduled';
-    }
-    updatePublishDate();
-}
 
 function initializeMenuItemForm() {
     const pageSelect = document.getElementById('page_id');
@@ -533,10 +411,7 @@ function openLogoMediaSelector() {
 
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
-    initializeEditor();
     initializeTags();
-    initializeSlugHandling();
-    initializePublishDateToggle();
     initializeMenuItemForm();
     initializeMenuItems();
     initializeMenuToggle();
