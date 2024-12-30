@@ -1,6 +1,6 @@
 <script>
-import Posts from './apps/Posts.svelte'
-import Pages from './apps/Pages.svelte'
+  import Posts from "./apps/Posts.svelte";
+  import Pages from "./apps/Pages.svelte";
 </script>
 
 <div class="max-w-5xl mx-auto p-6">
@@ -14,13 +14,13 @@ import Pages from './apps/Pages.svelte'
     visible={true}
     savingState="saved"
     onSubmit={(data, done) => {
-      console.log('Submitted post data:', data)
-      done('saved');
+      console.log("Submitted post data:", data);
+      done("saved");
     }}
   />
 </div>
 
-<hr>
+<hr />
 
 <div class="max-w-5xl mx-auto p-6">
   <h1 class="text-2xl font-bold mb-4 text-gray-900">Pages</h1>
@@ -32,9 +32,8 @@ import Pages from './apps/Pages.svelte'
     visible={true}
     savingState="saving"
     onSubmit={(data, done) => {
-      console.log('Submitted page data:', data)
-      done('saved');
+      console.log("Submitted page data:", data);
+      done("saved");
     }}
   />
 </div>
-

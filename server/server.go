@@ -18,6 +18,7 @@ import (
 
 	"github.com/captain-corp/storage/sqlite3"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -88,6 +89,10 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 		},
 	))
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
+
 	app.Use(flash.Middleware())
 	app.Use(middleware.RequireSetup(repositories))
 	app.Use(middleware.LoadMenuItems(repositories))
@@ -96,7 +101,7 @@ func New(db *gorm.DB, cfg *config.Config, embeddedFS embed.FS) (*Server, error) 
 	app.Use(middleware.LoadUserData(repositories, sessionStore))
 	app.Use(middleware.ServeFavicon(repositories, storageProvider))
 	app.Use(middleware.InjectFavicon(repositories))
-	app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
+	//app.Use("/admin", middleware.AuthRequired(repositories, sessionStore))
 
 	publicApp := handlers.RegisterPublicRoutes(repositories, cfg)
 	dynamicApp := handlers.RegisterDynamicRoutes(repositories, storageProvider)
