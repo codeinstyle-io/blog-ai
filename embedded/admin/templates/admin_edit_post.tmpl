@@ -14,15 +14,7 @@
     {{ end }}
 
     <div class="editor-container">
-        <div x-inity="posts" x-props='{
-            "savingState": "draft",
-            "title": "{{.post.Title}}",
-            "slug": "{{.post.Slug}}",
-            "excerpt": "{{.post.Excerpt}}",
-            "content": "{{.post.Content}}",
-            "tags": {{.post.Tags}},
-            "visible": {{.post.Visible}}
-        }'></div>
+        <div x-inity="posts" x-props='{{ .post.ToJSON }}'></div>
     </div>
 </div>
 {{ template "admin_footer" . }}

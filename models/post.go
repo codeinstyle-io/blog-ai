@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"gorm.io/gorm"
@@ -27,4 +28,30 @@ func (p *Post) IsScheduled(timezone string) bool {
 	}
 	now := time.Now().In(loc)
 	return p.Visible && p.PublishedAt.After(now)
+}
+
+func (p *Post) ToJSON() string {
+	tags := make([]string, 0, len(p.Tags))
+	for _, tag := range p.Tags {
+		tags = append(tags, tag.Name)
+	}
+
+	publishedAt := p.PublishedAt.Format(time.RFC3339)
+
+	buff, err := json.Marshal(map[string]interface{}{
+		"id":          p.ID,
+		"slug":        p.Slug,
+		"title":       p.Title,
+		"content":     p.Content,
+		"publishedAt": publishedAt,
+		"visible":     p.Visible,
+		"excerpt":     p.Excerpt,
+		"tags":        tags,
+		"authorId":    p.AuthorID,
+	})
+	if err != nil {
+		return ""
+	}
+
+	return string(buff)
 }

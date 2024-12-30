@@ -409,6 +409,41 @@ function openLogoMediaSelector() {
     });
 }
 
+(function() {
+
+
+Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, props) => {
+    let method = 'POST';
+    let url = '/admin/api/posts';
+
+    if(props.id) {
+      method = 'PUT';
+      url = url + '/' + props.id;
+    }
+    done('saving');
+
+    const resp = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if(resp.ok) {
+        alert('Saved');
+    } else {
+        alert('Failed to save', error);
+    }
+
+    done('saved');
+  }
+})
+
+  document.addEventListener("DOMContentLoaded", () => Inity.attach());
+
+})();
+
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeTags();

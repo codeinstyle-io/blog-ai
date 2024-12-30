@@ -132,11 +132,11 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 
 	// Posts API routes
 	api.Post("/posts", adminHandlers.ApiCreatePost)
-	api.Post("/posts/:id", adminHandlers.ApiUpdatePost)
+	api.Put("/posts/:id", adminHandlers.ApiUpdatePost)
 
 	// Pages API routes
 	api.Post("/pages", adminHandlers.ApiCreatePage)
-	api.Post("/pages/:id", adminHandlers.ApiUpdatePage)
+	api.Put("/pages/:id", adminHandlers.ApiUpdatePage)
 
 	return app
 }

@@ -11,15 +11,7 @@
     {{ end }}
 
     <div class="editor-container">
-          <div x-inity="posts" x-props='{
-            "savingState": "draft",
-            "title": "",
-            "slug": "",
-            "excerpt": "",
-            "content": "",
-            "tags": [],
-            "visible": false
-        }'></div>
+          <div x-inity="posts"></div>
     </div>
 </div>
 {{ template "admin_footer" . }}

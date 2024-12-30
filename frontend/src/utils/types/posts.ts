@@ -7,7 +7,7 @@ export  interface Posts {
     excerpt?: string;
     content?: string;
     visible?: boolean;
-    publishDate?: Date;
+    publishedAt?: string;
     savingState?: SavingStates;
     onSubmit?: (data: any, done: (savingState: SavingStates) => void) => void;
   }

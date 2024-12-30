@@ -23,23 +23,29 @@ export const Inity = {
         const { Component } = entry as InityProps
 
         elements.forEach((element) => {
-          let props = element.getAttribute('x-props');
+          let props: any = {}
+          let elementProps: string = element.getAttribute('x-props');
 
-          if (props) {
+          if (elementProps) {
             try {
-              props = JSON.parse(props);
+              props = JSON.parse(elementProps);
             } catch (e) {
-              console.error(e);
+              console.group("Inity");
+              console.warn("Could not parse x-props attribute for element", element);
+              console.warn("Props", elementProps);
+              console.warn("Error", e);
+              console.groupEnd();
             }
           }
 
-          if (props) {
-            Object.assign(props, this.data[name].props);
-          }
+          Object.assign(props, this.data[name].props);
 
           for (const [key, value] of Object.entries(this.data[name].props)) {
             if(value instanceof Function) {
-              props[key] = value.bind(undefined, element);
+              function wrapper(...args: any[]) {
+                (value as Function)(...args, props);
+              }
+              props[key] = wrapper;
             }
           }
 

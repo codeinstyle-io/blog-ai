@@ -8,7 +8,7 @@
 
   import { type Posts } from '../utils/types/posts';
   import { slugify } from '../utils/text';
-    import type { SavingStates } from '../utils/types/common';
+  import type { SavingStates } from '../utils/types/common';
 
   let originalSlug = $state('');
   let protectedSlug = $state(false);
@@ -21,13 +21,14 @@
     excerpt = '',
     content = '',
     visible = false,
-    publishDate = null,
+    publishedAt = '',
     slug = '',
     savingState = 'draft',
     onSubmit = (data: any, done: (savingState: SavingStates) => void) => {
         done('saved');
     }
  }: Posts = $props();
+
 
   const publishOptions = [
     {value: 'immediately', name: 'Immediately'},
@@ -40,7 +41,7 @@
         originalSlug = slug;
     }
 
-    if (publishDate !== null) {
+    if (publishedAt) {
         publish = 'scheduled';
     }
   });
@@ -66,7 +67,7 @@
         excerpt,
         content,
         visible,
-        publishDate,
+        publishedAt,
         slug
     }, (newSavingState: SavingStates) => {
         savingState = newSavingState;
@@ -150,7 +151,7 @@
                     <span class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                         Select date and time of publication:
                     </span>
-                    <DateTimePicker bind:value={publishDate} />
+                    <DateTimePicker bind:value={publishedAt} />
                 </div>
             {/if}
         </div>
