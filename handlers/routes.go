@@ -68,9 +68,7 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 	// Posts
 	admin.Get("/posts", adminHandlers.ListPosts)
 	admin.Get("/posts/create", adminHandlers.ShowCreatePost)
-	admin.Post("/posts/create", adminHandlers.CreatePost)
-	admin.Get("/posts/:id/edit", adminHandlers.EditPost)
-	admin.Post("/posts/:id", adminHandlers.UpdatePost)
+	admin.Get("/posts/:id/edit", adminHandlers.ShowEditPost)
 	admin.Get("/posts/:id/delete", adminHandlers.ConfirmDeletePost)
 	admin.Delete("/posts/:id", adminHandlers.DeletePost)
 

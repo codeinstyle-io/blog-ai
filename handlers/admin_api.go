@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/captain-corp/captain/models"
+	"github.com/captain-corp/captain/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -92,7 +93,51 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 }
 
 func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
-	return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Not found"})
+	post := new(postRequest)
+	settings := c.Locals("settings").(*models.Settings)
+
+	id, err := utils.ParseUint(c.Params("id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	}
+
+	postToUpdate, err := h.repos.Posts.FindByID(id)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Post not found"})
+	}
+
+	if err := c.BodyParser(post); err != nil {
+		// TODO: Log error
+		fmt.Println(err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
+	if err != nil {
+		// TODO: Log error
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publishedAt"})
+	}
+
+	postToUpdate.Title = post.Title
+	postToUpdate.Slug = post.Slug
+	postToUpdate.Content = post.Content
+	postToUpdate.Excerpt = &post.Excerpt
+	postToUpdate.Visible = post.Visible
+	postToUpdate.PublishedAt = *publishedAt
+
+	if err := h.repos.Posts.Update(postToUpdate); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error updating post: %v\n", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update post"})
+	}
+
+	if err := h.repos.Posts.AssociateTags(postToUpdate, post.Tags); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error associating tags: %v\n", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to associate tags"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Post updated successfully"})
 }
 
 func (h *AdminHandlers) ApiGetPage(c *fiber.Ctx) error {
