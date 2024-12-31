@@ -48,7 +48,8 @@ test.describe('Admin Panel E2E Tests', () => {
 
             // Set publish type to "scheduled" and set publish date to "1985-10-26T10:00"
             await page.selectOption('select[name="publish"]', 'scheduled');
-            await fillDateTimeField(page, '1985-10-26T10:00Z');
+                                           //2006-01-02T15:04:05Z07:00
+            await fillDateTimeField(page, '1985-10-26T10:00:00Z');
 
             await expect(page.locator('#selected-tags')).toContainText('test');
             await expect(page.locator('#selected-tags')).toContainText('e2e');

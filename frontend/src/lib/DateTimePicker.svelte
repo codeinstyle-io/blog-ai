@@ -5,18 +5,24 @@
   import Timepicker from "./Timepicker.svelte";
 
   let { value = $bindable("") }: { value: string } = $props();
-  let timeValue = $state("00:00");
   let internalValue = $state(new Date(value || Date.now()));
+  let timeValue = $state("00:00");
 
-  onMount(() => {
-    timeValue = `${internalValue.getHours()}:${internalValue.getMinutes()}`;
-  });
 
-  const test: Action = (node) => {
+  const setTime = (date: Date) => {
+    const hours = date.getUTCHours().toString().padStart(2, "0");
+    const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+    timeValue = `${hours}:${minutes}`;
+  };
+
+  const inputObserver: Action = (node) => {
     let mutationObserver = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
+        console.log(mutation);
         if(mutation.type === "attributes" && mutation.attributeName === "value") {
           value = node.value;
+          internalValue = new Date(value);
+          setTime(internalValue);
         }
       });
     });
@@ -24,11 +30,14 @@
   };
 
   const updateDate = (e: CustomEvent) => {
-    const selectedDate: Date = e.detail;
+    const selectedDate: Date = new Date(e.detail.valueOf());
     const [hours, minutes] = timeValue.split(":");
 
-    selectedDate.setHours(parseInt(hours));
-    selectedDate.setMinutes(parseInt(minutes));
+    selectedDate.setUTCDate(selectedDate.getUTCDate());
+    selectedDate.setUTCMonth(selectedDate.getUTCMonth());
+    selectedDate.setUTCFullYear(selectedDate.getUTCFullYear());
+    selectedDate.setUTCHours(parseInt(hours));
+    selectedDate.setUTCMinutes(parseInt(minutes));
 
     value = selectedDate.toJSON();
   };
@@ -37,12 +46,16 @@
     const time: string = (e.target as HTMLInputElement).value;
     const [hours, minutes] = time.split(":");
 
-    internalValue.setHours(parseInt(hours));
-    internalValue.setMinutes(parseInt(minutes));
+    internalValue.setUTCHours(parseInt(hours));
+    internalValue.setUTCMinutes(parseInt(minutes));
 
     timeValue = time;
     value = new Date(internalValue).toJSON();
   };
+
+  onMount(() => {
+    setTime(internalValue);
+  });
 </script>
 
 <div class="mt-4">
@@ -53,6 +66,6 @@
     <div class="mx-2">
       <Timepicker onchange={updateTime} value={timeValue} />
     </div>
-    <input type="hidden" name="datetime" bind:value use:test  />
+    <input type="hidden" name="datetime" use:inputObserver />
   </div>
 </div>
