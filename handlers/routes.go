@@ -75,9 +75,7 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 	// Pages
 	admin.Get("/pages", adminHandlers.ListPages)
 	admin.Get("/pages/create", adminHandlers.ShowCreatePage)
-	admin.Post("/pages/create", adminHandlers.CreatePage)
 	admin.Get("/pages/:id/edit", adminHandlers.EditPage)
-	admin.Post("/pages/:id", adminHandlers.UpdatePage)
 	admin.Get("/pages/:id/delete", adminHandlers.ConfirmDeletePage)
 	admin.Delete("/pages/:id", adminHandlers.DeletePage)
 

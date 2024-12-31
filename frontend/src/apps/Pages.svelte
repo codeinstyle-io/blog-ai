@@ -126,9 +126,7 @@
     <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
       <!-- Visibility Toggle -->
       <div>
-        <Label for="visible" class="block text-sm font-bold text-gray-700 mb-4"
-          >Visibility</Label
-        >
+        <Label for="visible" class="block text-sm font-bold text-gray-700 mb-4">Visibility</Label>
         <Toggle id="visible" bind:checked={visible}>
           <svelte:fragment slot="offLabel">Hidden</svelte:fragment>
           <span>Visible</span>

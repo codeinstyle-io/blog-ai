@@ -33,30 +33,6 @@ func (h *AdminHandlers) ShowCreatePage(c *fiber.Ctx) error {
 	})
 }
 
-// CreatePage handles the POST /admin/pages route
-func (h *AdminHandlers) CreatePage(c *fiber.Ctx) error {
-	var page models.Page
-	if err := c.BodyParser(&page); err != nil {
-		flash.Error(c, "Invalid form data")
-		return c.Status(http.StatusBadRequest).Render("admin_create_page", fiber.Map{
-			"page":  &page,
-			"title": "Pages",
-		})
-	}
-
-	// Create page
-	if err := h.repos.Pages.Create(&page); err != nil {
-		flash.Error(c, "Failed to create page")
-		return c.Render("admin_create_page", fiber.Map{
-			"page":  &page,
-			"title": "Pages",
-		})
-	}
-
-	flash.Success(c, "Page created successfully")
-	return c.Redirect("/admin/pages")
-}
-
 // EditPage handles the GET /admin/pages/:id/edit route
 func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 	id, err := utils.ParseUint(c.Params("id"))
@@ -75,42 +51,6 @@ func (h *AdminHandlers) EditPage(c *fiber.Ctx) error {
 		"title": "Edit Page",
 		"page":  page,
 	})
-}
-
-// UpdatePage handles the POST /admin/pages/:id route
-func (h *AdminHandlers) UpdatePage(c *fiber.Ctx) error {
-	id, err := utils.ParseUint(c.Params("id"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).Render("admin_500", fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	page, err := h.repos.Pages.FindByID(id)
-	if err != nil {
-		return c.Status(http.StatusNotFound).Render("admin_404", fiber.Map{})
-	}
-
-	// Parse form data
-	if err := c.BodyParser(page); err != nil {
-		flash.Error(c, "Invalid form data")
-		return c.Status(http.StatusBadRequest).Render("admin_edit_page", fiber.Map{
-			"page":  page,
-			"title": "Pages",
-		})
-	}
-
-	// Update page
-	if err := h.repos.Pages.Update(page); err != nil {
-		flash.Error(c, "Failed to update page")
-		return c.Status(http.StatusInternalServerError).Render("admin_edit_page", fiber.Map{
-			"page":  page,
-			"title": "Pages",
-		})
-	}
-
-	flash.Success(c, "Page updated successfully")
-	return c.Redirect("/admin/pages")
 }
 
 // ConfirmDeletePage handles the GET /admin/pages/:id/delete route

@@ -26,6 +26,14 @@ type postRequest struct {
 	PublishedAt *string  `json:"publishedAt"`
 }
 
+type pageRequest struct {
+	Title       string `json:"title"`
+	Slug        string `json:"slug"`
+	Content     string `json:"content"`
+	ContentType string `json:"contentType"`
+	Visible     bool   `json:"visible"`
+}
+
 func parseTime(date *string, timezone string) (*time.Time, error) {
 	var parsedTime time.Time
 
@@ -140,16 +148,62 @@ func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Post updated successfully"})
 }
 
-func (h *AdminHandlers) ApiGetPage(c *fiber.Ctx) error {
-	return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Not found"})
-}
-
 func (h *AdminHandlers) ApiCreatePage(c *fiber.Ctx) error {
-	return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Not found"})
+	page := new(pageRequest)
+	if err := c.BodyParser(page); err != nil {
+		// TODO: Log error
+		fmt.Println(err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	newPage := &models.Page{
+		Title:       page.Title,
+		Slug:        page.Slug,
+		Content:     page.Content,
+		ContentType: page.ContentType,
+		Visible:     page.Visible,
+	}
+
+	if err := h.repos.Pages.Create(newPage); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error creating page: %v\n", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create page"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Page created successfully"})
 }
 
 func (h *AdminHandlers) ApiUpdatePage(c *fiber.Ctx) error {
-	return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Not found"})
+	page := new(pageRequest)
+	if err := c.BodyParser(page); err != nil {
+		// TODO: Log error
+		fmt.Println(err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	id, err := utils.ParseUint(c.Params("id"))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid page ID"})
+	}
+
+	pageToUpdate, err := h.repos.Pages.FindByID(id)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Page not found"})
+	}
+
+	pageToUpdate.Title = page.Title
+	pageToUpdate.Slug = page.Slug
+	pageToUpdate.Content = page.Content
+	pageToUpdate.ContentType = page.ContentType
+	pageToUpdate.Visible = page.Visible
+
+	if err := h.repos.Pages.Update(pageToUpdate); err != nil {
+		// TODO: Log error
+		fmt.Printf("Error updating page: %v\n", err)
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update page"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Page updated successfully"})
 }
 
 // ApiGetMediaList returns a JSON list of media for AJAX requests
