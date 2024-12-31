@@ -88,6 +88,7 @@
       <Input
         type="text"
         id="title"
+        name="title"
         bind:value={title}
         onkeyup={updateSlug}
         required
@@ -102,6 +103,7 @@
       <Input
         type="text"
         id="slug"
+        name="slug"
         value={slug}
         onkeyup={onSlugChange}
         required
@@ -131,14 +133,14 @@
       <Label for="content" class="block text-sm font-bold text-gray-700 mb-2"
         >Content</Label
       >
-      <Textarea id="content" bind:value={content} rows={10}></Textarea>
+      <Textarea id="content" name="content" bind:value={content} rows={10}></Textarea>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
       <!-- Visibility Toggle -->
       <div>
         <Label for="visible" class="block text-sm font-bold text-gray-700 mb-4">Visibility</Label>
-        <Toggle id="visible" bind:checked={visible}>
+        <Toggle id="visible" name="visible" bind:checked={visible}>
           <svelte:fragment slot="offLabel">Hidden</svelte:fragment>
           <span>Visible</span>
         </Toggle>

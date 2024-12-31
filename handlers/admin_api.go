@@ -44,7 +44,7 @@ func parseTime(date *string, timezone string) (*time.Time, error) {
 		return nil, err
 	}
 
-	if date != nil {
+	if date != nil && *date != "" {
 		time, err := time.Parse(time.RFC3339, *date)
 		if err != nil {
 			// TODO: Log error
@@ -66,14 +66,15 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(post); err != nil {
 		// TODO: Log error
-		fmt.Println(err)
+		fmt.Printf("Failed to parse request body: %v\n", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
 	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
 	if err != nil {
 		// TODO: Log error
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publishedAt"})
+		fmt.Printf("Failed to parse publishedAt: %v\n", err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publish date"})
 	}
 
 	newPost := &models.Post{
@@ -124,14 +125,15 @@ func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(post); err != nil {
 		// TODO: Log error
-		fmt.Println(err)
+		fmt.Printf("Failed to parse request body: %v\n", err)
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
 	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
 	if err != nil {
 		// TODO: Log error
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publishedAt"})
+		fmt.Printf("Failed to parse publishedAt: %v\n", err)
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid publish date"})
 	}
 
 	postToUpdate.Title = post.Title

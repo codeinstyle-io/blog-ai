@@ -48,7 +48,7 @@ test.describe('Admin Panel E2E Tests', () => {
 
             // Set publish type to "scheduled" and set publish date to "1985-10-26T10:00"
             await page.selectOption('select[name="publish"]', 'scheduled');
-            await fillDateTimeField(page, '1985-10-26T10:00');
+            await fillDateTimeField(page, '1985-10-26T10:00Z');
 
             await expect(page.locator('#selected-tags')).toContainText('test');
             await expect(page.locator('#selected-tags')).toContainText('e2e');
@@ -90,12 +90,15 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.locator(titleFieldSelector).pressSequentially(randomTitle);
             await page.fill('textarea[name="excerpt"]', 'Test excerpt');
             await page.fill('textarea[name="content"]', 'Test content');
-            await page.fill('input[id="tag-input"]', 'another');
-            await page.press('input[id="tag-input"]', 'Enter');
-            await page.fill('input[id="tag-input"]', 'test');
-            await page.press('input[id="tag-input"]', 'Enter');
-            await page.click('.toggle-switch');
-            await page.click('button:has-text("Create Post")');
+
+            await page.fill('input[id="tags"]', 'another');
+            await page.press('input[id="tags"]', 'Enter');
+            await page.fill('input[id="tags"]', 'test');
+            await page.press('input[id="tags"]', 'Enter');
+            
+            await setVisibility(page, true);
+
+            await page.click('button:has-text("Save")');
 
             // Verify both posts are present
             await expect(page.locator(`text="New title"`)).toBeVisible();
@@ -113,7 +116,7 @@ test.describe('Admin Panel E2E Tests', () => {
             const slugValue = await page.locator('input[name="slug"]').inputValue();
             expect(slugValue).toBe(pageSlug);
             await page.fill('textarea[name="content"]', 'Test page content');
-            await page.click('button:has-text("Create Page")');
+            await page.click('button:has-text("Save")');
 
             // Verify page creation
             await expect(page.locator(`text=${pageTitle}`)).toBeVisible();
@@ -125,7 +128,7 @@ test.describe('Admin Panel E2E Tests', () => {
             const immutableSlugValue = await page.locator('input[name="slug"]').inputValue();
             expect(immutableSlugValue).toBe(pageSlug);
             await page.fill('textarea[name="content"]', 'Test content');
-            await page.click('button:has-text("Update Page")');
+            await page.click('button:has-text("Save")');
         });
 
         // Menu Management

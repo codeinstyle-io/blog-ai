@@ -15,3 +15,7 @@ node_modules: package.json
 clean:
 	rm -rf $(DIST_DIR)
 	rm -rf node_modules
+
+
+dev: node_modules
+	npm run dev
