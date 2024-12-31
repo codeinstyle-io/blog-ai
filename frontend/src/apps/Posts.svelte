@@ -16,8 +16,10 @@
   import { type Posts } from "../utils/types/posts";
   import { slugify } from "../utils/text";
   import type { SavingStates } from "../utils/types/common";
+    import { CloseCircleSolid } from "flowbite-svelte-icons";
 
   let originalSlug = $state("");
+  let error = $state("");
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
   let publish = $state("immediately");
@@ -66,6 +68,7 @@
 
   function handleSubmit(e: Event) {
     e.preventDefault();
+    error = "";
 
     onSubmit(
       {
@@ -80,11 +83,20 @@
       (newSavingState: SavingStates) => {
         savingState = newSavingState;
       },
+      (newError: string) => {
+        error = newError;
+      },
     );
   }
 </script>
 
 <div>
+  {#if error !== ""}
+  <Alert color="red" class="my-2">
+    <span class="font-medium">{error}</span>
+  </Alert>
+  {/if}
+
   <form onsubmit={handleSubmit} class="space-y-6">
     <!-- Title -->
     <div>
@@ -94,6 +106,7 @@
       <Input
         type="text"
         id="title"
+        name="title"
         bind:value={title}
         onkeyup={updateSlug}
         required
@@ -108,6 +121,7 @@
       <Input
         type="text"
         id="slug"
+        name="slug"
         bind:value={slug}
         onkeyup={onSlugChange}
         required
@@ -132,7 +146,7 @@
       <Label for="excerpt" class="block text-sm font-bold text-gray-700 mb-2"
         >Excerpt</Label
       >
-      <Textarea id="excerpt" bind:value={excerpt} rows={4}></Textarea>
+      <Textarea id="excerpt" name="excerpt" bind:value={excerpt} rows={4}></Textarea>
     </div>
 
     <!-- Content -->
@@ -140,7 +154,7 @@
       <Label for="content" class="block text-sm font-bold text-gray-700 mb-2"
         >Content</Label
       >
-      <Textarea id="content" bind:value={content} rows={10}></Textarea>
+      <Textarea id="content" name="content" bind:value={content} rows={10}></Textarea>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
@@ -149,18 +163,15 @@
         <Label for="visible" class="block text-sm font-bold text-gray-700 mb-4"
           >Visibility</Label
         >
-        <Toggle id="visible" bind:checked={visible}>
+        <Toggle id="visible" name="visible" bind:checked={visible}>
           <svelte:fragment slot="offLabel">Hidden</svelte:fragment>
           <span>Visible</span>
         </Toggle>
       </div>
       <!-- Publish Status -->
       <div>
-        <Label for="publish" class="block text-sm font-bold text-gray-700 mb-2"
-          >Publish</Label
-        >
-        <Select id="publish" bind:value={publish} items={publishOptions}
-        ></Select>
+        <Label for="publish" class="block text-sm font-bold text-gray-700 mb-2">Publish</Label>
+        <Select id="publish" name="publish" bind:value={publish} items={publishOptions}></Select>
 
         {#if publish === "scheduled"}
           <div class="mt-4">

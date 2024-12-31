@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/captain-corp/captain/flash"
 	"github.com/captain-corp/captain/models"
 	"github.com/captain-corp/captain/utils"
 	"github.com/gofiber/fiber/v2"
@@ -88,6 +89,11 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 	if err := h.repos.Posts.Create(newPost); err != nil {
 		// TODO: Log error
 		fmt.Printf("Error creating post: %v\n", err)
+
+		if utils.IsConstraintError(err) {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Post with the same slug already exists"})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create post"})
 	}
 
@@ -97,7 +103,9 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to associate tags"})
 	}
 
-	return c.JSON(fiber.Map{"message": "Post created successfully"})
+	flash.Success(c, "Post created successfully")
+
+	return c.JSON(fiber.Map{"message": "Post created successfully", "redirect": "/admin/posts"})
 }
 
 func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
@@ -136,6 +144,11 @@ func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 	if err := h.repos.Posts.Update(postToUpdate); err != nil {
 		// TODO: Log error
 		fmt.Printf("Error updating post: %v\n", err)
+
+		if utils.IsConstraintError(err) {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Post with the same slug already exists"})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update post"})
 	}
 
@@ -145,7 +158,9 @@ func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to associate tags"})
 	}
 
-	return c.JSON(fiber.Map{"message": "Post updated successfully"})
+	flash.Success(c, "Post updated successfully")
+
+	return c.JSON(fiber.Map{"message": "Post updated successfully", "redirect": "/admin/posts"})
 }
 
 func (h *AdminHandlers) ApiCreatePage(c *fiber.Ctx) error {
@@ -167,10 +182,17 @@ func (h *AdminHandlers) ApiCreatePage(c *fiber.Ctx) error {
 	if err := h.repos.Pages.Create(newPage); err != nil {
 		// TODO: Log error
 		fmt.Printf("Error creating page: %v\n", err)
+
+		if utils.IsConstraintError(err) {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Page with the same slug already exists"})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create page"})
 	}
 
-	return c.JSON(fiber.Map{"message": "Page created successfully"})
+	flash.Success(c, "Page created successfully")
+
+	return c.JSON(fiber.Map{"message": "Page created successfully", "redirect": "/admin/pages"})
 }
 
 func (h *AdminHandlers) ApiUpdatePage(c *fiber.Ctx) error {
@@ -200,10 +222,17 @@ func (h *AdminHandlers) ApiUpdatePage(c *fiber.Ctx) error {
 	if err := h.repos.Pages.Update(pageToUpdate); err != nil {
 		// TODO: Log error
 		fmt.Printf("Error updating page: %v\n", err)
+
+		if utils.IsConstraintError(err) {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Page with the same slug already exists"})
+		}
+
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update page"})
 	}
 
-	return c.JSON(fiber.Map{"message": "Page updated successfully"})
+	flash.Success(c, "Page updated successfully")
+
+	return c.JSON(fiber.Map{"message": "Page updated successfully", "redirect": "/admin/pages"})
 }
 
 // ApiGetMediaList returns a JSON list of media for AJAX requests

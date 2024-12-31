@@ -16,6 +16,7 @@
 >
   <input
     type="time"
+    name="time"
     {onchange}
     {value}
     bind:this={element}

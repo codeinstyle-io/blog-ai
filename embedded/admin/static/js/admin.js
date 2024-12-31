@@ -325,7 +325,7 @@ function openLogoMediaSelector() {
 (function() {
 
 
-Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, props) => {
+Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, error, props) => {
     let method = 'POST';
     let url = '/admin/api/posts';
 
@@ -342,18 +342,21 @@ Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, props) => {
       },
       body: JSON.stringify(data),
     });
+    const json = await resp.json();
 
     if(resp.ok) {
-        alert('Saved');
+        if (json.redirect) {
+            done('saved');
+            window.location.href = json.redirect;
+        }
     } else {
-        alert('Failed to save', error);
+        error(json.error);
+        document.querySelector('.editor-container').scrollIntoView()
     }
-
-    done('saved');
   }
 });
 
-Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, props) => {
+Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, error, props) => {
     let method = 'POST';
     let url = '/admin/api/pages';
 
@@ -372,12 +375,15 @@ Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, props) => {
     });
 
     if(resp.ok) {
-        alert('Saved');
+        const json = await resp.json();
+        if (json.redirect) {
+            done('saved');
+            window.location.href = json.redirect;
+        }
     } else {
-        alert('Failed to save', error);
+        error(json.error);
+        document.querySelector('.editor-container').scrollIntoView()
     }
-
-    done('saved');
   }
 });
 

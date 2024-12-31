@@ -30,8 +30,8 @@
 </script>
 
 <div>
-  <Input type="text" id="tags" on:keydown={addItem} class="mb-2" />
-  <div class="pt-2">
+  <Input type="text" id="tags" name="tags" on:keydown={addItem} class="mb-2" />
+  <div class="pt-2" id="selected-tags">
     {#each tags as tag}
       <Kbd class="py-3 px-4 mr-4">
         {tag}

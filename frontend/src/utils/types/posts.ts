@@ -9,5 +9,5 @@ export interface Posts {
   visible?: boolean;
   publishedAt?: string;
   savingState?: SavingStates;
-  onSubmit?: (data: any, done: (savingState: SavingStates) => void) => void;
+  onSubmit?: (data: any, done: (savingState: SavingStates) => void, error: (error: any) => void) => void;
 }

@@ -15,6 +15,7 @@
 
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
+  let error = $state("");
 
   let {
     title = "",
@@ -51,6 +52,7 @@
 
   function handleSubmit(e: Event) {
     e.preventDefault();
+    error = "";
 
     onSubmit(
       {
@@ -63,11 +65,20 @@
       (savingState) => {
         savingState = savingState;
       },
+      (newError) => {
+        error = newError;
+      },
     );
   }
 </script>
 
 <div>
+  {#if error !== ""}
+  <Alert color="red" class="my-2">
+    <span class="font-medium">{error}</span>
+  </Alert>
+{/if}
+
   <form onsubmit={handleSubmit} class="space-y-6">
     <!-- Title -->
     <div>

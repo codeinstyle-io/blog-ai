@@ -41,5 +41,6 @@
     <div class="mx-2">
       <Timepicker onchange={updateTime} value={timeValue} />
     </div>
+    <input type="hidden" name="datetime" bind:value />
   </div>
 </div>

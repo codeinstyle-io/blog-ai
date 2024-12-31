@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 import { login, logout } from '../helpers/auth';
-
+import { fillDateTimeField, setVisibility } from '../helpers/posts';
 
 const randomTitle = faker.lorem.words(3);
 
@@ -12,7 +12,7 @@ test.describe('Admin Panel E2E Tests', () => {
         // Login
         await test.step('Login to admin panel', async () => {
             await login(page);
-            
+
             // Verify successful login
             await expect(page).toHaveURL(/.*\/admin/);
         });
@@ -23,7 +23,7 @@ test.describe('Admin Panel E2E Tests', () => {
             const titleFieldSelector = 'input[name="title"]';
             const slugFieldSelector = 'input[name="slug"]';
             const expectedSlug = 'test-post';
-            
+
             // Create first post with specific data
             await page.click('text=Create Your First Post');
 
@@ -33,7 +33,7 @@ test.describe('Admin Panel E2E Tests', () => {
             // Validate the slug
             const slugValue = await page.locator(slugFieldSelector).inputValue();
             expect(slugValue).toBe(expectedSlug);
-            
+
             // Set excerpt
             await page.fill('textarea[name="excerpt"]', 'Test excerpt');
 
@@ -41,30 +41,30 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.fill('textarea[name="content"]', 'Test content');
 
             // Set tags
-            await page.fill('input[id="tag-input"]', 'test');
-            await page.press('input[id="tag-input"]', 'Enter');
-            await page.fill('input[id="tag-input"]', 'e2e');
-            await page.press('input[id="tag-input"]', 'Enter');
+            await page.fill('input[name="tags"]', 'test');
+            await page.press('input[name="tags"]', 'Enter');
+            await page.fill('input[name="tags"]', 'e2e');
+            await page.press('input[name="tags"]', 'Enter');
 
             // Set publish type to "scheduled" and set publish date to "1985-10-26T10:00"
-            await page.selectOption('select[id="publishType"]', 'scheduled');
-            await page.fill('input[id="publishedAt"]', '1985-10-26T10:00');
+            await page.selectOption('select[name="publish"]', 'scheduled');
+            await fillDateTimeField(page, '1985-10-26T10:00');
 
             await expect(page.locator('#selected-tags')).toContainText('test');
             await expect(page.locator('#selected-tags')).toContainText('e2e');
-    
-            // Set visibility
-            await page.click('.toggle-switch');
 
-            await page.click('button:has-text("Create Post")');
-            
+            // Set visibility
+            await setVisibility(page, true);
+
+            await page.click('button:has-text("Save")');
+
             // Verify flash message
             await expect(page.locator('.flash-message.flash-success')).toBeVisible();
             await expect(page.locator('.flash-message.flash-success')).toContainText('Post created successfully');
-            
+
             // Verify post creation
             await expect(page.locator(`text=${postTitle}`)).toBeVisible();
-            
+
             // Edit post
             await page.click(`a:has-text("Edit")`);
 
@@ -75,9 +75,9 @@ test.describe('Admin Panel E2E Tests', () => {
             // Verify slug remained same
             const slugValueEdited = await page.locator(slugFieldSelector).inputValue();
             expect(slugValueEdited).toBe(expectedSlug);
-            
-            await page.click('button:has-text("Update Post")');
-            
+
+            await page.click('button:has-text("Save")');
+
             // Verify post update
             await expect(page.locator(`text="New title"`)).toBeVisible();
 
@@ -106,7 +106,7 @@ test.describe('Admin Panel E2E Tests', () => {
         await test.step('Create and manage pages', async () => {
             const pageTitle = 'Test Page';
             const pageSlug = 'test-page';
-            
+
             await page.click('text=Pages');
             await page.click('text=Create New Page');
             await page.locator('input[name="title"]').pressSequentially(pageTitle);
@@ -114,10 +114,10 @@ test.describe('Admin Panel E2E Tests', () => {
             expect(slugValue).toBe(pageSlug);
             await page.fill('textarea[name="content"]', 'Test page content');
             await page.click('button:has-text("Create Page")');
-            
+
             // Verify page creation
             await expect(page.locator(`text=${pageTitle}`)).toBeVisible();
-            
+
             // Edit page
             await page.click('a:has-text("Edit")');
             await page.locator('input[name="title"]').clear();
@@ -131,19 +131,19 @@ test.describe('Admin Panel E2E Tests', () => {
         // Menu Management
         await test.step('Create and verify menu items', async () => {
             await page.click('text=Menu Items');
-            
+
             // Create custom URL menu item
             await page.click('text=Create New Menu Item');
             await page.fill('input[name="label"]', 'Custom Link');
             await page.fill('input[name="url"]', 'https://example.com');
             await page.click('button:has-text("Create Menu Item")');
-            
+
             // Create page link menu item
             await page.click('text=Create New Menu Item');
             await page.fill('input[name="label"]', 'Test Page');
             await page.selectOption('select[name="page_id"]', { label: 'Edited Page title' });
             await page.click('button:has-text("Create Menu Item")');
-            
+
             // Verify menu items
             await page.goto('/');
             await expect(page.locator('a[href="https://example.com"]')).toBeVisible();
@@ -158,12 +158,12 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator('.post-tag:has-text("test")').first()).toBeVisible();
             await expect(page.locator('.post-tag:has-text("another")').first()).toBeVisible();
             await expect(page.locator('.post-tag:has-text("e2e")').first()).toBeVisible();
-            
+
             // Click tag and verify posts
             await page.click('.post-tag:has-text("test")');
             await expect(page.locator('text=New title')).toBeVisible();
             await expect(page.locator(`text=${randomTitle}`)).toBeVisible();
-            
+
             // Check public tag page
             await page.goto('/tags/e2e');
             await expect(page.locator('text=New title')).toBeVisible();
@@ -181,7 +181,7 @@ test.describe('Admin Panel E2E Tests', () => {
             await page.selectOption('select[name="timezone"]', 'Asia/Tokyo');
             await page.selectOption('select[name="theme"]', 'dark');
             await page.fill('input[name="posts_per_page"]', '1');
-        
+
             const settingsSaveResponse = page.waitForResponse('**/admin/settings');
             await page.click('button:has-text("Save Settings")');
 
