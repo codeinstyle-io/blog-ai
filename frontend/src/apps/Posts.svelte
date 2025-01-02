@@ -14,24 +14,24 @@
   import SubmitButton from "../lib/SubmitButton.svelte";
 
   import { type Posts } from "../utils/types/posts";
-  import { slugify } from "../utils/text";
   import type { SavingStates } from "../utils/types/common";
-    import { CloseCircleSolid } from "flowbite-svelte-icons";
+  import { slugify } from "../utils/text";
 
   let originalSlug = $state("");
   let error = $state("");
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
-  let publish = $state("immediately");
 
   let {
     title = "",
     tags = [],
     excerpt = "",
     content = "",
+    publish = "immediately",
     visible = false,
     publishedAt = "",
     slug = "",
+
     savingState = "draft",
     onSubmit = (data: any, done: (savingState: SavingStates) => void) => {
       done("saved");
@@ -175,16 +175,10 @@
 
         {#if publish === "scheduled"}
           <div class="mt-4">
-            <span
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >
-              Select date and time of publication:
-            </span>
             <DateTimePicker bind:value={publishedAt} />
           </div>
         {/if}
       </div>
-    </div>
 
     <!-- Submit Button -->
     <div class="flex justify-end">

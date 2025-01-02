@@ -35,14 +35,8 @@ type pageRequest struct {
 	Visible     bool   `json:"visible"`
 }
 
-func parseTime(date *string, timezone string) (*time.Time, error) {
+func parseTime(date *string) (*time.Time, error) {
 	var parsedTime time.Time
-
-	loc, err := time.LoadLocation(timezone)
-
-	if err != nil {
-		return nil, err
-	}
 
 	if date != nil && *date != "" {
 		time, err := time.Parse(time.RFC3339, *date)
@@ -55,14 +49,11 @@ func parseTime(date *string, timezone string) (*time.Time, error) {
 		parsedTime = time.Now()
 	}
 
-	parsedTime = parsedTime.In(loc)
-
 	return &parsedTime, nil
 }
 
 func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 	post := new(postRequest)
-	settings := c.Locals("settings").(*models.Settings)
 
 	if err := c.BodyParser(post); err != nil {
 		// TODO: Log error
@@ -70,7 +61,7 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
+	publishedAt, err := parseTime(post.PublishedAt)
 	if err != nil {
 		// TODO: Log error
 		fmt.Printf("Failed to parse publishedAt: %v\n", err)
@@ -111,7 +102,6 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 
 func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 	post := new(postRequest)
-	settings := c.Locals("settings").(*models.Settings)
 
 	id, err := utils.ParseUint(c.Params("id"))
 	if err != nil {
@@ -129,7 +119,7 @@ func (h *AdminHandlers) ApiUpdatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	publishedAt, err := parseTime(post.PublishedAt, settings.Timezone)
+	publishedAt, err := parseTime(post.PublishedAt)
 	if err != nil {
 		// TODO: Log error
 		fmt.Printf("Failed to parse publishedAt: %v\n", err)

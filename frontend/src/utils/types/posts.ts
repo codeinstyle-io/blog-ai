@@ -7,6 +7,7 @@ export interface Posts {
   excerpt?: string;
   content?: string;
   visible?: boolean;
+  publish?: string;
   publishedAt?: string;
   savingState?: SavingStates;
   onSubmit?: (data: any, done: (savingState: SavingStates) => void, error: (error: any) => void) => void;
