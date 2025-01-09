@@ -322,70 +322,87 @@ function openLogoMediaSelector() {
     });
 }
 
+function displayDate(datetime, timezoneOffset) {
+    const date = new Date(new Date(datetime).getTime() + timezoneOffset * 60 * 1000);
+    return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
 (function() {
 
-
-Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, error, props) => {
-    let method = 'POST';
-    let url = '/admin/api/posts';
-
-    if(props.id) {
-      method = 'PUT';
-      url = url + '/' + props.id;
-    }
-    done('saving');
-
-    const resp = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+    document.querySelectorAll('[x-dynamic-date]').forEach((element) => {
+        const date = element.getAttribute('x-dynamic-date');
+        const timezone = element.getAttribute('x-dynamic-date-timezone');
+        element.innerHTML = displayDate(date, timezone);
     });
-    const json = await resp.json();
 
-    if(resp.ok) {
-        if (json.redirect) {
-            done('saved');
-            window.location.href = json.redirect;
+    Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, error, props) => {
+        let method = 'POST';
+        let url = '/admin/api/posts';
+
+        if(props.id) {
+        method = 'PUT';
+        url = url + '/' + props.id;
         }
-    } else {
-        error(json.error);
-        document.querySelector('.editor-container').scrollIntoView()
-    }
-  }
-});
+        done('saving');
 
-Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, error, props) => {
-    let method = 'POST';
-    let url = '/admin/api/pages';
-
-    if(props.id) {
-      method = 'PUT';
-      url = url + '/' + props.id;
-    }
-    done('saving');
-
-    const resp = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if(resp.ok) {
+        const resp = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        });
         const json = await resp.json();
-        if (json.redirect) {
-            done('saved');
-            window.location.href = json.redirect;
+
+        if(resp.ok) {
+            if (json.redirect) {
+                done('saved');
+                window.location.href = json.redirect;
+            }
+        } else {
+            error(json.error);
+            document.querySelector('.editor-container').scrollIntoView()
         }
-    } else {
-        error(json.error);
-        document.querySelector('.editor-container').scrollIntoView()
     }
-  }
-});
+    });
+
+    Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, error, props) => {
+        let method = 'POST';
+        let url = '/admin/api/pages';
+
+        if(props.id) {
+        method = 'PUT';
+        url = url + '/' + props.id;
+        }
+        done('saving');
+
+        const resp = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        });
+
+        if(resp.ok) {
+            const json = await resp.json();
+            if (json.redirect) {
+                done('saved');
+                window.location.href = json.redirect;
+            }
+        } else {
+            error(json.error);
+            document.querySelector('.editor-container').scrollIntoView()
+        }
+    }
+    });
 
   document.addEventListener("DOMContentLoaded", () => Inity.attach());
 })();

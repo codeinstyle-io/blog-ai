@@ -31,7 +31,7 @@
     visible = false,
     publishedAt = "",
     slug = "",
-
+    timezone = "UTC",
     savingState = "draft",
     onSubmit = (data: any, done: (savingState: SavingStates) => void) => {
       done("saved");
@@ -79,6 +79,7 @@
         visible,
         publishedAt,
         slug,
+        timezone,
       },
       (newSavingState: SavingStates) => {
         savingState = newSavingState;
@@ -175,14 +176,14 @@
 
         {#if publish === "scheduled"}
           <div class="mt-4">
-            <DateTimePicker bind:value={publishedAt} />
+            <DateTimePicker bind:value={publishedAt} bind:timezone={timezone} />
           </div>
         {/if}
       </div>
-
-    <!-- Submit Button -->
-    <div class="flex justify-end">
-      <SubmitButton {savingState} />
     </div>
+   <!-- Submit Button -->
+   <div class="flex justify-end">
+    <SubmitButton {savingState} />
+  </div>
   </form>
 </div>

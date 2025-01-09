@@ -3,9 +3,9 @@
   import { type Action } from "svelte/action";
   import { Datepicker } from "flowbite-svelte";
   import Timepicker from "./Timepicker.svelte";
-    import TimezonePicker from "./TimezonePicker.svelte";
+  import TimezonePicker from "./TimezonePicker.svelte";
 
-  let { value = $bindable("") }: { value: string } = $props();
+  let { value = $bindable(""), timezone = $bindable("UTC") }: { value: string, timezone: string } = $props();
   let internalValue = $state(new Date(value || Date.now()));
   let timeValue = $state("00:00");
 
@@ -69,7 +69,7 @@
     <h3 class="text-sm font-medium text-gray-900 dark:text-white my-2">Time of publication:</h3>
     <Timepicker onchange={updateTime} value={timeValue} />
     <h3 class="text-sm font-medium text-gray-900 dark:text-white my-2">Timezone:</h3>
-    <TimezonePicker />
+    <TimezonePicker bind:timezone={timezone} />
   </div>
   <div class="full text-black dark:text-white">
     <h3 class="text-sm font-medium text-gray-900 dark:text-white my-2">Date of publication:</h3>

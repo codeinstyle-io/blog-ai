@@ -3,7 +3,7 @@
   import { Select } from "flowbite-svelte";
   import timezones from "../utils/timezones";
 
-  let { timezone = "Africa/Casablanca" } = $props();
+  let { timezone = $bindable("Africa/Casablanca") } = $props();
 
 
   onMount(() => {
