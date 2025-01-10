@@ -179,10 +179,8 @@ test.describe('Admin Panel E2E Tests', () => {
         await test.step('Modify and verify settings', async () => {
             await page.goto('/admin/settings');
 
-            // Change timezone
             await page.fill('input[name="title"]', 'Updated Title');
             await page.fill('input[name="subtitle"]', 'Updated Subtitle');
-            await page.selectOption('select[name="timezone"]', 'Asia/Tokyo');
             await page.selectOption('select[name="theme"]', 'dark');
             await page.fill('input[name="posts_per_page"]', '1');
 
@@ -194,9 +192,9 @@ test.describe('Admin Panel E2E Tests', () => {
 
             // Verify post time updated
             await page.goto('/admin/posts');
-            const secondPost = page.locator('tr').nth(2);
-            const publishedAt = await secondPost.locator('td').nth(2).textContent();
-            expect(publishedAt).toContain('1985-10-26 19:00');
+            const thirdPost = page.locator('tr').nth(3);
+            const publishedAt = await thirdPost.locator('td').nth(2).textContent();
+            expect(publishedAt).toContain('October 26, 1985 at 11:00 AM');
 
         });
 
@@ -212,7 +210,6 @@ test.describe('Admin Panel E2E Tests', () => {
             await expect(page.locator('text=Updated Subtitle')).toBeVisible();
             const title = await page.title();
             await expect(title).toContain('Updated Title');
-
         });
     });
 });

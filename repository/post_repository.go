@@ -85,27 +85,23 @@ func (r *PostRepository) FindByTag(tag string) ([]*models.Post, error) {
 }
 
 // FindVisiblePaginated finds all visible posts with pagination
-func (r *PostRepository) FindVisiblePaginated(page, perPage int, timezone string) ([]models.Post, int64, error) {
+func (r *PostRepository) FindVisiblePaginated(page, perPage int) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64
 
 	offset := (page - 1) * perPage
 
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	now := time.Now().In(loc)
+	now := time.Now().UTC()
 
 	query := r.db.Model(&models.Post{}).
-		Where("visible = ? AND published_at <= ?", true, now)
+		Where("visible = ? AND published_at_utc <= ?", true, now)
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err = query.Preload("Tags").Joins("Author").
-		Order("published_at desc").
+	err := query.Preload("Tags").Joins("Author").
+		Order("published_at_utc desc").
 		Offset(offset).
 		Limit(perPage).
 		Find(&posts).Error
@@ -114,28 +110,24 @@ func (r *PostRepository) FindVisiblePaginated(page, perPage int, timezone string
 }
 
 // FindVisibleByTag finds all visible posts with a specific tag
-func (r *PostRepository) FindVisibleByTag(tagID uint, page, perPage int, timezone string) ([]models.Post, int64, error) {
+func (r *PostRepository) FindVisibleByTag(tagID uint, page, perPage int) ([]models.Post, int64, error) {
 	var posts []models.Post
 	var total int64
 
 	offset := (page - 1) * perPage
 
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	now := time.Now().In(loc)
+	now := time.Now().UTC()
 
 	query := r.db.Model(&models.Post{}).
 		Joins("JOIN post_tags ON posts.id = post_tags.post_id").
-		Where("post_tags.tag_id = ? AND visible = ? AND published_at <= ?", tagID, true, now)
+		Where("post_tags.tag_id = ? AND visible = ? AND published_at_utc <= ?", tagID, true, now)
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	err = query.Preload("Tags").Joins("Author").
-		Order("posts.published_at desc").
+	err := query.Preload("Tags").Joins("Author").
+		Order("posts.published_at_utc desc").
 		Offset(offset).
 		Limit(perPage).
 		Find(&posts).Error
@@ -175,7 +167,7 @@ func (r *PostRepository) FindAllPaginated(page, perPage int) ([]models.Post, int
 	}
 
 	err := query.Preload("Tags").Joins("Author").
-		Order("published_at desc").
+		Order("published_at_utc desc").
 		Offset(offset).
 		Limit(perPage).
 		Find(&posts).Error
@@ -199,7 +191,7 @@ func (r *PostRepository) FindAllByTag(tagID uint, page, perPage int) ([]models.P
 	}
 
 	err := query.Preload("Tags").Joins("Author").
-		Order("published_at desc").
+		Order("published_at_utc desc").
 		Offset(offset).
 		Limit(perPage).
 		Find(&posts).Error

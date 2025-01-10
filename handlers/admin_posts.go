@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/captain-corp/captain/flash"
 	"github.com/captain-corp/captain/models"
@@ -19,25 +18,6 @@ func (h *AdminHandlers) ListPosts(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
 			"error": err.Error(),
 		})
-	}
-
-	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	// Load timezone from settings
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	// Convert post times to user timezone
-	for i := range posts {
-		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
 	}
 
 	return c.Render("admin_posts", fiber.Map{
@@ -76,25 +56,6 @@ func (h *AdminHandlers) ListPostsByTag(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
 			"error": err.Error(),
 		})
-	}
-
-	// Get settings for timezone
-	settings, err := h.repos.Settings.Get()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	// Load timezone from settings
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-
-	// Convert post times to user timezone
-	for i := range posts {
-		posts[i].PublishedAt = posts[i].PublishedAt.In(loc)
 	}
 
 	return c.Render("admin_tag_posts", fiber.Map{

@@ -26,7 +26,6 @@ func (r *settingsRepository) Get() (*models.Settings, error) {
 		settings = models.Settings{
 			Title:        system.DefaultTitle,
 			Subtitle:     system.DefaultSubtitle,
-			Timezone:     system.DefaultTimezone,
 			ChromaStyle:  system.DefaultChromaStyle,
 			Theme:        system.DefaultTheme,
 			PostsPerPage: system.DefaultPostsPerPage,

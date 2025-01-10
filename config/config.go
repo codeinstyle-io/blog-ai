@@ -10,48 +10,6 @@ import (
 )
 
 var (
-	// Available timezones
-	timezones = []string{
-		"UTC",
-		"Europe/London",
-		"Europe/Paris",
-		"Europe/Berlin",
-		"Europe/Madrid",
-		"Europe/Rome",
-		"Europe/Amsterdam",
-		"Europe/Brussels",
-		"Europe/Vienna",
-		"Europe/Stockholm",
-		"Europe/Copenhagen",
-		"Europe/Oslo",
-		"Europe/Warsaw",
-		"Europe/Moscow",
-		"Europe/Istanbul",
-		"America/New_York",
-		"America/Chicago",
-		"America/Denver",
-		"America/Los_Angeles",
-		"America/Toronto",
-		"America/Vancouver",
-		"America/Mexico_City",
-		"America/Sao_Paulo",
-		"America/Buenos_Aires",
-		"Asia/Dubai",
-		"Asia/Tokyo",
-		"Asia/Shanghai",
-		"Asia/Hong_Kong",
-		"Asia/Singapore",
-		"Asia/Seoul",
-		"Asia/Kolkata",
-		"Asia/Bangkok",
-		"Asia/Jakarta",
-		"Australia/Sydney",
-		"Australia/Melbourne",
-		"Australia/Brisbane",
-		"Australia/Perth",
-		"Pacific/Auckland",
-	}
-
 	// Available Chroma styles
 	chromaStyles = []string{
 		"abap",
@@ -221,11 +179,6 @@ func (c *Config) ValidateS3Config() error {
 	}
 
 	return nil
-}
-
-// GetTimezones returns the list of available timezones
-func GetTimezones() []string {
-	return timezones
 }
 
 // GetChromaStyles returns the list of available syntax highlighting themes

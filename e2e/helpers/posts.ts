@@ -33,7 +33,7 @@ export async function createPost(page: Page, options: CreatePostOptions) {
   await page.goto('/admin/posts/create');
 
   // Fill in the form
-  await page.fill('input[name="title"]', options.title);
+  await page.locator('input[name="title"]').pressSequentially(options.title, {delay: 100});
   await page.fill('textarea[name="content"]', options.content);
 
   // Set visibility
@@ -51,5 +51,5 @@ export async function createPost(page: Page, options: CreatePostOptions) {
   await page.click('button[type="submit"]');
 
   // Wait for navigation after submission
-  await page.waitForURL(/\/admin\/posts/);
+  await page.waitForURL(/\/admin\/posts$/);
 }

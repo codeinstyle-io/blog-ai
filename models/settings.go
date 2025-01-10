@@ -9,7 +9,6 @@ type Settings struct {
 	gorm.Model
 	Title        string `gorm:"not null" form:"title"`
 	Subtitle     string `gorm:"not null" form:"subtitle"`
-	Timezone     string `gorm:"not null" form:"timezone"`
 	ChromaStyle  string `gorm:"not null" form:"chroma_style"`
 	Theme        string `gorm:"not null" form:"theme"`
 	PostsPerPage int    `gorm:"not null" form:"posts_per_page"`

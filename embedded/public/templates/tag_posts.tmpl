@@ -4,12 +4,12 @@
         <h1 class="tag-title">Posts tagged with #{{ .tag.Name }}</h1>
         {{ if .posts }}
             {{ range .posts }}
-                <article class="post-item {{ if not .Visible }}draft-post{{ else if .IsScheduled $.settings.Timezone }}scheduled-post{{ end }}">
+                <article class="post-item {{ if not .Visible }}draft-post{{ else if .IsScheduled }}scheduled-post{{ end }}">
                     <div class="post-meta">
                         <div class="post-date">{{ .PublishedAt.Format "January 2, 2006" }}</div>
                         {{ if not .Visible }}
                             <span class="draft-indicator">Draft</span>
-                        {{ else if .IsScheduled $.settings.Timezone }}
+                        {{ else if .IsScheduled }}
                             <span class="scheduled-indicator">Scheduled</span>
                         {{ end }}
                         {{ if $.user }}

@@ -24,13 +24,9 @@ type Post struct {
 }
 
 // IsScheduled returns true if the post is scheduled for future publication
-func (p *Post) IsScheduled(timezone string) bool {
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	now := time.Now().In(loc)
-	return p.Visible && p.PublishedAt.After(now)
+func (p *Post) IsScheduled() bool {
+	now := time.Now().UTC()
+	return p.Visible && p.PublishedAtUTC.After(now)
 }
 
 func (p *Post) ToJSON() string {
