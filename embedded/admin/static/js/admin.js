@@ -2,78 +2,78 @@ function deleteTag(id) {
     fetch(`/admin/tags/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deletePost(id) {
     fetch(`/admin/posts/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deletePage(id) {
     fetch(`/admin/pages/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteMenuItem(id) {
     fetch(`/admin/menus/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteMedia(id) {
     fetch(`/admin/media/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteUser(id) {
     fetch(`/admin/users/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 
@@ -96,7 +96,7 @@ function initializeMenuItemForm() {
         }
     }
 
-    pageSelect.addEventListener('change', function() {
+    pageSelect.addEventListener('change', function () {
         const pageId = this.value;
         const selectedOption = this.options[this.selectedIndex];
 
@@ -113,14 +113,14 @@ function initializeMenuItemForm() {
     });
 
     // Clear page selection when URL is manually edited
-    urlInput.addEventListener('input', function() {
+    urlInput.addEventListener('input', function () {
         if (this.value !== this.defaultValue) {
             pageSelect.value = '';
             this.readOnly = false;
         }
     });
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
         // Validate form
         if (!labelInput.value.trim()) {
             e.preventDefault();
@@ -144,21 +144,21 @@ function initializeMenuItems() {
     const deleteMenuButtons = document.querySelectorAll('.delete-menu-item');
 
     moveUpButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             moveItem(id, 'up');
         });
     });
 
     moveDownButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             moveItem(id, 'down');
         });
     });
 
     deleteMenuButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             deleteMenuItem(id);
         });
@@ -214,7 +214,7 @@ function initializeMenuToggle() {
     }
 }
 
-!(function(win, doc) {
+!(function (win, doc) {
     function openMediaModal(cb) {
         doc.getElementById('mediaModal').style.display = 'block';
         loadMediaItems(cb);
@@ -229,7 +229,7 @@ function initializeMenuToggle() {
             .then(response => response.json())
             .then(items => {
                 mediaItems = items;
-                const grid =    doc.getElementById('mediaGrid');
+                const grid = doc.getElementById('mediaGrid');
                 grid.innerHTML = '';
 
                 items.forEach(item => {
@@ -293,7 +293,7 @@ function initializeMenuToggle() {
     win.insertMedia = insertMedia;
 
     // Close modal when clicking outside
-    win.onclick = function(event) {
+    win.onclick = function (event) {
         const modal = doc.getElementById('mediaModal');
         if (event.target == modal) {
             closeMediaModal();
@@ -322,7 +322,7 @@ function openLogoMediaSelector() {
     });
 }
 
-(function() {
+(function () {
 
     document.querySelectorAll('[x-dynamic-date]').forEach((element) => {
         const datetime = element.getAttribute('x-dynamic-date');
@@ -340,69 +340,71 @@ function openLogoMediaSelector() {
         element.innerHTML = date;
     });
 
-    Inity.register('posts', Apps.Posts, { onSubmit: async(data, done, error, props) => {
-        let method = 'POST';
-        let url = '/admin/api/posts';
+    Inity.register('posts', Apps.Posts, {
+        onSubmit: async (data, done, error, props) => {
+            let method = 'POST';
+            let url = '/admin/api/posts';
 
-        if(props.id) {
-            method = 'PUT';
-            url = url + '/' + props.id;
-        }
-        done('saving');
-
-        const resp = await fetch(url, {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        });
-        const json = await resp.json();
-
-        if(resp.ok) {
-            if (json.redirect) {
-                done('saved');
-                window.location.href = json.redirect;
+            if (props.id) {
+                method = 'PUT';
+                url = url + '/' + props.id;
             }
-        } else {
-            error(json.error);
-            document.querySelector('.editor-container').scrollIntoView()
-        }
-    }
-    });
+            done('saving');
 
-    Inity.register('pages', Apps.Pages, { onSubmit: async(data, done, error, props) => {
-        let method = 'POST';
-        let url = '/admin/api/pages';
-
-        if(props.id) {
-        method = 'PUT';
-        url = url + '/' + props.id;
-        }
-        done('saving');
-
-        const resp = await fetch(url, {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        });
-
-        if(resp.ok) {
+            const resp = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
             const json = await resp.json();
-            if (json.redirect) {
-                done('saved');
-                window.location.href = json.redirect;
+
+            if (resp.ok) {
+                if (json.redirect) {
+                    done('saved');
+                    window.location.href = json.redirect;
+                }
+            } else {
+                error(json.error);
+                document.querySelector('.editor-container').scrollIntoView()
             }
-        } else {
-            error(json.error);
-            document.querySelector('.editor-container').scrollIntoView()
         }
-    }
     });
 
-  document.addEventListener("DOMContentLoaded", () => Inity.attach());
+    Inity.register('pages', Apps.Pages, {
+        onSubmit: async (data, done, error, props) => {
+            let method = 'POST';
+            let url = '/admin/api/pages';
+
+            if (props.id) {
+                method = 'PUT';
+                url = url + '/' + props.id;
+            }
+            done('saving');
+
+            const resp = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (resp.ok) {
+                const json = await resp.json();
+                if (json.redirect) {
+                    done('saved');
+                    window.location.href = json.redirect;
+                }
+            } else {
+                error(json.error);
+                document.querySelector('.editor-container').scrollIntoView()
+            }
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => Inity.attach());
 })();
 
 // Initialize on DOM Content Loaded
