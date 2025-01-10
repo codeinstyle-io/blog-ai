@@ -23,7 +23,9 @@
                 <tr>
                     <td>{{.Title}}</td>
                     <td>{{if .Author}}{{.Author.FirstName}} {{.Author.LastName}}{{else}}<em>Deleted User</em>{{end}}</td>
-                    <td x-dynamic-date="{{.PublishedAtUTC}}" x-dynamic-date-timezone="{{.PublishedAtTimeZoneOffset}}"></td>
+                    <td x-dynamic-date="{{.PublishedAtUTC}}" x-dynamic-date-timezone="{{.PublishedAtTimeZoneOffset}}">
+                        {{.PublishedAt.Format "2006-01-02 15:04"}}
+                    </td>
                     <td>{{if .Visible}}Yes{{else}}No{{end}}</td>
                     <td class="tags">
                         {{range .Tags}}
