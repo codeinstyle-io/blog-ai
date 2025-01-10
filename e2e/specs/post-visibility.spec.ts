@@ -51,9 +51,9 @@ test.describe('Post Visibility', () => {
     const draftPostCount = await page.locator('article:has-text("Draft")').count();
     const scheduledPostCount = await page.locator('article:has-text("Scheduled")').count();
     const editLinkCount = await page.locator('.edit-link').count();
-    expect(draftPostCount > 0).toBeTruthy();
-    expect(scheduledPostCount > 0).toBeTruthy();
-    expect(editLinkCount > 0).toBeTruthy();
+    expect(draftPostCount).toBeGreaterThan(0);
+    expect(scheduledPostCount).toBeGreaterThan(0);
+    expect(editLinkCount).toBeGreaterThan(0);
 
     // Logout and verify posts are not visible to anonymous users
     await page.goto('/logout');
