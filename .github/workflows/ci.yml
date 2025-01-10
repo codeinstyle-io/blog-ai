@@ -62,16 +62,13 @@ jobs:
         cache-dependency-path: '**/package-lock.json'
 
     - name: Install dependencies
-      run: npm ci && cd frontend && npm ci
+      run: npm ci
 
     - name: Install Playwright browsers
       run: npx playwright install --with-deps chromium
 
-    - name: Build frontend
-      run: cd frontend && npm run build
-
-    - name: Build application
-      run: go build -o ./dist/bin/captain ./main.go
+    - name: Build
+      run: make build
 
     - name: Run Playwright tests
       run: mkdir -p ./testdata && npx playwright test
