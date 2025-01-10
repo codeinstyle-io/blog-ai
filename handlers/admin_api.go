@@ -86,6 +86,16 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
+	// Get the logged in user
+	exists := c.Locals("user")
+	if exists == nil {
+		flash.Error(c, "User session not found")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "User session not found",
+		})
+	}
+	user := exists.(*models.User)
+
 	publishedAt, err := parseTime(post.PublishedAt, post.Timezone)
 	if err != nil {
 		// TODO: Log error
@@ -103,7 +113,7 @@ func (h *AdminHandlers) ApiCreatePost(c *fiber.Ctx) error {
 		PublishedAtTimezone:       publishedAt.Timezone,
 		PublishedAtUTC:            publishedAt.UTC,
 		PublishedAtTimeZoneOffset: publishedAt.TimezoneOffset,
-		AuthorID:                  1, //TODO: Get logged in user
+		AuthorID:                  user.ID,
 	}
 
 	if err := h.repos.Posts.Create(newPost); err != nil {
