@@ -9,12 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@cartamd/plugin-anchor": "^2.1.1",
-    "@cartamd/plugin-attachment": "^4.1.1",
-    "@cartamd/plugin-code": "^4.0.6",
-    "@cartamd/plugin-emoji": "^4.2.1",
     "@sindresorhus/slugify": "^2.2.1",
-    "carta-md": "^4.6.7",
     "flowbite": "^2.5.2",
     "flowbite-svelte": "^0.47.4",
     "flowbite-svelte-icons": "^2.0.2"

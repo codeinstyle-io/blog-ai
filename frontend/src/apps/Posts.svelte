@@ -125,7 +125,7 @@
     <!-- Content -->
     <div>
       <Label for="content" class="block text-sm font-bold text-gray-700 mb-2">Content</Label>
-      <Editor bind:content />
+      <Editor bind:value={content} rows={10} name="content" />
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
