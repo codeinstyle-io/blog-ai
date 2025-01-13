@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Input, Kbd, CloseButton } from "flowbite-svelte";
+  import { Input, Kbd, CloseButton } from 'flowbite-svelte';
 
   let { tags = $bindable() } = $props();
 
@@ -8,7 +8,7 @@
   }
 
   function addItem(event: KeyboardEvent) {
-    if (event.key !== "Enter") {
+    if (event.key !== 'Enter') {
       return;
     }
     const element = event.target as HTMLInputElement;
@@ -25,7 +25,7 @@
     }
 
     tags = [...tags, item];
-    element.value = "";
+    element.value = '';
   }
 </script>
 

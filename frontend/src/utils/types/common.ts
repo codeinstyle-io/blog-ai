@@ -1,1 +1,1 @@
-export type SavingStates = "draft" | "saving" | "saved";
+export type SavingStates = 'draft' | 'saving' | 'saved';

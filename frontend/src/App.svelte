@@ -1,6 +1,6 @@
 <script>
-  import Posts from "./apps/Posts.svelte";
-  import Pages from "./apps/Pages.svelte";
+  import Posts from './apps/Posts.svelte';
+  import Pages from './apps/Pages.svelte';
 </script>
 
 <div class="max-w-5xl mx-auto p-6">
@@ -10,12 +10,12 @@
     slug="my-first-post"
     excerpt="This is my first post."
     content="Hello, world!"
-    tags={["tag1", "tag2", "tag3"]}
+    tags={['tag1', 'tag2', 'tag3']}
     visible={true}
     savingState="saved"
     onSubmit={(data, done) => {
-      console.log("Submitted post data:", data);
-      done("saved");
+      console.log('Submitted post data:', data);
+      done('saved');
     }}
   />
 </div>
@@ -32,8 +32,8 @@
     visible={true}
     savingState="saving"
     onSubmit={(data, done) => {
-      console.log("Submitted page data:", data);
-      done("saved");
+      console.log('Submitted page data:', data);
+      done('saved');
     }}
   />
 </div>
