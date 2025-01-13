@@ -7,7 +7,7 @@
             {{if .Author}}by {{.Author.FirstName}} {{.Author.LastName}}{{end}}
             {{ if not .Visible }}
                 <span class="draft-indicator">Draft</span>
-            {{ else if .IsScheduled $.settings.Timezone }}
+            {{ else if .IsScheduled}}
                 <span class="scheduled-indicator">Scheduled</span>
             {{ end }}
             {{ if $.user }}

@@ -67,8 +67,8 @@ jobs:
     - name: Install Playwright browsers
       run: npx playwright install --with-deps chromium
 
-    - name: Build application
-      run: go build -o ./dist/bin/captain ./main.go
+    - name: Build
+      run: make build
 
     - name: Run Playwright tests
       run: mkdir -p ./testdata && npx playwright test

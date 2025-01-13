@@ -16,7 +16,10 @@ COMMIT := $(shell git rev-parse --short HEAD)
 DATE := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
 # Build commands
-build:
+frontend-build:
+	cd frontend && $(MAKE) build
+
+build: frontend-build
 	mkdir -p dist/bin
 	go build -o $(BINARY_NAME) $(MAIN_FILE)
 
@@ -50,10 +53,13 @@ test-e2e-ui: test-data-cleanup build
 	npx playwright test --ui
 
 # Code quality commands
+frontend-format-check:
+	cd frontend && $(MAKE) format-check
+
 lint:
 	golangci-lint run
 
-fmt:
+fmt: frontend-format-check
 	go fmt ./...
 
 quality: fmt lint test test-e2e

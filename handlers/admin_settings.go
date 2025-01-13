@@ -31,7 +31,6 @@ func (h *AdminHandlers) ShowSettings(c *fiber.Ctx) error {
 		"title":        "Site Settings",
 		"settings":     settings,
 		"logo":         logo,
-		"timezones":    config.GetTimezones(),
 		"chromaStyles": config.GetChromaStyles(),
 	}
 
@@ -46,7 +45,6 @@ func (h *AdminHandlers) UpdateSettings(c *fiber.Ctx) error {
 	// Get form values
 	form.Title = c.FormValue("title")
 	form.Subtitle = c.FormValue("subtitle")
-	form.Timezone = c.FormValue("timezone")
 	form.ChromaStyle = c.FormValue("chroma_style")
 	form.Theme = c.FormValue("theme")
 	postsPerPage := c.FormValue("posts_per_page")

@@ -2,7 +2,7 @@
 {{ template "media_selector" . }}
 <div class="admin-page">
     <div class="page-header">
-        <h1>Edit Post</h1>
+        <h1 class="text-4xl text-bold mb-4">Edit Post</h1>
         <div class="header-actions">
             <a href="/admin/posts" class="btn">← Back to Posts</a>
             <a href="/posts/{{.post.Slug}}" class="btn" target="_blank">View Post</a>
@@ -14,87 +14,7 @@
     {{ end }}
 
     <div class="editor-container">
-        <form id="edit-post-form" method="POST" enctype="multipart/form-data" action="/admin/posts/{{.post.ID}}">
-            <div class="form-group">
-                <label for="title">Title:</label>
-                <input type="text" id="title" name="title" class="form-control" value="{{.post.Title}}" required>
-            </div>
-            <div class="form-group">
-                <label for="slug">Slug:</label>
-                <input type="text" id="slug" name="slug" class="form-control" value="{{.post.Slug}}" required>
-                <small class="help-text">The URL-friendly version of the title</small>
-            </div>
-            <div class="form-group">
-                <label for="excerpt">Excerpt:</label>
-                <textarea id="excerpt" name="excerpt" class="form-control" rows="3">{{if .post.Excerpt}}{{.post.Excerpt}}{{end}}</textarea>
-                <small class="help-text">A brief summary of the post. If left empty, an excerpt will be generated from the content.</small>
-            </div>
-            <div class="form-group">
-                <label for="tags">Tags</label>
-                <div class="tag-input-container">
-                    <input type="text" id="tag-input" class="form-control" placeholder="Add tags...">
-                    <div id="tag-suggestions" class="tag-suggestions"></div>
-                    <div id="selected-tags" class="selected-tags">
-                        {{range .post.Tags}}
-                        <span class="selected-tag">
-                            {{.Name}}
-                            <span class="remove-tag" data-tag="{{.Name}}">&times;</span>
-                        </span>
-                        {{end}}
-                    </div>
-                    <input type="hidden" name="tags" id="tags-hidden" value="{{range $i, $tag := .post.Tags}}{{if $i}},{{end}}{{$tag.Name}}{{end}}">
-                </div>
-            </div>
-            <div class="form-group editor-wrapper">
-                <div class="editor-toolbar">
-                    <label for="content">Content:</label>
-                    <div class="toolbar-actions">
-                        <button type="button" class="btn-toolbar" onclick="openEditorMediaSelector('content')">
-                            <i class="fas fa-image"></i> Add Media
-                        </button>
-                        <div class="format-selector">
-                            <label><input type="radio" name="format" value="markdown" checked> Markdown</label>
-                            <label><input type="radio" name="format" value="html"> HTML</label>
-                        </div>
-                        <div class="preview-toggle">
-                            <button type="button" id="edit-mode" class="active">Edit</button>
-                            <button type="button" id="preview-mode">Preview</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="editor-area">
-                    <textarea id="content" name="content" class="form-control content-editor" required>{{.post.Content}}</textarea>
-                    <div id="preview-area" class="markdown-preview" style="display: none;"></div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="publishType">Publish:</label>
-                    <select id="publishType" class="form-control">
-                        <option value="immediately">Immediately</option>
-                        <option value="scheduled">Specific Date</option>
-                    </select>
-                </div>
-                <div class="form-group" id="publishDateGroup">
-                    <label for="publishedAt">Published At:</label>
-                    <input type="datetime-local" id="publishedAt" name="publishedAt" class="form-control" value="{{.post.PublishedAt.Format "2006-01-02T15:04"}}" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="toggle-label">
-                        <span>Visible</span>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="visible" name="visible" {{if .post.Visible}}checked{{end}}>
-                            <span class="toggle-slider"></span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn-submit">Update Post</button> &nbsp;
-            </div>
-        </form>
+        <div x-inity="posts" x-props='{{ .post.ToJSON }}'></div>
     </div>
 </div>
 {{ template "admin_footer" . }}

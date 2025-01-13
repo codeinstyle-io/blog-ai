@@ -315,7 +315,7 @@ debug: false
 | `storage.s3.secret_key`   | S3 secret key                      | `""`           | Valid AWS secret key                  |
 | `debug`                   | Enable debug mode                   | `false`        | `true`, `false`                      |
 
-Note: Site settings such as title, subtitle, timezone, and admin theme can be configured through the admin panel under Settings.
+Note: Site settings such as title, subtitle, and admin theme can be configured through the admin panel under Settings.
 
 ### Environment Variables
 

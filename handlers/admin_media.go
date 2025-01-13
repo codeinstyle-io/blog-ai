@@ -151,16 +151,6 @@ func (h *AdminMediaHandlers) DeleteMedia(c *fiber.Ctx) error {
 	})
 }
 
-// GetMediaList returns a JSON list of media for AJAX requests
-func (h *AdminMediaHandlers) GetMediaList(c *fiber.Ctx) error {
-	media, err := h.mediaRepo.FindAll()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch media"})
-	}
-
-	return c.JSON(media)
-}
-
 // ConfirmDeleteMedia shows the delete confirmation page
 func (h *AdminMediaHandlers) ConfirmDeleteMedia(c *fiber.Ctx) error {
 	mediaID, err := utils.ParseUint(c.Params("id"))

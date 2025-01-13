@@ -178,7 +178,7 @@ blockquote {
 
 .main-content {
     padding-top: 0; /* Remove extra padding since header is not fixed */
-    min-height: 100vh;
+    min-height: 60vh;
 }
 
 .text-section {

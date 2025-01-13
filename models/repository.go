@@ -9,9 +9,9 @@ type PostRepository interface {
 	FindBySlug(slug string) (*Post, error)
 	FindByTag(tag string) ([]*Post, error)
 	FindAllPaginated(page, perPage int) ([]Post, int64, error)
-	FindVisiblePaginated(page, perPage int, timezone string) ([]Post, int64, error)
+	FindVisiblePaginated(page, perPage int) ([]Post, int64, error)
 	FindAllByTag(tagID uint, page, perPage int) ([]Post, int64, error)
-	FindVisibleByTag(tagID uint, page, perPage int, timezone string) ([]Post, int64, error)
+	FindVisibleByTag(tagID uint, page, perPage int) ([]Post, int64, error)
 	FindAll() ([]*Post, error)
 	FindRecent(limit int) ([]*Post, error)
 	AssociateTags(post *Post, tags []string) error

@@ -52,7 +52,7 @@ func getValidPassword(prompt string) string {
 		password = string(passwordBytes)
 		fmt.Println() // Add newline after password input
 
-		if err := ValidatePassword(password); err != nil {
+		if err := utils.ValidatePassword(password); err != nil {
 			fmt.Printf("Error: %v. Please try again.\n", err)
 			continue
 		}
@@ -78,9 +78,9 @@ func CreateUser(cmd *cobra.Command, args []string) {
 
 	repos := repository.NewRepositories(database)
 
-	firstName := getValidInput("First Name: ", ValidateFirstName)
-	lastName := getValidInput("Last Name: ", ValidateLastName)
-	email := getValidInput("Email: ", ValidateEmail)
+	firstName := getValidInput("First Name: ", utils.ValidateFirstName)
+	lastName := getValidInput("Last Name: ", utils.ValidateLastName)
+	email := getValidInput("Email: ", utils.ValidateEmail)
 	password := getValidPassword("Password: ")
 
 	hashedPassword, err := utils.HashPassword(password)
@@ -118,7 +118,7 @@ func UpdateUserPassword(cmd *cobra.Command, args []string) {
 
 	repos := repository.NewRepositories(database)
 
-	email := getValidInput("Email: ", ValidateEmail)
+	email := getValidInput("Email: ", utils.ValidateEmail)
 
 	if user, err = repos.Users.FindByEmail(email); err != nil {
 		log.Warn("User not found")

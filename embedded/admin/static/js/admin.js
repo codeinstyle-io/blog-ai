@@ -2,289 +2,80 @@ function deleteTag(id) {
     fetch(`/admin/tags/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deletePost(id) {
     fetch(`/admin/posts/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deletePage(id) {
     fetch(`/admin/pages/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteMenuItem(id) {
     fetch(`/admin/menus/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteMedia(id) {
     fetch(`/admin/media/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 function deleteUser(id) {
     fetch(`/admin/users/${id}`, {
         method: 'DELETE',
     }).then((response) => response.json())
-    .then((data) => {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-function initializeEditor() {
-    const editor = document.getElementById('content');
-    const preview = document.getElementById('preview-area');
-    const editBtn = document.getElementById('edit-mode');
-    const previewBtn = document.getElementById('preview-mode');
-
-    if (!editor) return;
-
-    // Configure marked options
-    marked.setOptions({
-        gfm: true,
-        breaks: true,
-        highlight: function(code) {
-            return code;
-        }
-    });
-
-    // Live preview
-    editor.addEventListener('input', () => {
-        preview.innerHTML = marked.parse(editor.value);
-    });
-
-    // Toggle preview mode
-    editBtn.addEventListener('click', () => {
-        editor.style.display = 'block';
-        preview.style.display = 'none';
-        editBtn.classList.add('active');
-        previewBtn.classList.remove('active');
-    });
-
-    previewBtn.addEventListener('click', () => {
-        editor.style.display = 'none';
-        preview.style.display = 'block';
-        editBtn.classList.remove('active');
-        previewBtn.classList.add('active');
-        preview.innerHTML = marked.parse(editor.value);
-    });
-}
-
-// static/js/admin.js - Update tag handling
-function initializeTags() {
-    const tagInput = document.getElementById('tag-input');
-    if (!tagInput) return;
-
-    const tagSuggestions = document.getElementById('tag-suggestions');
-    const selectedTags = document.getElementById('selected-tags');
-    const tagsHidden = document.getElementById('tags-hidden');
-    let existingTags = [];
-    let selectedTagsList = [];
-
-    // Initialize selected tags if editing
-    const initialValue = tagsHidden.value.trim();
-    if (initialValue) {
-        selectedTagsList = initialValue.split(',');
-        updateTags();
-    }
-
-    // Fetch existing tags
-    fetch('/admin/api/tags')
-        .then(res => res.json())
-        .then(tags => {
-            existingTags = tags;
-        });
-
-    tagInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const value = tagInput.value.trim();
-            if (value) {
-                addTag(value);
+        .then((data) => {
+            if (data.redirect) {
+                window.location.href = data.redirect;
             }
-        }
-    });
-
-    tagInput.addEventListener('input', () => {
-        const value = tagInput.value.toLowerCase();
-        if (value.length < 2) {
-            tagSuggestions.style.display = 'none';
-            return;
-        }
-
-        const matches = existingTags.filter(tag =>
-            tag.name.toLowerCase().includes(value)
-        );
-
-        tagSuggestions.innerHTML = matches
-            .map(tag => `<div class="tag-suggestion">${tag.name}</div>`)
-            .join('');
-        tagSuggestions.style.display = matches.length ? 'block' : 'none';
-    });
-
-    tagSuggestions.addEventListener('click', (e) => {
-        if (e.target.classList.contains('tag-suggestion')) {
-            addTag(e.target.textContent);
-        }
-    });
-
-    function addTag(name) {
-        if (!selectedTagsList.includes(name)) {
-            selectedTagsList.push(name);
-            updateTags();
-        }
-        tagInput.value = '';
-        tagSuggestions.style.display = 'none';
-    }
-
-    function updateTags() {
-        selectedTags.innerHTML = selectedTagsList
-            .map(tag => `
-                <span class="selected-tag">
-                    ${tag}
-                    <span class="remove-tag" data-tag="${tag}">&times;</span>
-                </span>
-            `).join('');
-        tagsHidden.value = selectedTagsList.join(',');
-    }
-
-    selectedTags.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-tag')) {
-            const tag = e.target.dataset.tag;
-            selectedTagsList = selectedTagsList.filter(t => t !== tag);
-            updateTags();
-        }
-    });
-}
-
-// Unified slug generation function
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-// Initialize slug handling for both create and edit forms
-function initializeSlugHandling() {
-    const titleInput = document.getElementById('title');
-    const slugInput = document.getElementById('slug');
-    const form = document.querySelector('form');
-
-    if (!titleInput || !slugInput || !form) return;
-
-    const isEditForm = form.id === 'edit-post-form' || form.id === 'edit-page-form';
-    const originalSlug = slugInput.value;
-
-    // Auto-generate slug from title only in create forms
-    if (!isEditForm) {
-        titleInput.addEventListener('input', () => {
-            slugInput.value = generateSlug(titleInput.value);
+        }).catch(error => {
+            console.error('Error:', error);
         });
-    }
-
-    // Show warning when slug is modified in edit forms
-    if (isEditForm) {
-        slugInput.addEventListener('input', () => {
-            const warning = document.getElementById('slug-warning');
-            const hasChanged = slugInput.value !== originalSlug;
-
-            if (hasChanged) {
-                if (!warning) {
-                    const warningDiv = document.createElement('div');
-                    warningDiv.id = 'slug-warning';
-                    warningDiv.className = 'warning-message';
-                    warningDiv.textContent = 'Warning: Changing the slug will break existing links to this content';
-                    slugInput.parentNode.appendChild(warningDiv);
-                }
-            } else if (warning) {
-                warning.remove();
-            }
-        });
-    }
-
-    // Validate slug format for both forms
-    slugInput.addEventListener('input', () => {
-        const isValidSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugInput.value);
-        if (!isValidSlug && slugInput.value) {
-            slugInput.setCustomValidity('Slug can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.');
-        } else {
-            slugInput.setCustomValidity('');
-        }
-    });
 }
 
-function initializePublishDateToggle() {
-    const publishType = document.getElementById('publishType');
-    const publishDateGroup = document.getElementById('publishDateGroup');
-    const publishedAtInput = document.getElementById('publishedAt');
-
-    if (!publishType || !publishDateGroup || !publishedAtInput) return;
-
-    function updatePublishDate() {
-        if (publishType.value === 'immediately') {
-            publishDateGroup.style.display = 'none';
-            publishedAtInput.removeAttribute('required');
-        } else {
-            publishDateGroup.style.display = 'block';
-            publishedAtInput.setAttribute('required', 'required');
-        }
-    }
-
-    publishType.addEventListener('change', updatePublishDate);
-
-    // Initial state
-    if (publishedAtInput.value) {
-        publishType.value = 'scheduled';
-    }
-    updatePublishDate();
-}
 
 function initializeMenuItemForm() {
     const pageSelect = document.getElementById('page_id');
@@ -305,7 +96,7 @@ function initializeMenuItemForm() {
         }
     }
 
-    pageSelect.addEventListener('change', function() {
+    pageSelect.addEventListener('change', function () {
         const pageId = this.value;
         const selectedOption = this.options[this.selectedIndex];
 
@@ -322,14 +113,14 @@ function initializeMenuItemForm() {
     });
 
     // Clear page selection when URL is manually edited
-    urlInput.addEventListener('input', function() {
+    urlInput.addEventListener('input', function () {
         if (this.value !== this.defaultValue) {
             pageSelect.value = '';
             this.readOnly = false;
         }
     });
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
         // Validate form
         if (!labelInput.value.trim()) {
             e.preventDefault();
@@ -353,21 +144,21 @@ function initializeMenuItems() {
     const deleteMenuButtons = document.querySelectorAll('.delete-menu-item');
 
     moveUpButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             moveItem(id, 'up');
         });
     });
 
     moveDownButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             moveItem(id, 'down');
         });
     });
 
     deleteMenuButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const id = this.getAttribute('data-id');
             deleteMenuItem(id);
         });
@@ -423,7 +214,7 @@ function initializeMenuToggle() {
     }
 }
 
-!(function(win, doc) {
+!(function (win, doc) {
     function openMediaModal(cb) {
         doc.getElementById('mediaModal').style.display = 'block';
         loadMediaItems(cb);
@@ -438,7 +229,7 @@ function initializeMenuToggle() {
             .then(response => response.json())
             .then(items => {
                 mediaItems = items;
-                const grid =    doc.getElementById('mediaGrid');
+                const grid = doc.getElementById('mediaGrid');
                 grid.innerHTML = '';
 
                 items.forEach(item => {
@@ -502,7 +293,7 @@ function initializeMenuToggle() {
     win.insertMedia = insertMedia;
 
     // Close modal when clicking outside
-    win.onclick = function(event) {
+    win.onclick = function (event) {
         const modal = doc.getElementById('mediaModal');
         if (event.target == modal) {
             closeMediaModal();
@@ -531,12 +322,93 @@ function openLogoMediaSelector() {
     });
 }
 
+(function () {
+
+    document.querySelectorAll('[x-dynamic-date]').forEach((element) => {
+        const datetime = element.getAttribute('x-dynamic-date');
+        const timezone = element.getAttribute('x-dynamic-date-timezone');
+
+        // TODO: Localize
+        const date = new Date(datetime).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        element.innerHTML = date;
+    });
+
+    Inity.register('posts', Apps.Posts, {
+        onSubmit: async (data, done, error, props) => {
+            let method = 'POST';
+            let url = '/admin/api/posts';
+
+            if (props.id) {
+                method = 'PUT';
+                url = url + '/' + props.id;
+            }
+            done('saving');
+
+            const resp = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+            const json = await resp.json();
+
+            if (resp.ok) {
+                if (json.redirect) {
+                    done('saved');
+                    window.location.href = json.redirect;
+                }
+            } else {
+                error(json.error);
+                document.querySelector('.editor-container').scrollIntoView()
+            }
+        }
+    });
+
+    Inity.register('pages', Apps.Pages, {
+        onSubmit: async (data, done, error, props) => {
+            let method = 'POST';
+            let url = '/admin/api/pages';
+
+            if (props.id) {
+                method = 'PUT';
+                url = url + '/' + props.id;
+            }
+            done('saving');
+
+            const resp = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (resp.ok) {
+                const json = await resp.json();
+                if (json.redirect) {
+                    done('saved');
+                    window.location.href = json.redirect;
+                }
+            } else {
+                error(json.error);
+                document.querySelector('.editor-container').scrollIntoView()
+            }
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => Inity.attach());
+})();
+
 // Initialize on DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
-    initializeEditor();
-    initializeTags();
-    initializeSlugHandling();
-    initializePublishDateToggle();
     initializeMenuItemForm();
     initializeMenuItems();
     initializeMenuToggle();

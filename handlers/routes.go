@@ -68,18 +68,14 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 	// Posts
 	admin.Get("/posts", adminHandlers.ListPosts)
 	admin.Get("/posts/create", adminHandlers.ShowCreatePost)
-	admin.Post("/posts/create", adminHandlers.CreatePost)
-	admin.Get("/posts/:id/edit", adminHandlers.EditPost)
-	admin.Post("/posts/:id", adminHandlers.UpdatePost)
+	admin.Get("/posts/:id/edit", adminHandlers.ShowEditPost)
 	admin.Get("/posts/:id/delete", adminHandlers.ConfirmDeletePost)
 	admin.Delete("/posts/:id", adminHandlers.DeletePost)
 
 	// Pages
 	admin.Get("/pages", adminHandlers.ListPages)
 	admin.Get("/pages/create", adminHandlers.ShowCreatePage)
-	admin.Post("/pages/create", adminHandlers.CreatePage)
 	admin.Get("/pages/:id/edit", adminHandlers.EditPage)
-	admin.Post("/pages/:id", adminHandlers.UpdatePage)
 	admin.Get("/pages/:id/delete", adminHandlers.ConfirmDeletePage)
 	admin.Delete("/pages/:id", adminHandlers.DeletePage)
 
@@ -127,8 +123,16 @@ func RegisterAdminRoutes(repos *repository.Repositories, storage storage.Provide
 
 	// API routes
 	api := admin.Group("/api")
-	api.Get("/tags", adminHandlers.GetTags)
-	api.Get("/media", adminMediaHandlers.GetMediaList)
+	api.Get("/tags", adminHandlers.ApiGetTags)
+	api.Get("/media", adminMediaHandlers.ApiGetMediaList)
+
+	// Posts API routes
+	api.Post("/posts", adminHandlers.ApiCreatePost)
+	api.Put("/posts/:id", adminHandlers.ApiUpdatePost)
+
+	// Pages API routes
+	api.Post("/pages", adminHandlers.ApiCreatePage)
+	api.Put("/pages/:id", adminHandlers.ApiUpdatePage)
 
 	return app
 }

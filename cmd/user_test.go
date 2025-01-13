@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 	"testing"
+
+	"github.com/captain-corp/captain/utils"
 )
 
 func TestGetValidInput(t *testing.T) {
@@ -19,19 +21,19 @@ func TestGetValidInput(t *testing.T) {
 		{
 			name:      "Valid input first try",
 			inputs:    []string{"test\n"},
-			validator: ValidateFirstName,
+			validator: utils.ValidateFirstName,
 			want:      "test",
 		},
 		{
 			name:      "Valid input after invalid",
 			inputs:    []string{"123\n", "test\n"},
-			validator: ValidateFirstName,
+			validator: utils.ValidateFirstName,
 			want:      "test",
 		},
 		{
 			name:      "Valid email",
 			inputs:    []string{"test@example.com\n"},
-			validator: ValidateEmail,
+			validator: utils.ValidateEmail,
 			want:      "test@example.com",
 		},
 	}

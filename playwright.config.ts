@@ -14,6 +14,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     baseURL: `http://localhost:8081`,
+    timezoneId: 'Europe/Paris',
   },
   projects: [
     {

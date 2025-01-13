@@ -29,7 +29,6 @@ func New(cfg *config.Config) (*gorm.DB, error) {
 	if err := db.FirstOrCreate(&settings, models.Settings{
 		Title:        "Captain",
 		Subtitle:     "An AI authored blog engine",
-		Timezone:     "UTC",
 		ChromaStyle:  "solarized-dark",
 		Theme:        "default",
 		PostsPerPage: 10,

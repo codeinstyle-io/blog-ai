@@ -38,7 +38,9 @@
                     {{range .recentPosts}}
                     <tr>
                         <td>{{.Title}}</td>
-                        <td>{{.PublishedAt.Format "2006-01-02 15:04"}}</td>
+                        <td x-dynamic-date="{{.PublishedAtUTC}}" x-dynamic-date-timezone="{{.PublishedAtTimeZoneOffset}}">
+                            {{.PublishedAt.Format "2006-01-02 15:04"}}
+                        </td>
                         <td>
                             <a href="/admin/posts/{{.ID}}/edit" class="btn btn-edit">Edit</a>
                         </td>

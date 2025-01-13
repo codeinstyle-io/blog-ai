@@ -38,7 +38,6 @@ func NewPublicHandlers(repos *repository.Repositories, cfg *config.Config) *Publ
 
 func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 	slug := c.Params("slug")
-	settings := c.Locals("settings").(*models.Settings)
 
 	post, err := h.repos.Posts.FindBySlug(slug)
 	if err != nil {
@@ -47,13 +46,6 @@ func (h *PublicHandlers) GetPostBySlug(c *fiber.Ctx) error {
 
 	// Render markdown content
 	post.Content = renderMarkdown(post.Content)
-
-	// Convert UTC time to configured timezone for display
-	loc, err := time.LoadLocation(settings.Timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	post.PublishedAt = post.PublishedAt.In(loc)
 
 	return c.Render("post", fiber.Map{
 		"title": post.Title,
@@ -80,7 +72,7 @@ func (h *PublicHandlers) ListPosts(c *fiber.Ctx) error {
 		posts, total, err = h.repos.Posts.FindAllPaginated(page, settings.PostsPerPage)
 	} else {
 		// Anonymous users can only see visible posts
-		posts, total, err = h.repos.Posts.FindVisiblePaginated(page, settings.PostsPerPage, settings.Timezone)
+		posts, total, err = h.repos.Posts.FindVisiblePaginated(page, settings.PostsPerPage)
 	}
 
 	if err != nil {
@@ -130,7 +122,7 @@ func (h *PublicHandlers) ListPostsByTag(c *fiber.Ctx) error {
 		posts, total, err = h.repos.Posts.FindAllByTag(tag.ID, page, settings.PostsPerPage)
 	} else {
 		// Anonymous users can only see visible posts with tag
-		posts, total, err = h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage, settings.Timezone)
+		posts, total, err = h.repos.Posts.FindVisibleByTag(tag.ID, page, settings.PostsPerPage)
 	}
 
 	if err != nil {
