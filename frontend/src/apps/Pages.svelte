@@ -5,6 +5,7 @@
   import { type Pages } from '../utils/types/pages';
   import { slugify } from '../utils/text';
   import SubmitButton from '../lib/SubmitButton.svelte';
+  import Editor from '../lib/Editor.svelte';
 
   let protectedSlug = $state(false);
   let protectedSlugViolation = $state(false);
@@ -101,7 +102,7 @@
     <!-- Content -->
     <div>
       <Label for="content" class="block text-sm font-bold text-gray-700 mb-2">Content</Label>
-      <Textarea id="content" name="content" bind:value={content} rows={10}></Textarea>
+      <Editor name="content" bind:value={content} rows={10} />
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
