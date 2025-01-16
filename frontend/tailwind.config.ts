@@ -6,6 +6,7 @@ export default {
   content: [
     "./src/**/*.{html,js,svelte,ts}",
     "./node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}",
+    "../embedded/admin/templates/**/*.{tmpl,js}",
   ],
   darkMode: "class",
   theme: {

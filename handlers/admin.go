@@ -33,6 +33,14 @@ func (h *AdminHandlers) Index(c *fiber.Ctx) error {
 	}
 	postCount := int64(len(posts))
 
+	pages, err := h.repos.Pages.FindAll()
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
+			"error": err.Error(),
+		})
+	}
+	pageCount := int64(len(pages))
+
 	tags, err := h.repos.Tags.FindAll()
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).Render("admin_500", fiber.Map{
@@ -60,6 +68,7 @@ func (h *AdminHandlers) Index(c *fiber.Ctx) error {
 	data := fiber.Map{
 		"title":       "Dashboard",
 		"postCount":   postCount,
+		"pageCount":   pageCount,
 		"tagCount":    tagCount,
 		"userCount":   userCount,
 		"recentPosts": recentPosts,

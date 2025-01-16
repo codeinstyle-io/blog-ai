@@ -1,56 +1,106 @@
 {{ template "admin_header" . }}
-<div class="admin-page">
-    <h1>Dashboard</h1>
-    
-    <div class="dashboard-stats">
-        <div class="stat-card">
-            <h3>Posts</h3>
-            <div class="stat-number">{{.postCount}}</div>
-            <a href="/admin/posts" class="btn btn-primary">Manage Posts</a>
+<div>
+    <h1 class="text-4xl text-bold mb-4">Dashboard</h1>
+
+    <div class="grid grid-cols-1 gap-8 p-4 lg:grid-cols-2 xl:grid-cols-4">
+        <!-- Posts card -->
+        <div class="flex items-center justify-between p-4 bg-white rounded-md dark:bg-darker border border-gray-200 dark:border-primary-dark">
+            <div>
+                <h6 class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light">
+                    Posts
+                </h6>
+                <span class="text-xl font-semibold">{{ .postCount }}</span>
+            </div>
+            <div>
+                <span>
+                    <svg class="w-12 h-12 text-gray-300 dark:text-primary-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                </span>
+            </div>
         </div>
-        
-        <div class="stat-card">
-            <h3>Tags</h3>
-            <div class="stat-number">{{.tagCount}}</div>
-            <a href="/admin/tags" class="btn btn-primary">Manage Tags</a>
+
+        <!-- Pages card -->
+        <div class="flex items-center justify-between p-4 bg-white rounded-md dark:bg-darker border border-gray-200 dark:border-primary-dark">
+            <div>
+                <h6 class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light">
+                    Pages
+                </h6>
+                <span class="text-xl font-semibold">{{ .pagesCount }}</span>
+            </div>
+            <div>
+                <span>
+                    <svg class="w-12 h-12 text-gray-300 dark:text-primary-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                </span>
+            </div>
         </div>
-        
-        <div class="stat-card">
-            <h3>Users</h3>
-            <div class="stat-number">{{.userCount}}</div>
-            <a href="/admin/users" class="btn btn-primary">Manage Users</a>
+
+        <!-- Users card -->
+        <div class="flex items-center justify-between p-4 bg-white rounded-md dark:bg-darker border border-gray-200 dark:border-primary-dark">
+            <div>
+                <h6 class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light">
+                    Users
+                </h6>
+                <span class="text-xl font-semibold">{{ .userCount }}</span>
+            </div>
+            <div>
+                <span>
+                    <svg class="w-12 h-12 text-gray-300 dark:text-primary-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </span>
+            </div>
+        </div>
+
+        <!-- Tags card -->
+        <div class="flex items-center justify-between p-4 bg-white rounded-md dark:bg-darker border border-gray-200 dark:border-primary-dark">
+            <div>
+                <h6 class="text-xs font-medium leading-none tracking-wider text-gray-500 uppercase dark:text-primary-light">
+                    Tags
+                </h6>
+                <span class="text-xl font-semibold">{{ .tagCount }}</span>
+            </div>
+            <div>
+                <span>
+                    <svg class="w-12 h-12 text-gray-300 dark:text-primary-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                    </svg>
+                </span>
+            </div>
         </div>
     </div>
-
-    <div class="recent-activity">
-        <h2>Recent Posts</h2>
+    <div>
+        <h2 class="text-2xl mb-4">Recent Posts</h2>
         {{if .recentPosts}}
-        <div class="table-container">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Published</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{range .recentPosts}}
-                    <tr>
-                        <td>{{.Title}}</td>
-                        <td x-dynamic-date="{{.PublishedAtUTC}}" x-dynamic-date-timezone="{{.PublishedAtTimeZoneOffset}}">
-                            {{.PublishedAt.Format "2006-01-02 15:04"}}
-                        </td>
-                        <td>
-                            <a href="/admin/posts/{{.ID}}/edit" class="btn btn-edit">Edit</a>
-                        </td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
-        </div>
+
+        <div class="relative overflow-x-auto">
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Title</th>
+                    <th scope="col" class="px-6 py-3">Published</th>
+                    <th scope="col" class="px-6 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .recentPosts}}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                    <td class="px-6 py-4">{{.Title}}</td>
+                    <td x-dynamic-date="{{.PublishedAtUTC}}" x-dynamic-date-timezone="{{.PublishedAtTimeZoneOffset}}" class="px-6 py-4">
+                        {{.PublishedAt.Format "2006-01-02 15:04"}}
+                    </td>
+                    <td class="px-6 py-4">
+                        <a href="/admin/posts/{{.ID}}/edit" class="btn btn-edit">Edit</a>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
         {{else}}
-        <div class="empty-state">
+        <div>
             <p>You haven't created any posts yet. Start your blogging journey by creating your first post!</p>
             <a href="/admin/posts/create" class="btn btn-primary">Create Your First Post</a>
         </div>
